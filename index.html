@@ -1542,16 +1542,16 @@
 const _memStore = {};
 const safeStorage = {
   getItem(key) {
-    try { return safeStorage.getItem(key); }
+    try { return localStorage.getItem(key); }
     catch(e) { return _memStore[key] !== undefined ? _memStore[key] : null; }
   },
   setItem(key, val) {
-    try { safeStorage.setItem(key, val); }
+    try { localStorage.setItem(key, val); }
     catch(e) {}
     _memStore[key] = val;
   },
   removeItem(key) {
-    try { safeStorage.removeItem(key); }
+    try { localStorage.removeItem(key); }
     catch(e) {}
     delete _memStore[key];
   }
