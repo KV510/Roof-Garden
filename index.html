@@ -164,22 +164,38 @@
   }
   .section-head p { font-size: 16px; color: var(--text-light); max-width: 500px; margin: 0 auto; }
 
-  /* SERVICES */
+  /* SERVICES – horizontal auto-sliding carousel */
   .services-bg { background: var(--green-mist); }
-  .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
+  .services-carousel-wrap { position: relative; overflow: hidden; padding: 0; }
+  .services-track { display: flex; gap: 24px; transition: transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94); will-change: transform; }
   .service-card {
     background: white; border-radius: var(--radius); padding: 32px 26px;
     box-shadow: var(--shadow-card); border: 1.5px solid var(--green-pale);
-    transition: all 0.3s; position: relative; overflow: hidden;
+    transition: box-shadow 0.3s; position: relative; overflow: hidden;
+    flex: 0 0 100%; box-sizing: border-box;
   }
   .service-card::before {
     content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
     background: linear-gradient(90deg, var(--green-light), var(--green-mid));
   }
-  .service-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(45,106,79,0.18); }
+  .service-card:hover { box-shadow: 0 12px 40px rgba(45,106,79,0.18); }
   .service-icon { font-size: 40px; margin-bottom: 16px; }
   .service-card h3 { font-size: 20px; color: var(--green-deep); margin-bottom: 10px; font-weight: 600; }
   .service-card p { font-size: 14px; color: var(--text-light); line-height: 1.7; }
+  /* shared carousel styles */
+  .carousel-dots { display: flex; justify-content: center; gap: 8px; margin-top: 24px; }
+  .carousel-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green-pale); border: none; cursor: pointer; padding: 0; transition: background 0.3s; }
+  .carousel-dot.active { background: var(--green-mid); }
+  .carousel-arrow {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    background: white; border: 1.5px solid var(--green-pale); border-radius: 50%;
+    width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 22px; color: var(--green-deep); z-index: 10;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.12); transition: background 0.2s; line-height: 1;
+  }
+  .carousel-arrow:hover { background: var(--green-pale); }
+  .carousel-arrow.prev { left: 4px; }
+  .carousel-arrow.next { right: 4px; }
 
   /* GRID CATALOG */
   .catalog-grid {
@@ -217,25 +233,49 @@
   .btn-del-sm { background: rgba(255,80,80,0.85); color: white; }
   .btn-edit-sm:hover { background: var(--green-mid); color: white; }
   .add-card {
-    background: var(--green-mist); border: 2px dashed var(--green-light);
+    background: white; border: 2px dashed var(--green-light);
     border-radius: var(--radius); display: flex; flex-direction: column;
     align-items: center; justify-content: center; min-height: 196px;
-    cursor: pointer; transition: all 0.2s; gap: 8px;
-    color: var(--green-mid); font-size: 14px; font-weight: 500;
+    cursor: pointer; transition: all 0.3s; gap: 0;
+    color: var(--green-mid); font-size: 14px; font-weight: 600;
+    box-shadow: var(--shadow-card);
+    overflow: hidden; position: relative;
   }
-  .add-card:hover { background: var(--green-pale); border-color: var(--green-mid); }
-  .add-icon { font-size: 32px; }
+  .add-card:hover { background: var(--green-pale); border-color: var(--green-mid); transform: translateY(-4px); box-shadow: 0 12px 32px rgba(45,106,79,0.18); }
+  .add-card-img {
+    width: 100%; height: 150px; background: var(--green-mist);
+    display: flex; align-items: center; justify-content: center;
+    border-bottom: 1.5px dashed var(--green-light);
+    transition: background 0.2s;
+  }
+  .add-card:hover .add-card-img { background: var(--green-pale); }
+  .add-icon {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--green-deep), var(--green-mid));
+    color: white; font-size: 28px; font-style: normal;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 16px rgba(45,106,79,0.35);
+    transition: transform 0.2s;
+  }
+  .add-card:hover .add-icon { transform: scale(1.12) rotate(90deg); }
+  .add-card-label {
+    padding: 12px 14px 14px; font-size: 14px; font-weight: 600;
+    color: var(--green-deep); text-align: center;
+  }
 
   /* PACKAGES */
   .packages-bg { background: linear-gradient(160deg, var(--green-deep) 0%, #1a4731 100%); }
   .packages-bg .section-tag { background: rgba(255,255,255,0.15); color: #a8edbe; }
   .packages-bg .section-head h2 { color: white; }
   .packages-bg .section-head p { color: rgba(255,255,255,0.65); }
-  .packages-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+  .packages-carousel-wrap { position: relative; overflow: hidden; padding: 0; }
+  .packages-track { display: flex; gap: 24px; transition: transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94); will-change: transform; }
+  .packages-grid { display: flex; }
   .pkg-card {
     background: rgba(255,255,255,0.07); border: 1.5px solid rgba(255,255,255,0.15);
     border-radius: var(--radius); padding: 36px 28px; text-align: center;
     transition: all 0.3s; position: relative; overflow: hidden;
+    flex: 0 0 100%; box-sizing: border-box;
   }
   .pkg-card.featured {
     background: white; border-color: var(--green-light);
@@ -755,14 +795,17 @@
 
   /* ===== GALLERY ===== */
   .gallery-section { background: white; }
-  .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+  .gallery-carousel-wrap { position: relative; overflow: hidden; padding: 0; }
+  .gallery-track { display: flex; gap: 20px; transition: transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94); will-change: transform; align-items: stretch; }
+  .gallery-grid { display: flex; }
   .gallery-card {
     border-radius: var(--radius); overflow: hidden; position: relative;
     box-shadow: var(--shadow-card); border: 1.5px solid var(--green-pale);
     transition: all 0.3s; cursor: pointer; background: var(--green-mist);
+    flex: 0 0 320px; width: 320px; box-sizing: border-box;
   }
   .gallery-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(45,106,79,0.18); }
-  .gallery-img-wrap { width: 100%; height: 200px; overflow: hidden; position: relative; background: var(--green-mist); display: flex; align-items: center; justify-content: center; }
+  .gallery-img-wrap { width: 100%; height: 210px; overflow: hidden; position: relative; background: var(--green-mist); display: flex; align-items: center; justify-content: center; }
   .gallery-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
   .gallery-img-wrap video { width: 100%; height: 100%; object-fit: cover; }
   .gallery-video-badge { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.65); color: white; border-radius: 6px; padding: 3px 10px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
@@ -887,7 +930,7 @@
       <h2>Our Services</h2>
       <p>End-to-end terrace garden solutions for homes and offices across Coimbatore</p>
     </div>
-    <div class="services-grid">
+    <div class="services-carousel-wrap" id="servicesCarousel"><div class="services-track" id="servicesTrack">
       <div class="service-card fade-in">
         <div class="service-icon">🏠</div>
         <h3>Terrace Garden Setup</h3>
@@ -908,7 +951,8 @@
         <h3>Regular Maintenance</h3>
         <p>Scheduled care visits, pruning, fertilising, pest control and plant replacement under our maintenance packages.</p>
       </div>
-    </div>
+    </div></div>
+    <div class="carousel-dots" id="svcDots"></div>
   </div>
 </section>
 
@@ -969,7 +1013,12 @@
       <h2 style="color:white;">Maintenance Packages</h2>
       <p style="color:rgba(255,255,255,0.65);">Choose a plan that fits your garden and budget</p>
     </div>
-    <div class="packages-grid" id="packagesGrid"></div>
+    <div class="packages-carousel-wrap" id="pkgCarouselWrap">
+      <div class="packages-track" id="packagesTrack">
+        <div class="packages-grid" id="packagesGrid" style="display:contents;"></div>
+      </div>
+    </div>
+    <div class="carousel-dots" id="pkgDots"></div>
   </div>
 </section>
 
@@ -982,12 +1031,13 @@
       <p>Real terrace gardens we've created across Coimbatore</p>
     </div>
     <div id="galleryHint" style="display:none;" class="editable-hint"><span>✏️ Admin – hover any card to edit/delete | click ➕ to add</span></div>
-    <div class="gallery-grid" id="galleryGrid"></div>
+    <div class="gallery-carousel-wrap" id="galleryCarousel"><div class="gallery-track" id="galleryTrack"><div class="gallery-grid" id="galleryGrid" style="display:contents;"></div></div></div>
+    <div class="carousel-dots" id="galDots"></div>
   </div>
 </section>
 
 <!-- VISIT BOOKING -->
-<section class="visit-booking-section" id="visit-booking">
+<section class="visit-booking-section" id="visit-booking" style="display:none;">
   <div class="section-inner">
     <div class="section-head fade-in">
       <div class="section-tag">Customer Care</div>
@@ -1097,7 +1147,7 @@
           </div>
         </div>
       </div>
-      <div class="contact-form fade-in">
+      <div class="contact-form fade-in" id="enquiryFormWrap">
         <h3>Send an Enquiry</h3>
         <div class="form-group">
           <label>Your Name</label>
@@ -1536,57 +1586,69 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ===================== SAFE STORAGE (works on file://, http://, and iframes) =====================
-// Chrome blocks localStorage on file:// — this wrapper falls back to in-memory storage
+// ===================== SUPABASE CONFIG =====================
+// 🔧 REPLACE these two values with your own Supabase project details
+const SUPABASE_URL = 'https://yylqyszcuaxybnfhodhl.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5bHF5c3pjdWF4eWJuZmhvZGhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NjAyOTEsImV4cCI6MjA5MzEzNjI5MX0.oNOSItX2RsQ3r8RULENucpT6M-ivnFN8RCBituo2Qmc';
+
+const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ===================== SUPABASE HELPERS =====================
+// Generic async wrappers used throughout the app
+
+async function sbGet(table) {
+  const { data, error } = await _supabase.from(table).select('*');
+  if (error) { console.error('sbGet error:', table, error); return []; }
+  return data || [];
+}
+async function sbUpsert(table, row) {
+  const { error } = await _supabase.from(table).upsert(row, { onConflict: 'id' });
+  if (error) console.error('sbUpsert error:', table, error);
+}
+async function sbDelete(table, id) {
+  const { error } = await _supabase.from(table).delete().eq('id', id);
+  if (error) console.error('sbDelete error:', table, error);
+}
+async function sbGetSingle(table, keyCol, keyVal) {
+  const { data, error } = await _supabase.from(table).select('*').eq(keyCol, keyVal).maybeSingle();
+  if (error) { console.error('sbGetSingle error:', table, error); return null; }
+  return data;
+}
+
+// ===================== COMPAT: safeStorage kept for session only =====================
+// Session (role/user) is now managed by Supabase Auth.
+// We keep a tiny in-memory shim so old references to safeStorage don't crash.
 const _memStore = {};
 const safeStorage = {
-  getItem(key) {
-    try { return localStorage.getItem(key); }
-    catch(e) { return _memStore[key] !== undefined ? _memStore[key] : null; }
-  },
-  setItem(key, val) {
-    try { localStorage.setItem(key, val); }
-    catch(e) {}
-    _memStore[key] = val;
-  },
-  removeItem(key) {
-    try { localStorage.removeItem(key); }
-    catch(e) {}
-    delete _memStore[key];
-  }
+  getItem(key)      { return _memStore[key] !== undefined ? _memStore[key] : null; },
+  setItem(key, val) { _memStore[key] = val; },
+  removeItem(key)   { delete _memStore[key]; }
 };
 
 // ===================== DATA =====================
 
-// ===================== SESSION MANAGEMENT =====================
-const SESSION_KEY = 'gt_session';
-const INACTIVITY_DURATION = 10 * 60 * 1000; // 10 minutes inactivity
+// ===================== SESSION MANAGEMENT (Supabase Auth) =====================
+const INACTIVITY_DURATION = 10 * 60 * 1000; // 10 minutes
 let sessionTimer = null;
+let currentRole = null;
+let currentUser = null;
+let loginTab = 'signin'; // legacy compat
 
 function saveSession(role, user) {
-  const session = { role, user, lastActivity: Date.now() };
-  safeStorage.setItem(SESSION_KEY, JSON.stringify(session));
-}
-function loadSession() {
-  try {
-    const raw = safeStorage.getItem(SESSION_KEY);
-    if (!raw) return null;
-    const session = JSON.parse(raw);
-    if (Date.now() - session.lastActivity > INACTIVITY_DURATION) {
-      safeStorage.removeItem(SESSION_KEY);
-      return null;
-    }
-    return session;
-  } catch(e) { return null; }
+  // Supabase handles its own JWT session; we just keep runtime state here
+  currentRole = role;
+  currentUser = user;
 }
 function clearSession() {
-  safeStorage.removeItem(SESSION_KEY);
+  currentRole = null;
+  currentUser = null;
   if (sessionTimer) { clearTimeout(sessionTimer); sessionTimer = null; }
 }
 function _expireSession() {
-  currentRole = null; currentUser = null;
   clearSession();
+  _supabase.auth.signOut();
   updateNavActions(); renderAll();
   showToast('⏱️ Signed out due to inactivity. Please sign in again.');
 }
@@ -1595,49 +1657,26 @@ function startSessionTimer() {
   sessionTimer = setTimeout(_expireSession, INACTIVITY_DURATION);
 }
 function resetInactivityTimer() {
-  if (!currentRole) return; // Only track if logged in
-  // Update lastActivity in storage
-  try {
-    const raw = safeStorage.getItem(SESSION_KEY);
-    if (raw) {
-      const session = JSON.parse(raw);
-      session.lastActivity = Date.now();
-      safeStorage.setItem(SESSION_KEY, JSON.stringify(session));
-    }
-  } catch(e) {}
+  if (!currentRole) return;
   startSessionTimer();
 }
-
-// Listen to user activity events to reset inactivity timer
 ['mousemove','mousedown','keydown','touchstart','scroll','click'].forEach(evt => {
   document.addEventListener(evt, () => { if (currentRole) resetInactivityTimer(); }, { passive: true });
 });
 
-// Restore session on page load — also handles old 'loginTime' format
-function loadSessionCompat() {
-  try {
-    const raw = safeStorage.getItem(SESSION_KEY);
-    if (!raw) return null;
-    const session = JSON.parse(raw);
-    const lastActivity = session.lastActivity || session.loginTime || 0;
-    if (Date.now() - lastActivity > INACTIVITY_DURATION) {
-      safeStorage.removeItem(SESSION_KEY);
-      return null;
-    }
-    session.lastActivity = lastActivity; // normalise
-    return session;
-  } catch(e) { return null; }
-}
-const _restoredSession = loadSessionCompat();
-let currentRole = _restoredSession ? _restoredSession.role : null;
-let currentUser = _restoredSession ? _restoredSession.user : null;
-if (currentRole && _restoredSession) {
-  // Page refresh counts as activity — reset the clock
-  _restoredSession.lastActivity = Date.now();
-  safeStorage.setItem(SESSION_KEY, JSON.stringify(_restoredSession));
-  sessionTimer = setTimeout(_expireSession, INACTIVITY_DURATION);
-}
-let loginTab = 'signin'; // legacy compat
+// Restore Supabase session on page load
+(async () => {
+  const { data: { session } } = await _supabase.auth.getSession();
+  if (session) {
+    const meta = session.user.user_metadata || {};
+    currentRole = meta.role || 'user';
+    currentUser = meta.role ? null : { username: meta.username || session.user.email, whatsapp: meta.whatsapp || '', location: meta.location || '' };
+    startSessionTimer();
+  }
+  updateNavActions();
+  await loadAllData();
+  renderAll();
+})();
 
 const defaultPlants = [
   // FOOD PLANTS
@@ -1722,17 +1761,64 @@ const defaultContact = {
   whatsapp: '+91 98765 43210'
 };
 
-// Load from localStorage or defaults
-let plants = JSON.parse(safeStorage.getItem('gt_plants')) || defaultPlants;
-let materials = JSON.parse(safeStorage.getItem('gt_materials')) || defaultMaterials;
-let packages = JSON.parse(safeStorage.getItem('gt_packages')) || defaultPackages;
-let contactInfo = JSON.parse(safeStorage.getItem('gt_contact')) || defaultContact;
+const defaultGallery = [
+  { id: 1, title: 'Rooftop Organic Garden', desc: 'RS Puram, Coimbatore', mediaType: 'image', src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Rooftop_garden_of_Robson_Square.jpg/640px-Rooftop_garden_of_Robson_Square.jpg', price: 0, featured: true },
+  { id: 2, title: 'Balcony Herb Garden', desc: 'Saibaba Colony', mediaType: 'image', src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Balcony_garden.jpg/640px-Balcony_garden.jpg', price: 0, featured: false },
+  { id: 3, title: 'Vertical Garden Wall', desc: 'Peelamedu Office', mediaType: 'image', src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Vertical_garden_in_Paris.jpg/640px-Vertical_garden_in_Paris.jpg', price: 99, featured: false },
+  { id: 4, title: 'Full Terrace Setup', desc: 'Singanallur Villa', mediaType: 'image', src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/GardenCenter.jpg/640px-GardenCenter.jpg', price: 149, featured: true },
+];
 
-function save() {
-  safeStorage.setItem('gt_plants', JSON.stringify(plants));
-  safeStorage.setItem('gt_materials', JSON.stringify(materials));
-  safeStorage.setItem('gt_packages', JSON.stringify(packages));
-  safeStorage.setItem('gt_contact', JSON.stringify(contactInfo));
+// Runtime arrays — filled by loadAllData() from Supabase
+let plants = [];
+let materials = [];
+let packages = [];
+let contactInfo = { ...defaultContact };
+
+// Load all data from Supabase (or seed defaults on first run)
+async function loadAllData() {
+  // --- plants ---
+  let dbPlants = await sbGet('gt_plants');
+  if (!dbPlants.length) {
+    for (const p of defaultPlants) await sbUpsert('gt_plants', p);
+    dbPlants = defaultPlants;
+  }
+  plants = dbPlants;
+
+  // --- materials ---
+  let dbMats = await sbGet('gt_materials');
+  if (!dbMats.length) {
+    for (const m of defaultMaterials) await sbUpsert('gt_materials', m);
+    dbMats = defaultMaterials;
+  }
+  materials = dbMats;
+
+  // --- packages ---
+  let dbPkgs = await sbGet('gt_packages');
+  if (!dbPkgs.length) {
+    for (const pk of defaultPackages) await sbUpsert('gt_packages', pk);
+    dbPkgs = defaultPackages;
+  }
+  packages = dbPkgs;
+
+  // --- contact ---
+  const dbContact = await sbGetSingle('gt_settings', 'key', 'contact');
+  contactInfo = dbContact ? JSON.parse(dbContact.value) : defaultContact;
+
+  // --- gallery ---
+  let dbGallery = await sbGet('gt_gallery');
+  if (!dbGallery.length) {
+    for (const g of defaultGallery) await sbUpsert('gt_gallery', g);
+    dbGallery = defaultGallery;
+  }
+  gallery = dbGallery;
+}
+
+// save() now writes back to Supabase
+async function save() {
+  for (const p of plants) await sbUpsert('gt_plants', p);
+  for (const m of materials) await sbUpsert('gt_materials', m);
+  for (const pk of packages) await sbUpsert('gt_packages', pk);
+  await _supabase.from('gt_settings').upsert({ key: 'contact', value: JSON.stringify(contactInfo) }, { onConflict: 'key' });
 }
 
 // ===================== PLANT TAB STATE =====================
@@ -1830,7 +1916,13 @@ function renderPlantsGrid() {
   if (canEdit()) {
     const addBtn = document.createElement('div');
     addBtn.className = 'add-card';
-    addBtn.innerHTML = `<span class="add-icon">+</span><span>Add Plant</span>`;
+    addBtn.title = 'Add a new plant';
+    addBtn.innerHTML = `
+      <div class="add-card-img">
+        <span class="add-icon">＋</span>
+      </div>
+      <div class="add-card-label">Add Plant</div>
+    `;
     addBtn.onclick = () => openItemEdit('plant', null);
     grid.appendChild(addBtn);
   }
@@ -1868,7 +1960,13 @@ function renderMaterialsGrid() {
   if (canEdit()) {
     const addBtn = document.createElement('div');
     addBtn.className = 'add-card';
-    addBtn.innerHTML = `<span class="add-icon">+</span><span>Add Material</span>`;
+    addBtn.title = 'Add a new material';
+    addBtn.innerHTML = `
+      <div class="add-card-img">
+        <span class="add-icon">＋</span>
+      </div>
+      <div class="add-card-label">Add Material</div>
+    `;
     addBtn.onclick = () => openItemEdit('material', null);
     grid.appendChild(addBtn);
   }
@@ -1922,19 +2020,20 @@ function renderAll() {
   document.getElementById('galleryHint').style.display = (currentRole === 'admin') ? 'block' : 'none';
 }
 
-// ===================== AUTH =====================
-// Built-in admin/staff accounts (cannot be overwritten by registration)
+// ===================== AUTH (Supabase) =====================
+// Built-in admin/staff — stored in gt_settings as JSON
 const BUILTIN_CREDENTIALS = {
   admin: { username: 'admin', password: 'admin123', role: 'admin' },
   staff: { username: 'staff', password: 'staff123', role: 'staff' }
 };
 
-// Load registered users from localStorage
-function getRegisteredUsers() {
-  return JSON.parse(safeStorage.getItem('gt_users')) || [];
+// Registered users are Supabase Auth users; profile data in gt_user_profiles
+async function getRegisteredUsers() {
+  return await sbGet('gt_user_profiles');
 }
-function saveRegisteredUsers(users) {
-  safeStorage.setItem('gt_users', JSON.stringify(users));
+async function saveRegisteredUsers(users) {
+  // Individual profiles are saved on register; this is kept for admin list
+  for (const u of users) await sbUpsert('gt_user_profiles', u);
 }
 
 let authTab = 'signin'; // 'signin' | 'register'
@@ -1976,96 +2075,9 @@ function togglePwd(id, icon) {
   else { inp.type = 'password'; icon.textContent = '👁'; }
 }
 
-function doSignIn() {
-  const u = document.getElementById('siUser').value.trim();
-  const p = document.getElementById('siPass').value.trim();
-  const errEl = document.getElementById('siErr');
-  if (!u || !p) { errEl.textContent = '⚠️ Please enter username and password'; errEl.style.display = 'block'; return; }
-
-  // Check built-in admin/staff
-  for (const key of Object.keys(BUILTIN_CREDENTIALS)) {
-    const cred = BUILTIN_CREDENTIALS[key];
-    if (u === cred.username && p === cred.password) {
-      currentRole = cred.role;
-      saveSession(currentRole, null);
-      startSessionTimer();
-      closeLogin();
-      updateNavActions();
-      renderAll();
-      showToast(`✅ Signed in as ${cred.role === 'admin' ? 'Admin' : 'Staff'}`);
-      return;
-    }
-  }
-  // Check registered users
-  const users = getRegisteredUsers();
-  const found = users.find(usr => usr.username === u && usr.password === p);
-  if (found) {
-    currentRole = 'user';
-    currentUser = found;
-    saveSession(currentRole, currentUser);
-    startSessionTimer();
-    closeLogin();
-    updateNavActions();
-    renderAll();
-    showToast(`✅ Welcome back, ${found.username}!`);
-  } else {
-    errEl.textContent = '❌ Invalid username or password';
-    errEl.style.display = 'block';
-    setTimeout(() => errEl.style.display = 'none', 3000);
-  }
-}
-
-function doRegister() {
-  const username = document.getElementById('regUser').value.trim();
-  const whatsapp = document.getElementById('regWA').value.trim();
-  const location = document.getElementById('regLoc').value.trim();
-  const pass = document.getElementById('regPass').value;
-  const pass2 = document.getElementById('regPass2').value;
-  const errEl = document.getElementById('regErr');
-  const successEl = document.getElementById('regSuccess');
-  errEl.style.display = 'none';
-  successEl.style.display = 'none';
-
-  // Validate
-  if (!username || !whatsapp || !location || !pass || !pass2) {
-    errEl.textContent = '⚠️ All fields are required'; errEl.style.display = 'block'; return;
-  }
-  if (username.length < 3) {
-    errEl.textContent = '⚠️ Username must be at least 3 characters'; errEl.style.display = 'block'; return;
-  }
-  if (!/^[\+]?[\d\s\-]{8,15}$/.test(whatsapp)) {
-    errEl.textContent = '⚠️ Please enter a valid WhatsApp number'; errEl.style.display = 'block'; return;
-  }
-  if (pass.length < 6) {
-    errEl.textContent = '⚠️ Password must be at least 6 characters'; errEl.style.display = 'block'; return;
-  }
-  if (pass !== pass2) {
-    errEl.textContent = '❌ Passwords do not match'; errEl.style.display = 'block'; return;
-  }
-  // Check if username taken (built-in or registered)
-  const reserved = Object.values(BUILTIN_CREDENTIALS).map(c => c.username);
-  if (reserved.includes(username.toLowerCase())) {
-    errEl.textContent = '❌ This username is not available'; errEl.style.display = 'block'; return;
-  }
-  const users = getRegisteredUsers();
-  if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
-    errEl.textContent = '❌ Username already taken. Choose another.'; errEl.style.display = 'block'; return;
-  }
-  // Save new user
-  const newUser = { username, whatsapp, location, password: pass, registeredAt: new Date().toISOString() };
-  users.push(newUser);
-  saveRegisteredUsers(users);
-  successEl.style.display = 'block';
-  // Auto-fill sign-in form and switch
-  setTimeout(() => {
-    switchAuthTab('signin');
-    document.getElementById('siUser').value = username;
-    document.getElementById('siPass').value = '';
-    document.getElementById('siPass').focus();
-    showToast('🎉 Account created! Please sign in.');
-  }, 1500);
-}
-
+// doSignIn / doRegister / doLogout are defined below (Supabase versions override these stubs)
+function doSignIn() { /* overridden below */ }
+function doRegister() { /* overridden below */ }
 // Legacy login alias
 function doLogin() { doSignIn(); }
 
@@ -2122,6 +2134,14 @@ function updateNavActions() {
   el.innerHTML = desktopHtml;
   if (mobileEl) mobileEl.innerHTML = mobileHtml;
   updateCartBadge();
+
+  // ---- visibility: Send an Enquiry (guests only) / Customer Care (logged-in only) ----
+  const visitSection  = document.getElementById('visit-booking');
+  const enquiryWrap   = document.getElementById('enquiryFormWrap');
+  const isLoggedIn    = !!currentRole;
+
+  if (visitSection)  visitSection.style.display  = isLoggedIn ? ''      : 'none';
+  if (enquiryWrap)   enquiryWrap.style.display    = isLoggedIn ? 'none'  : '';
 }
 
 // ===================== MOBILE NAV =====================
@@ -2238,41 +2258,46 @@ function previewEmoji(val) {
   }
 }
 
-function saveItem() {
+async function saveItem() {
   const name = document.getElementById('itemName').value.trim();
   if (!name) { showToast('⚠️ Please enter a name'); return; }
   const img = currentUploadedImgData || document.getElementById('itemImg').value.trim();
   const emoji = document.getElementById('itemEmoji').value.trim() || '🌿';
   const list = editingType === 'plant' ? plants : materials;
+  const tableName = editingType === 'plant' ? 'gt_plants' : 'gt_materials';
   if (editingType === 'plant') {
     const sci = document.getElementById('itemSci').value.trim();
     const type = document.getElementById('itemType').value;
     if (editingId === null) {
-      list.push({ id: Date.now(), name, sci, type, img, emoji });
+      const newItem = { id: Date.now(), name, sci, type, img, emoji };
+      list.push(newItem);
+      await sbUpsert(tableName, newItem);
     } else {
       const item = list.find(x=>x.id===editingId);
-      if (item) { item.name = name; item.sci = sci; item.type = type; item.img = img; item.emoji = emoji; }
+      if (item) { item.name = name; item.sci = sci; item.type = type; item.img = img; item.emoji = emoji; await sbUpsert(tableName, item); }
     }
   } else {
     if (editingId === null) {
-      list.push({ id: Date.now(), name, img, emoji });
+      const newItem = { id: Date.now(), name, img, emoji };
+      list.push(newItem);
+      await sbUpsert(tableName, newItem);
     } else {
       const item = list.find(x=>x.id===editingId);
-      if (item) { item.name = name; item.img = img; item.emoji = emoji; }
+      if (item) { item.name = name; item.img = img; item.emoji = emoji; await sbUpsert(tableName, item); }
     }
   }
-  save();
   closeItemModal();
   renderPlantsGrid();
   renderMaterialsGrid();
   showToast('✅ Saved successfully!');
 }
 
-function deleteItem(type, id) {
+async function deleteItem(type, id) {
   if (!confirm('Delete this item?')) return;
+  const tableName = type === 'plant' ? 'gt_plants' : 'gt_materials';
   if (type === 'plant') plants = plants.filter(x=>x.id!==id);
   else materials = materials.filter(x=>x.id!==id);
-  save();
+  await sbDelete(tableName, id);
   renderCatalog(plants, 'plantsGrid', 'plant');
   renderCatalog(materials, 'materialsGrid', 'material');
   showToast('🗑 Deleted');
@@ -2309,7 +2334,7 @@ function addFeatureField() {
   li.innerHTML = `<input type="text" placeholder="New feature..."><button onclick="this.parentElement.remove()">✕</button>`;
   ul.appendChild(li);
 }
-function savePkg() {
+async function savePkg() {
   const pkg = packages.find(x=>x.id===editingPkgId);
   if (!pkg) return;
   pkg.name = document.getElementById('pkgName').value.trim();
@@ -2317,7 +2342,7 @@ function savePkg() {
   pkg.price = parseInt(document.getElementById('pkgPrice').value) || pkg.price;
   pkg.period = document.getElementById('pkgPeriod').value.trim();
   pkg.features = Array.from(document.querySelectorAll('#featureListEdit input')).map(i=>i.value.trim()).filter(Boolean);
-  save();
+  await sbUpsert('gt_packages', pkg);
   closePkgModal();
   renderPackages();
   showToast('✅ Package updated!');
@@ -2333,13 +2358,13 @@ function editContact() {
   document.getElementById('contactModal').classList.add('open');
 }
 function closeContactModal() { document.getElementById('contactModal').classList.remove('open'); }
-function saveContact() {
+async function saveContact() {
   contactInfo.address = document.getElementById('ceAddress').value;
   contactInfo.phone = document.getElementById('cePhone').value;
   contactInfo.email = document.getElementById('ceEmail').value;
   contactInfo.hours = document.getElementById('ceHours').value;
   contactInfo.whatsapp = document.getElementById('ceWhatsapp').value;
-  save();
+  await _supabase.from('gt_settings').upsert({ key: 'contact', value: JSON.stringify(contactInfo) }, { onConflict: 'key' });
   closeContactModal();
   renderContact();
   showToast('✅ Contact info updated!');
@@ -2360,19 +2385,15 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 3200);
 }
 
-// ===================== ACTIVITY LOG =====================
-function getLogs() { return JSON.parse(safeStorage.getItem('gt_logs')) || []; }
-function saveLogs(logs) { safeStorage.setItem('gt_logs', JSON.stringify(logs)); }
-function addLog(type, icon, action, user) {
-  const logs = getLogs();
-  logs.unshift({
+// ===================== ACTIVITY LOG (Supabase) =====================
+async function getLogs() { return await sbGet('gt_logs'); }
+async function addLog(type, icon, action, user) {
+  await _supabase.from('gt_logs').insert({
     id: Date.now(),
     type, icon, action,
     user: user || (currentUser ? currentUser.username : currentRole || 'guest'),
     time: new Date().toISOString()
   });
-  // Keep last 200 entries
-  saveLogs(logs.slice(0, 200));
 }
 function fmtTime(iso) {
   const d = new Date(iso);
@@ -2380,9 +2401,12 @@ function fmtTime(iso) {
     ' ' + d.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
 }
 
-// ===================== ORDERS =====================
-function getOrders() { return JSON.parse(safeStorage.getItem('gt_orders')) || []; }
-function saveOrders(orders) { safeStorage.setItem('gt_orders', JSON.stringify(orders)); }
+// ===================== ORDERS (Supabase) =====================
+async function getOrders() { return await sbGet('gt_orders'); }
+async function saveOrders(orders) {
+  // Called after unshift — just upsert the first (newest) order
+  if (orders.length) await sbUpsert('gt_orders', orders[0]);
+}
 
 // Cart state: { plantId: qty, ... }  and  { matId: qty, ... }
 let cart = { plants: {}, materials: {} };
@@ -2486,7 +2510,7 @@ function renderOrderSummary() {
   }
 }
 
-function submitOrder() {
+async function submitOrder() {
   const total = Object.values(cart.plants).reduce((a,b)=>a+b,0) + Object.values(cart.materials).reduce((a,b)=>a+b,0);
   if (total === 0) { showToast('⚠️ Please select at least one item'); return; }
   const notes = document.getElementById('orderNotes').value.trim();
@@ -2511,9 +2535,7 @@ function submitOrder() {
     time: new Date().toISOString(),
     status: 'pending'
   };
-  const orders = getOrders();
-  orders.unshift(order);
-  saveOrders(orders);
+  await sbUpsert('gt_orders', order);
 
   // Log it
   const productStr = order.products.slice(0,3).map(p=>`${p.emoji}${p.name}×${p.qty}`).join(', ') + (order.products.length > 3 ? ` +${order.products.length-3} more` : '');
@@ -2562,8 +2584,10 @@ function setLogFilter(filter, btn) {
   renderLogList();
 }
 
-function renderLogList() {
-  const logs = getLogs().filter(l => logFilter === 'all' || l.type === logFilter);
+async function renderLogList() {
+  const allLogs = await getLogs();
+  const logs = allLogs.filter(l => logFilter === 'all' || l.type === logFilter)
+    .sort((a,b) => new Date(b.time) - new Date(a.time)).slice(0, 200);
   const el = document.getElementById('logList');
   if (logs.length === 0) {
     el.innerHTML = `<div class="log-empty">📭 No activity logs yet.</div>`;
@@ -2581,8 +2605,8 @@ function renderLogList() {
     </div>`).join('');
 }
 
-function renderOrdersTable() {
-  const orders = getOrders();
+async function renderOrdersTable() {
+  const orders = await getOrders();
   const tbody = document.getElementById('ordersTableBody');
   if (orders.length === 0) {
     tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-light);">No orders yet.</td></tr>`;
@@ -2605,16 +2629,17 @@ function renderOrdersTable() {
     </tr>`).join('');
 }
 
-function renderAdminUsersList() {
+async function renderAdminUsersList() {
   const list = document.getElementById('adminUsersList');
   // Built-in accounts
   const builtins = Object.values(BUILTIN_CREDENTIALS).map(c => ({
     username: c.username, role: c.role, builtin: true
   }));
   // Dynamic admins/staff
-  const dynAdmins = getAdminAccounts();
+  const dynAdmins = await getAdminAccounts();
   // Registered users
-  const regUsers = getRegisteredUsers().map(u => ({ username: u.username, role: 'user', whatsapp: u.whatsapp, location: u.location }));
+  const regUsersRaw = await getRegisteredUsers();
+  const regUsers = regUsersRaw.map(u => ({ username: u.username, role: 'user', whatsapp: u.whatsapp, location: u.location }));
 
   const all = [...builtins, ...dynAdmins, ...regUsers];
 
@@ -2636,11 +2661,13 @@ function renderAdminUsersList() {
     </div>`).join('');
 }
 
-// Dynamic admin accounts
-function getAdminAccounts() { return JSON.parse(safeStorage.getItem('gt_admins')) || []; }
-function saveAdminAccounts(list) { safeStorage.setItem('gt_admins', JSON.stringify(list)); }
+// Dynamic admin accounts stored in Supabase
+async function getAdminAccounts() { return await sbGet('gt_admins'); }
+async function saveAdminAccounts(list) {
+  for (const a of list) await sbUpsert('gt_admins', a);
+}
 
-function createAdminAccount() {
+async function createAdminAccount() {
   const username = document.getElementById('newAdminUser').value.trim();
   const pass = document.getElementById('newAdminPass').value.trim();
   const role = document.getElementById('newAdminRole').value;
@@ -2654,13 +2681,13 @@ function createAdminAccount() {
   const reserved = Object.values(BUILTIN_CREDENTIALS).map(c => c.username.toLowerCase());
   if (reserved.includes(username.toLowerCase())) { errEl.textContent = '❌ Username not available'; errEl.style.display = 'block'; return; }
 
-  const admins = getAdminAccounts();
-  const users = getRegisteredUsers();
+  const admins = await getAdminAccounts();
+  const users = await getRegisteredUsers();
   const allNames = [...admins, ...users].map(u => u.username.toLowerCase());
   if (allNames.includes(username.toLowerCase())) { errEl.textContent = '❌ Username already taken'; errEl.style.display = 'block'; return; }
 
-  admins.push({ username, password: pass, role, createdAt: new Date().toISOString() });
-  saveAdminAccounts(admins);
+  admins.push({ id: Date.now(), username, password: pass, role, createdAt: new Date().toISOString() });
+  await saveAdminAccounts(admins);
   addLog('admin', '⚙️', `Created new ${role} account: ${username}`);
   document.getElementById('newAdminUser').value = '';
   document.getElementById('newAdminPass').value = '';
@@ -2668,81 +2695,83 @@ function createAdminAccount() {
   renderAdminUsersList();
 }
 
-function deleteAccount(username, role) {
+async function deleteAccount(username, role) {
   if (!confirm(`Remove account "${username}"?`)) return;
   if (role === 'user') {
-    const users = getRegisteredUsers().filter(u => u.username !== username);
-    saveRegisteredUsers(users);
+    const users = (await getRegisteredUsers()).filter(u => u.username !== username);
+    await saveRegisteredUsers(users);
+    // Also delete from Supabase directly
+    await _supabase.from('gt_user_profiles').delete().eq('username', username);
   } else {
-    const admins = getAdminAccounts().filter(u => u.username !== username);
-    saveAdminAccounts(admins);
+    const admins = (await getAdminAccounts()).filter(u => u.username !== username);
+    await _supabase.from('gt_admins').delete().eq('username', username);
+    await saveAdminAccounts(admins);
   }
   addLog('admin', '🗑️', `Removed ${role} account: ${username}`);
   showToast(`🗑 Account "${username}" removed`);
   renderAdminUsersList();
 }
 
-// ===================== PATCH SIGN-IN to support dynamic admins =====================
-const _origSignIn = doSignIn;
+// ===================== PATCH SIGN-IN to support dynamic admins (Supabase) =====================
 function doSignIn() {
   const u = document.getElementById('siUser').value.trim();
   const p = document.getElementById('siPass').value.trim();
   const errEl = document.getElementById('siErr');
   if (!u || !p) { errEl.textContent = '⚠️ Please enter username and password'; errEl.style.display = 'block'; return; }
 
-  // Built-in
-  for (const key of Object.keys(BUILTIN_CREDENTIALS)) {
-    const cred = BUILTIN_CREDENTIALS[key];
-    if (u === cred.username && p === cred.password) {
-      currentRole = cred.role;
+  (async () => {
+    // Built-in hardcoded accounts
+    for (const key of Object.keys(BUILTIN_CREDENTIALS)) {
+      const cred = BUILTIN_CREDENTIALS[key];
+      if (u === cred.username && p === cred.password) {
+        currentRole = cred.role;
+        currentUser = null;
+        startSessionTimer();
+        closeLogin();
+        updateNavActions();
+        renderAll();
+        addLog('auth', '🔑', `Signed in as ${cred.role}`);
+        showToast(`✅ Signed in as ${cred.role === 'admin' ? 'Admin' : 'Staff'}`);
+        return;
+      }
+    }
+    // Dynamic admin/staff from Supabase
+    const admins = await getAdminAccounts();
+    const foundAdmin = admins.find(a => a.username === u && a.password === p);
+    if (foundAdmin) {
+      currentRole = foundAdmin.role;
       currentUser = null;
-      saveSession(currentRole, null);
       startSessionTimer();
       closeLogin();
       updateNavActions();
       renderAll();
-      addLog('auth', '🔑', `Signed in as ${cred.role}`);
-      showToast(`✅ Signed in as ${cred.role === 'admin' ? 'Admin' : 'Staff'}`);
+      addLog('auth', '🔑', `Signed in as ${foundAdmin.role}`, foundAdmin.username);
+      showToast(`✅ Signed in as ${foundAdmin.role === 'admin' ? 'Admin' : 'Staff'}`);
       return;
     }
-  }
-  // Dynamic admin/staff accounts
-  const admins = getAdminAccounts();
-  const foundAdmin = admins.find(a => a.username === u && a.password === p);
-  if (foundAdmin) {
-    currentRole = foundAdmin.role;
-    currentUser = null;
-    saveSession(currentRole, null);
-    startSessionTimer();
-    closeLogin();
-    updateNavActions();
-    renderAll();
-    addLog('auth', '🔑', `Signed in as ${foundAdmin.role}`, foundAdmin.username);
-    showToast(`✅ Signed in as ${foundAdmin.role === 'admin' ? 'Admin' : 'Staff'}`);
-    return;
-  }
-  // Registered users
-  const users = getRegisteredUsers();
-  const found = users.find(usr => usr.username === u && usr.password === p);
-  if (found) {
-    currentRole = 'user';
-    currentUser = found;
-    saveSession(currentRole, currentUser);
-    startSessionTimer();
-    closeLogin();
-    updateNavActions();
-    renderAll();
-    renderMyBookings();
-    addLog('auth', '🔑', `Signed in`, found.username);
-    showToast(`✅ Welcome back, ${found.username}!`);
-  } else {
-    errEl.textContent = '❌ Invalid username or password';
-    errEl.style.display = 'block';
-    setTimeout(() => errEl.style.display = 'none', 3000);
-  }
+    // Registered users via Supabase Auth (email = username@greentop.local)
+    const fakeEmail = u + '@greentop.local';
+    const { data, error } = await _supabase.auth.signInWithPassword({ email: fakeEmail, password: p });
+    if (!error && data.session) {
+      const profile = await sbGetSingle('gt_user_profiles', 'username', u);
+      currentRole = 'user';
+      currentUser = profile || { username: u, whatsapp: '', location: '' };
+      startSessionTimer();
+      closeLogin();
+      updateNavActions();
+      renderAll();
+      renderMyBookings();
+      addLog('auth', '🔑', `Signed in`, u);
+      showToast(`✅ Welcome back, ${u}!`);
+    } else {
+      errEl.textContent = '❌ Invalid username or password';
+      errEl.style.display = 'block';
+      setTimeout(() => errEl.style.display = 'none', 3000);
+    }
+  })();
 }
 
-// Patch logout to log activity
+// Patch logout to log activity and sign out from Supabase
 const _origLogout = doLogout;
 function doLogout() {
   addLog('auth', '👋', `Signed out`);
@@ -2750,12 +2779,13 @@ function doLogout() {
   currentUser = null;
   cart = { plants: {}, materials: {} };
   clearSession();
+  _supabase.auth.signOut();
   updateNavActions();
   renderAll();
   showToast('👋 Signed out successfully');
 }
 
-// Patch register to log activity
+// Patch register to use Supabase Auth
 const _origReg = doRegister;
 function doRegister() {
   const username = document.getElementById('regUser').value.trim();
@@ -2775,20 +2805,32 @@ function doRegister() {
   if (pass !== pass2) { errEl.textContent = '❌ Passwords do not match'; errEl.style.display = 'block'; return; }
   const reserved = Object.values(BUILTIN_CREDENTIALS).map(c => c.username);
   if (reserved.includes(username.toLowerCase())) { errEl.textContent = '❌ This username is not available'; errEl.style.display = 'block'; return; }
-  const users = getRegisteredUsers();
-  if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) { errEl.textContent = '❌ Username already taken.'; errEl.style.display = 'block'; return; }
-  const newUser = { username, whatsapp, location, password: pass, registeredAt: new Date().toISOString() };
-  users.push(newUser);
-  saveRegisteredUsers(users);
-  addLog('auth', '✅', `New user registered: ${username} (${location})`);
-  successEl.style.display = 'block';
-  setTimeout(() => {
-    switchAuthTab('signin');
-    document.getElementById('siUser').value = username;
-    document.getElementById('siPass').value = '';
-    document.getElementById('siPass').focus();
-    showToast('🎉 Account created! Please sign in.');
-  }, 1500);
+
+  (async () => {
+    const profiles = await sbGet('gt_user_profiles');
+    if (profiles.find(u => u.username.toLowerCase() === username.toLowerCase())) {
+      errEl.textContent = '❌ Username already taken.'; errEl.style.display = 'block'; return;
+    }
+    // Sign up via Supabase Auth using a fake email convention
+    const fakeEmail = username + '@greentop.local';
+    const { error } = await _supabase.auth.signUp({
+      email: fakeEmail,
+      password: pass,
+      options: { data: { username, whatsapp, location, role: 'user' } }
+    });
+    if (error) { errEl.textContent = '❌ ' + error.message; errEl.style.display = 'block'; return; }
+    // Save profile in gt_user_profiles
+    await sbUpsert('gt_user_profiles', { id: Date.now(), username, whatsapp, location, registeredAt: new Date().toISOString() });
+    addLog('auth', '✅', `New user registered: ${username} (${location})`);
+    successEl.style.display = 'block';
+    setTimeout(() => {
+      switchAuthTab('signin');
+      document.getElementById('siUser').value = username;
+      document.getElementById('siPass').value = '';
+      document.getElementById('siPass').focus();
+      showToast('🎉 Account created! Please sign in.');
+    }, 1500);
+  })();
 }
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', function(e) {
@@ -2805,19 +2847,15 @@ const observer = new IntersectionObserver((entries) => {
 document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 
 // ===================== GALLERY =====================
-const defaultGallery = [
-  { id: 1, title: 'Rooftop Organic Garden', desc: 'RS Puram, Coimbatore', mediaType: 'image', src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Rooftop_garden_of_Robson_Square.jpg/640px-Rooftop_garden_of_Robson_Square.jpg', price: 0, featured: true },
-  { id: 2, title: 'Balcony Herb Garden', desc: 'Saibaba Colony', mediaType: 'image', src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Balcony_garden.jpg/640px-Balcony_garden.jpg', price: 0, featured: false },
-  { id: 3, title: 'Vertical Garden Wall', desc: 'Peelamedu Office', mediaType: 'image', src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Vertical_garden_in_Paris.jpg/640px-Vertical_garden_in_Paris.jpg', price: 99, featured: false },
-  { id: 4, title: 'Full Terrace Setup', desc: 'Singanallur Villa', mediaType: 'image', src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/GardenCenter.jpg/640px-GardenCenter.jpg', price: 149, featured: true },
-];
-let gallery = JSON.parse(safeStorage.getItem('gt_gallery')) || defaultGallery;
-let unlockedGallery = JSON.parse(safeStorage.getItem('gt_gallery_unlocked')) || [];
+let gallery = [];
+let unlockedGallery = [];
 let editingGalleryId = null;
 let geUploadedData = '';
 let geUploadedVideoData = '';
 
-function saveGallery() { safeStorage.setItem('gt_gallery', JSON.stringify(gallery)); }
+async function saveGallery() {
+  for (const g of gallery) await sbUpsert('gt_gallery', g);
+}
 
 function renderGalleryGrid() {
   const grid = document.getElementById('galleryGrid');
@@ -2887,7 +2925,10 @@ function openGalleryViewer(id) {
 function simulateGalleryUnlock() {
   const modal = document.getElementById('galleryViewerModal');
   const id = modal._currentItemId;
-  if (!unlockedGallery.includes(id)) { unlockedGallery.push(id); safeStorage.setItem('gt_gallery_unlocked', JSON.stringify(unlockedGallery)); }
+  if (!unlockedGallery.includes(id)) {
+    unlockedGallery.push(id);
+    await _supabase.from('gt_settings').upsert({ key: 'gallery_unlocked', value: JSON.stringify(unlockedGallery) }, { onConflict: 'key' });
+  }
   showToast('🔓 Gallery item unlocked! (Demo payment simulated)');
   document.getElementById('galleryViewerModal').classList.remove('open');
   renderGalleryGrid();
@@ -2940,7 +2981,7 @@ function previewGalleryMedia() {
   if (type === 'video') prev.innerHTML = `<video src="${src}" style="width:100%;max-height:160px;object-fit:cover;border-radius:10px;" controls></video>`;
   else prev.innerHTML = `<img src="${src}" style="width:100%;height:160px;object-fit:cover;border-radius:10px;">`;
 }
-function saveGalleryItem() {
+async function saveGalleryItem() {
   const title = document.getElementById('geTitle').value.trim();
   if (!title) { showToast('⚠️ Please enter a title'); return; }
   const mediaType = document.getElementById('geMediaType').value;
@@ -2949,18 +2990,21 @@ function saveGalleryItem() {
   const featured = document.getElementById('geFeatured').value === '1';
   const desc = document.getElementById('geDesc').value.trim();
   if (editingGalleryId === null) {
-    gallery.push({ id: Date.now(), title, desc, mediaType, src, price, featured });
+    const newItem = { id: Date.now(), title, desc, mediaType, src, price, featured };
+    gallery.push(newItem);
+    await sbUpsert('gt_gallery', newItem);
   } else {
     const item = gallery.find(g => g.id === editingGalleryId);
-    if (item) { item.title=title; item.desc=desc; item.mediaType=mediaType; if(src) item.src=src; item.price=price; item.featured=featured; }
+    if (item) { item.title=title; item.desc=desc; item.mediaType=mediaType; if(src) item.src=src; item.price=price; item.featured=featured; await sbUpsert('gt_gallery', item); }
   }
-  saveGallery(); closeGalleryEditModal(); renderGalleryGrid();
+  closeGalleryEditModal(); renderGalleryGrid();
   showToast('✅ Gallery item saved!');
 }
-function deleteGalleryItem(id) {
+async function deleteGalleryItem(id) {
   if (!confirm('Delete this gallery item?')) return;
   gallery = gallery.filter(g => g.id !== id);
-  saveGallery(); renderGalleryGrid();
+  await sbDelete('gt_gallery', id);
+  renderGalleryGrid();
   showToast('🗑 Gallery item removed');
 }
 
@@ -2990,10 +3034,17 @@ const TIME_SLOTS = ['9:00 AM','10:00 AM','11:00 AM','12:00 PM','2:00 PM','3:00 P
 let selectedBookingDate = null;
 let selectedBookingSlot = null;
 
-function getBookings() { return JSON.parse(safeStorage.getItem('gt_bookings')) || []; }
-function saveBookings(b) { safeStorage.setItem('gt_bookings', JSON.stringify(b)); }
-function getSlotConfig() { return JSON.parse(safeStorage.getItem('gt_slots')) || {}; }
-function saveSlotConfig(c) { safeStorage.setItem('gt_slots', JSON.stringify(c)); }
+async function getBookings() { return await sbGet('gt_bookings'); }
+async function saveBookings(b) {
+  if (b.length) await sbUpsert('gt_bookings', b[0]);
+}
+async function getSlotConfig() {
+  const row = await sbGetSingle('gt_settings', 'key', 'slot_config');
+  return row ? JSON.parse(row.value) : {};
+}
+async function saveSlotConfig(c) {
+  await _supabase.from('gt_settings').upsert({ key: 'slot_config', value: JSON.stringify(c) }, { onConflict: 'key' });
+}
 
 function renderBookingCalendar() {
   const cal = document.getElementById('bookingCalendar');
@@ -3021,12 +3072,12 @@ function selectBookingDate(dateStr, btn) {
   renderTimeSlots();
 }
 
-function renderTimeSlots() {
+async function renderTimeSlots() {
   const wrap = document.getElementById('bookingSlotsWrap');
   if (!wrap || !selectedBookingDate) return;
-  const slotConfig = getSlotConfig();
+  const slotConfig = await getSlotConfig();
   const dateConfig = slotConfig[selectedBookingDate] || {};
-  const bookings = getBookings();
+  const bookings = await getBookings();
   const dateBookings = bookings.filter(b => b.date === selectedBookingDate);
   wrap.innerHTML = '<div class="time-slots-grid">' + TIME_SLOTS.map(slot => {
     const isBlocked = dateConfig[slot] === false;
@@ -3041,11 +3092,11 @@ function renderTimeSlots() {
   }).join('') + '</div>';
 }
 
-function selectSlot(slot, el) {
-  const slotConfig = getSlotConfig();
+async function selectSlot(slot, el) {
+  const slotConfig = await getSlotConfig();
   const dateConfig = slotConfig[selectedBookingDate] || {};
   if (dateConfig[slot] === false) return; // blocked
-  const bookings = getBookings();
+  const bookings = await getBookings();
   const slotCount = bookings.filter(b => b.date === selectedBookingDate && b.slot === slot).length;
   if (slotCount >= 3) return; // full
   selectedBookingSlot = slot;
@@ -3053,7 +3104,7 @@ function selectSlot(slot, el) {
   el.classList.add('selected');
 }
 
-function submitVisitBooking() {
+async function submitVisitBooking() {
   const name = document.getElementById('visitName').value.trim();
   const wa = document.getElementById('visitWA').value.trim();
   const purpose = document.getElementById('visitPurpose').value;
@@ -3061,10 +3112,8 @@ function submitVisitBooking() {
   if (!wa) { showToast('⚠️ Please enter your WhatsApp number'); return; }
   if (!selectedBookingDate) { showToast('⚠️ Please select a date'); return; }
   if (!selectedBookingSlot) { showToast('⚠️ Please select a time slot'); return; }
-  const bookings = getBookings();
   const booking = { id: Date.now(), name, wa, purpose, date: selectedBookingDate, slot: selectedBookingSlot, status: 'pending', createdAt: new Date().toISOString(), user: currentUser ? currentUser.username : 'guest' };
-  bookings.unshift(booking);
-  saveBookings(bookings);
+  await sbUpsert('gt_bookings', booking);
   addLog('order', '📅', `Booking: ${name} on ${selectedBookingDate} at ${selectedBookingSlot}`);
   showToast(`✅ Booking confirmed for ${selectedBookingDate} at ${selectedBookingSlot}!`);
   document.getElementById('visitName').value = '';
@@ -3076,11 +3125,12 @@ function submitVisitBooking() {
   renderMyBookings();
 }
 
-function renderMyBookings() {
+async function renderMyBookings() {
   const wrap = document.getElementById('myBookingsWrap');
   const list = document.getElementById('myBookingsList');
   if (!wrap || !list) return;
-  const bookings = getBookings().filter(b => currentUser ? b.user === currentUser.username : true).slice(0,5);
+  const allBookings = await getBookings();
+  const bookings = allBookings.filter(b => currentUser ? b.user === currentUser.username : true).slice(0,5);
   if (bookings.length === 0) { wrap.style.display = 'none'; return; }
   wrap.style.display = 'block';
   list.innerHTML = bookings.map(b => `
@@ -3092,10 +3142,10 @@ function renderMyBookings() {
 }
 
 // Admin visits panel
-function renderAdminVisits() {
+async function renderAdminVisits() {
   const list = document.getElementById('adminVisitsList');
   if (!list) return;
-  const bookings = getBookings();
+  const bookings = await getBookings();
   if (bookings.length === 0) { list.innerHTML = '<p style="color:var(--text-light);text-align:center;padding:30px;">No bookings yet.</p>'; return; }
   list.innerHTML = `<table class="orders-table" style="width:100%;"><thead><tr><th>Name</th><th>Date & Time</th><th>Purpose</th><th>Status</th><th>Action</th></tr></thead><tbody>` +
     bookings.map(b => `<tr>
@@ -3109,19 +3159,18 @@ function renderAdminVisits() {
       </td>
     </tr>`).join('') + '</tbody></table>';
 }
-function updateBookingStatus(id, status) {
-  const bookings = getBookings();
-  const b = bookings.find(x => x.id === id);
-  if (b) { b.status = status; saveBookings(bookings); renderAdminVisits(); showToast(`✅ Booking ${status}`); }
+async function updateBookingStatus(id, status) {
+  const { error } = await _supabase.from('gt_bookings').update({ status }).eq('id', id);
+  if (!error) { renderAdminVisits(); showToast(`✅ Booking ${status}`); }
 }
 
 // Admin slot management
-function loadAdminSlots() {
+async function loadAdminSlots() {
   const date = document.getElementById('adminSlotDate').value;
   if (!date) return;
-  const slotConfig = getSlotConfig();
+  const slotConfig = await getSlotConfig();
   const dateConfig = slotConfig[date] || {};
-  const bookings = getBookings().filter(b => b.date === date);
+  const bookings = (await getBookings()).filter(b => b.date === date);
   const panel = document.getElementById('adminSlotsPanel');
   panel.innerHTML = `<div style="font-size:13px;font-weight:600;color:var(--green-deep);margin-bottom:10px;">Slots for ${date}</div>
   <div class="slot-manage-grid">` +
@@ -3134,20 +3183,27 @@ function loadAdminSlots() {
       </div>`;
     }).join('') + '</div>';
 }
-function toggleSlot(date, slot, btn) {
-  const config = getSlotConfig();
+async function toggleSlot(date, slot, btn) {
+  const config = await getSlotConfig();
   if (!config[date]) config[date] = {};
   const cur = config[date][slot] !== false;
   config[date][slot] = !cur;
-  saveSlotConfig(config);
+  await saveSlotConfig(config);
   btn.className = 'slot-toggle ' + (!cur ? 'on' : 'off');
   btn.textContent = !cur ? 'ON' : 'OFF';
   showToast(`Slot ${slot} on ${date} is now ${!cur?'available':'blocked'}`);
 }
 
 // ===================== PAGE EDITOR =====================
-let pageContent = JSON.parse(safeStorage.getItem('gt_page')) || {};
-function savePageContent() { safeStorage.setItem('gt_page', JSON.stringify(pageContent)); }
+let pageContent = {};
+(async () => {
+  const row = await sbGetSingle('gt_settings', 'key', 'page_content');
+  pageContent = row ? JSON.parse(row.value) : {};
+  applyPageContent();
+})();
+async function savePageContent() {
+  await _supabase.from('gt_settings').upsert({ key: 'page_content', value: JSON.stringify(pageContent) }, { onConflict: 'key' });
+}
 
 function applyPageContent() {
   // Logo
@@ -3369,13 +3425,193 @@ function savePEFooter() {
   savePageContent(); applyPageContent(); showToast('✅ Footer updated!');
 }
 
-// Apply on load
-applyPageContent();
-
 // ===================== INIT =====================
-// Always restore nav state on load (handles both logged-in and logged-out)
-updateNavActions();
-renderAll();
+// All init (session restore, data load, renderAll) is handled by the async IIFE above.
+// applyPageContent() is called separately after pageContent loads from Supabase.
+
+// ===================== UNIFIED CAROUSEL ENGINE =====================
+function makeCarousel({ trackId, dotsId, slideDir, cardGap, autoDelay }) {
+  let idx = 0;
+  let timer = null;
+  let paused = false;
+
+  // drag state
+  let dragStartX = 0;
+  let dragCurrentX = 0;
+  let isDragging = false;
+  let baseTranslate = 0;
+  let dragMoved = false;
+
+  // Get real cards — skip display:contents wrappers by looking at all descendants
+  // that are direct flex children with actual width
+  function cards() {
+    const track = document.getElementById(trackId);
+    if (!track) return [];
+    // Collect direct children; if a child is display:contents, collect its children instead
+    const result = [];
+    for (const child of track.children) {
+      const cs = getComputedStyle(child);
+      if (cs.display === 'contents') {
+        for (const grandchild of child.children) result.push(grandchild);
+      } else {
+        result.push(child);
+      }
+    }
+    return result;
+  }
+
+  function cardWidth() {
+    const all = cards();
+    if (!all.length) return 0;
+    return all[0].getBoundingClientRect().width + cardGap;
+  }
+
+  function getTrack() { return document.getElementById(trackId); }
+
+  function setTranslate(px) {
+    const t = getTrack();
+    if (t) t.style.transform = 'translateX(' + px + 'px)';
+  }
+
+  function enableTransition(on) {
+    const t = getTrack();
+    if (!t) return;
+    t.style.transition = on
+      ? 'transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94)'
+      : 'none';
+  }
+
+  function goTo(n) {
+    const all = cards();
+    if (!all.length) return;
+    const total = all.length;
+    idx = ((n % total) + total) % total;
+    enableTransition(true);
+    baseTranslate = -(idx * cardWidth());
+    setTranslate(baseTranslate);
+    const dots = document.querySelectorAll('#' + dotsId + ' .carousel-dot');
+    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+  }
+
+  function buildDots() {
+    const el = document.getElementById(dotsId);
+    if (!el) return;
+    const total = cards().length;
+    el.innerHTML = Array.from({ length: total }, (_, i) =>
+      '<button class="carousel-dot' + (i === 0 ? ' active' : '') + '" onclick="' + slideDir + '.goTo(' + i + ')"></button>'
+    ).join('');
+  }
+
+  function startAuto() {
+    clearInterval(timer);
+    timer = setInterval(() => { if (!paused) goTo(idx + 1); }, autoDelay);
+  }
+
+  // ── drag helpers ──────────────────────────────────────────────────
+  function getClientX(e) { return e.touches ? e.touches[0].clientX : e.clientX; }
+
+  function onDragStart(e) {
+    if (e.button && e.button !== 0) return; // only left mouse button
+    paused = true;
+    isDragging = true;
+    dragMoved = false;
+    dragStartX = getClientX(e);
+    dragCurrentX = dragStartX;
+    baseTranslate = -(idx * cardWidth());
+    enableTransition(false);
+  }
+
+  function onDragMove(e) {
+    if (!isDragging) return;
+    dragCurrentX = getClientX(e);
+    const delta = dragCurrentX - dragStartX;
+    if (Math.abs(delta) > 5) dragMoved = true;
+    if (dragMoved) setTranslate(baseTranslate + delta);
+  }
+
+  function onDragEnd() {
+    if (!isDragging) return;
+    isDragging = false;
+    enableTransition(true);
+    if (dragMoved) {
+      const delta = dragCurrentX - dragStartX;
+      const threshold = Math.max(50, cardWidth() * 0.2);
+      if (delta < -threshold)      goTo(idx + 1);
+      else if (delta > threshold)  goTo(idx - 1);
+      else                         setTranslate(baseTranslate); // snap back
+    }
+    paused = false;
+    startAuto();
+  }
+
+  function attachDrag(wrapEl) {
+    if (!wrapEl) return;
+    wrapEl.style.cursor = 'grab';
+    // Touch
+    wrapEl.addEventListener('touchstart',  onDragStart, { passive: true });
+    wrapEl.addEventListener('touchmove',   onDragMove,  { passive: true });
+    wrapEl.addEventListener('touchend',    onDragEnd);
+    wrapEl.addEventListener('touchcancel', onDragEnd);
+    // Mouse
+    wrapEl.addEventListener('mousedown',  onDragStart);
+    window.addEventListener('mousemove',  onDragMove);
+    window.addEventListener('mouseup',    onDragEnd);
+    wrapEl.addEventListener('mousedown', () => { wrapEl.style.cursor = 'grabbing'; });
+    window.addEventListener('mouseup',   () => { wrapEl.style.cursor = 'grab'; });
+    // Prevent click-through after drag
+    wrapEl.addEventListener('click', e => { if (dragMoved) e.stopPropagation(); }, true);
+  }
+
+  function init() {
+    buildDots();
+    goTo(0);
+    startAuto();
+    const track = getTrack();
+    if (track) attachDrag(track.parentElement);
+  }
+
+  function reinit() {
+    setTimeout(() => { buildDots(); goTo(0); startAuto(); }, 250);
+  }
+
+  function slide(dir) { goTo(idx + dir); startAuto(); }
+
+  return { init, reinit, slide, goTo, buildDots };
+}
+
+// ── Services carousel ──────────────────────────────────────────────────────
+const svcCarousel = makeCarousel({ trackId: 'servicesTrack', dotsId: 'svcDots', slideDir: 'svcCarousel', cardGap: 24, autoDelay: 3000 });
+window.svcSlide = dir => svcCarousel.slide(dir);
+
+// ── Gallery carousel ───────────────────────────────────────────────────────
+const galCarousel = makeCarousel({ trackId: 'galleryTrack', dotsId: 'galDots', slideDir: 'galCarousel', cardGap: 20, autoDelay: 3000 });
+window.galSlide = dir => galCarousel.slide(dir);
+
+// ── Packages carousel ──────────────────────────────────────────────────────
+const pkgCarousel = makeCarousel({ trackId: 'packagesTrack', dotsId: 'pkgDots', slideDir: 'pkgCarousel', cardGap: 24, autoDelay: 3000 });
+window.pkgSlide = dir => pkgCarousel.slide(dir);
+
+// Patch renderAll to reinit gallery + packages after data loads
+const _origRenderAll2 = window.renderAll;
+window.renderAll = function(...args) {
+  const r = _origRenderAll2 ? _origRenderAll2(...args) : undefined;
+  galCarousel.reinit();
+  pkgCarousel.reinit();
+  return r;
+};
+
+// Boot all carousels after DOM is ready
+setTimeout(() => {
+  svcCarousel.init();
+  galCarousel.init();
+  pkgCarousel.init();
+  window.addEventListener('resize', () => {
+    svcCarousel.goTo(0);
+    galCarousel.goTo(0);
+    pkgCarousel.goTo(0);
+  });
+}, 500);
+
 </script>
 </body>
 </html>
