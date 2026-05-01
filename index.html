@@ -1586,69 +1586,57 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ===================== SUPABASE CONFIG =====================
-// 🔧 REPLACE these two values with your own Supabase project details
-const SUPABASE_URL = 'https://yylqyszcuaxybnfhodhl.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5bHF5c3pjdWF4eWJuZmhvZGhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NjAyOTEsImV4cCI6MjA5MzEzNjI5MX0.oNOSItX2RsQ3r8RULENucpT6M-ivnFN8RCBituo2Qmc';
-
-const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// ===================== SUPABASE HELPERS =====================
-// Generic async wrappers used throughout the app
-
-async function sbGet(table) {
-  const { data, error } = await _supabase.from(table).select('*');
-  if (error) { console.error('sbGet error:', table, error); return []; }
-  return data || [];
-}
-async function sbUpsert(table, row) {
-  const { error } = await _supabase.from(table).upsert(row, { onConflict: 'id' });
-  if (error) console.error('sbUpsert error:', table, error);
-}
-async function sbDelete(table, id) {
-  const { error } = await _supabase.from(table).delete().eq('id', id);
-  if (error) console.error('sbDelete error:', table, error);
-}
-async function sbGetSingle(table, keyCol, keyVal) {
-  const { data, error } = await _supabase.from(table).select('*').eq(keyCol, keyVal).maybeSingle();
-  if (error) { console.error('sbGetSingle error:', table, error); return null; }
-  return data;
-}
-
-// ===================== COMPAT: safeStorage kept for session only =====================
-// Session (role/user) is now managed by Supabase Auth.
-// We keep a tiny in-memory shim so old references to safeStorage don't crash.
+// ===================== SAFE STORAGE (works on file://, http://, and iframes) =====================
+// Chrome blocks localStorage on file:// — this wrapper falls back to in-memory storage
 const _memStore = {};
 const safeStorage = {
-  getItem(key)      { return _memStore[key] !== undefined ? _memStore[key] : null; },
-  setItem(key, val) { _memStore[key] = val; },
-  removeItem(key)   { delete _memStore[key]; }
+  getItem(key) {
+    try { return localStorage.getItem(key); }
+    catch(e) { return _memStore[key] !== undefined ? _memStore[key] : null; }
+  },
+  setItem(key, val) {
+    try { localStorage.setItem(key, val); }
+    catch(e) {}
+    _memStore[key] = val;
+  },
+  removeItem(key) {
+    try { localStorage.removeItem(key); }
+    catch(e) {}
+    delete _memStore[key];
+  }
 };
 
 // ===================== DATA =====================
 
-// ===================== SESSION MANAGEMENT (Supabase Auth) =====================
-const INACTIVITY_DURATION = 10 * 60 * 1000; // 10 minutes
+// ===================== SESSION MANAGEMENT =====================
+const SESSION_KEY = 'gt_session';
+const INACTIVITY_DURATION = 10 * 60 * 1000; // 10 minutes inactivity
 let sessionTimer = null;
-let currentRole = null;
-let currentUser = null;
-let loginTab = 'signin'; // legacy compat
 
 function saveSession(role, user) {
-  // Supabase handles its own JWT session; we just keep runtime state here
-  currentRole = role;
-  currentUser = user;
+  const session = { role, user, lastActivity: Date.now() };
+  safeStorage.setItem(SESSION_KEY, JSON.stringify(session));
+}
+function loadSession() {
+  try {
+    const raw = safeStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const session = JSON.parse(raw);
+    if (Date.now() - session.lastActivity > INACTIVITY_DURATION) {
+      safeStorage.removeItem(SESSION_KEY);
+      return null;
+    }
+    return session;
+  } catch(e) { return null; }
 }
 function clearSession() {
-  currentRole = null;
-  currentUser = null;
+  safeStorage.removeItem(SESSION_KEY);
   if (sessionTimer) { clearTimeout(sessionTimer); sessionTimer = null; }
 }
 function _expireSession() {
+  currentRole = null; currentUser = null;
   clearSession();
-  _supabase.auth.signOut();
   updateNavActions(); renderAll();
   showToast('⏱️ Signed out due to inactivity. Please sign in again.');
 }
@@ -1657,26 +1645,49 @@ function startSessionTimer() {
   sessionTimer = setTimeout(_expireSession, INACTIVITY_DURATION);
 }
 function resetInactivityTimer() {
-  if (!currentRole) return;
+  if (!currentRole) return; // Only track if logged in
+  // Update lastActivity in storage
+  try {
+    const raw = safeStorage.getItem(SESSION_KEY);
+    if (raw) {
+      const session = JSON.parse(raw);
+      session.lastActivity = Date.now();
+      safeStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    }
+  } catch(e) {}
   startSessionTimer();
 }
+
+// Listen to user activity events to reset inactivity timer
 ['mousemove','mousedown','keydown','touchstart','scroll','click'].forEach(evt => {
   document.addEventListener(evt, () => { if (currentRole) resetInactivityTimer(); }, { passive: true });
 });
 
-// Restore Supabase session on page load
-(async () => {
-  const { data: { session } } = await _supabase.auth.getSession();
-  if (session) {
-    const meta = session.user.user_metadata || {};
-    currentRole = meta.role || 'user';
-    currentUser = meta.role ? null : { username: meta.username || session.user.email, whatsapp: meta.whatsapp || '', location: meta.location || '' };
-    startSessionTimer();
-  }
-  updateNavActions();
-  await loadAllData();
-  renderAll();
-})();
+// Restore session on page load — also handles old 'loginTime' format
+function loadSessionCompat() {
+  try {
+    const raw = safeStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const session = JSON.parse(raw);
+    const lastActivity = session.lastActivity || session.loginTime || 0;
+    if (Date.now() - lastActivity > INACTIVITY_DURATION) {
+      safeStorage.removeItem(SESSION_KEY);
+      return null;
+    }
+    session.lastActivity = lastActivity; // normalise
+    return session;
+  } catch(e) { return null; }
+}
+const _restoredSession = loadSessionCompat();
+let currentRole = _restoredSession ? _restoredSession.role : null;
+let currentUser = _restoredSession ? _restoredSession.user : null;
+if (currentRole && _restoredSession) {
+  // Page refresh counts as activity — reset the clock
+  _restoredSession.lastActivity = Date.now();
+  safeStorage.setItem(SESSION_KEY, JSON.stringify(_restoredSession));
+  sessionTimer = setTimeout(_expireSession, INACTIVITY_DURATION);
+}
+let loginTab = 'signin'; // legacy compat
 
 const defaultPlants = [
   // FOOD PLANTS
@@ -1761,64 +1772,17 @@ const defaultContact = {
   whatsapp: '+91 98765 43210'
 };
 
-const defaultGallery = [
-  { id: 1, title: 'Rooftop Organic Garden', desc: 'RS Puram, Coimbatore', mediaType: 'image', src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Rooftop_garden_of_Robson_Square.jpg/640px-Rooftop_garden_of_Robson_Square.jpg', price: 0, featured: true },
-  { id: 2, title: 'Balcony Herb Garden', desc: 'Saibaba Colony', mediaType: 'image', src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Balcony_garden.jpg/640px-Balcony_garden.jpg', price: 0, featured: false },
-  { id: 3, title: 'Vertical Garden Wall', desc: 'Peelamedu Office', mediaType: 'image', src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Vertical_garden_in_Paris.jpg/640px-Vertical_garden_in_Paris.jpg', price: 99, featured: false },
-  { id: 4, title: 'Full Terrace Setup', desc: 'Singanallur Villa', mediaType: 'image', src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/GardenCenter.jpg/640px-GardenCenter.jpg', price: 149, featured: true },
-];
+// Load from localStorage or defaults
+let plants = JSON.parse(safeStorage.getItem('gt_plants')) || defaultPlants;
+let materials = JSON.parse(safeStorage.getItem('gt_materials')) || defaultMaterials;
+let packages = JSON.parse(safeStorage.getItem('gt_packages')) || defaultPackages;
+let contactInfo = JSON.parse(safeStorage.getItem('gt_contact')) || defaultContact;
 
-// Runtime arrays — filled by loadAllData() from Supabase
-let plants = [];
-let materials = [];
-let packages = [];
-let contactInfo = { ...defaultContact };
-
-// Load all data from Supabase (or seed defaults on first run)
-async function loadAllData() {
-  // --- plants ---
-  let dbPlants = await sbGet('gt_plants');
-  if (!dbPlants.length) {
-    for (const p of defaultPlants) await sbUpsert('gt_plants', p);
-    dbPlants = defaultPlants;
-  }
-  plants = dbPlants;
-
-  // --- materials ---
-  let dbMats = await sbGet('gt_materials');
-  if (!dbMats.length) {
-    for (const m of defaultMaterials) await sbUpsert('gt_materials', m);
-    dbMats = defaultMaterials;
-  }
-  materials = dbMats;
-
-  // --- packages ---
-  let dbPkgs = await sbGet('gt_packages');
-  if (!dbPkgs.length) {
-    for (const pk of defaultPackages) await sbUpsert('gt_packages', pk);
-    dbPkgs = defaultPackages;
-  }
-  packages = dbPkgs;
-
-  // --- contact ---
-  const dbContact = await sbGetSingle('gt_settings', 'key', 'contact');
-  contactInfo = dbContact ? JSON.parse(dbContact.value) : defaultContact;
-
-  // --- gallery ---
-  let dbGallery = await sbGet('gt_gallery');
-  if (!dbGallery.length) {
-    for (const g of defaultGallery) await sbUpsert('gt_gallery', g);
-    dbGallery = defaultGallery;
-  }
-  gallery = dbGallery;
-}
-
-// save() now writes back to Supabase
-async function save() {
-  for (const p of plants) await sbUpsert('gt_plants', p);
-  for (const m of materials) await sbUpsert('gt_materials', m);
-  for (const pk of packages) await sbUpsert('gt_packages', pk);
-  await _supabase.from('gt_settings').upsert({ key: 'contact', value: JSON.stringify(contactInfo) }, { onConflict: 'key' });
+function save() {
+  safeStorage.setItem('gt_plants', JSON.stringify(plants));
+  safeStorage.setItem('gt_materials', JSON.stringify(materials));
+  safeStorage.setItem('gt_packages', JSON.stringify(packages));
+  safeStorage.setItem('gt_contact', JSON.stringify(contactInfo));
 }
 
 // ===================== PLANT TAB STATE =====================
@@ -2020,20 +1984,19 @@ function renderAll() {
   document.getElementById('galleryHint').style.display = (currentRole === 'admin') ? 'block' : 'none';
 }
 
-// ===================== AUTH (Supabase) =====================
-// Built-in admin/staff — stored in gt_settings as JSON
+// ===================== AUTH =====================
+// Built-in admin/staff accounts (cannot be overwritten by registration)
 const BUILTIN_CREDENTIALS = {
   admin: { username: 'admin', password: 'admin123', role: 'admin' },
   staff: { username: 'staff', password: 'staff123', role: 'staff' }
 };
 
-// Registered users are Supabase Auth users; profile data in gt_user_profiles
-async function getRegisteredUsers() {
-  return await sbGet('gt_user_profiles');
+// Load registered users from localStorage
+function getRegisteredUsers() {
+  return JSON.parse(safeStorage.getItem('gt_users')) || [];
 }
-async function saveRegisteredUsers(users) {
-  // Individual profiles are saved on register; this is kept for admin list
-  for (const u of users) await sbUpsert('gt_user_profiles', u);
+function saveRegisteredUsers(users) {
+  safeStorage.setItem('gt_users', JSON.stringify(users));
 }
 
 let authTab = 'signin'; // 'signin' | 'register'
@@ -2075,9 +2038,96 @@ function togglePwd(id, icon) {
   else { inp.type = 'password'; icon.textContent = '👁'; }
 }
 
-// doSignIn / doRegister / doLogout are defined below (Supabase versions override these stubs)
-function doSignIn() { /* overridden below */ }
-function doRegister() { /* overridden below */ }
+function doSignIn() {
+  const u = document.getElementById('siUser').value.trim();
+  const p = document.getElementById('siPass').value.trim();
+  const errEl = document.getElementById('siErr');
+  if (!u || !p) { errEl.textContent = '⚠️ Please enter username and password'; errEl.style.display = 'block'; return; }
+
+  // Check built-in admin/staff
+  for (const key of Object.keys(BUILTIN_CREDENTIALS)) {
+    const cred = BUILTIN_CREDENTIALS[key];
+    if (u === cred.username && p === cred.password) {
+      currentRole = cred.role;
+      saveSession(currentRole, null);
+      startSessionTimer();
+      closeLogin();
+      updateNavActions();
+      renderAll();
+      showToast(`✅ Signed in as ${cred.role === 'admin' ? 'Admin' : 'Staff'}`);
+      return;
+    }
+  }
+  // Check registered users
+  const users = getRegisteredUsers();
+  const found = users.find(usr => usr.username === u && usr.password === p);
+  if (found) {
+    currentRole = 'user';
+    currentUser = found;
+    saveSession(currentRole, currentUser);
+    startSessionTimer();
+    closeLogin();
+    updateNavActions();
+    renderAll();
+    showToast(`✅ Welcome back, ${found.username}!`);
+  } else {
+    errEl.textContent = '❌ Invalid username or password';
+    errEl.style.display = 'block';
+    setTimeout(() => errEl.style.display = 'none', 3000);
+  }
+}
+
+function doRegister() {
+  const username = document.getElementById('regUser').value.trim();
+  const whatsapp = document.getElementById('regWA').value.trim();
+  const location = document.getElementById('regLoc').value.trim();
+  const pass = document.getElementById('regPass').value;
+  const pass2 = document.getElementById('regPass2').value;
+  const errEl = document.getElementById('regErr');
+  const successEl = document.getElementById('regSuccess');
+  errEl.style.display = 'none';
+  successEl.style.display = 'none';
+
+  // Validate
+  if (!username || !whatsapp || !location || !pass || !pass2) {
+    errEl.textContent = '⚠️ All fields are required'; errEl.style.display = 'block'; return;
+  }
+  if (username.length < 3) {
+    errEl.textContent = '⚠️ Username must be at least 3 characters'; errEl.style.display = 'block'; return;
+  }
+  if (!/^[\+]?[\d\s\-]{8,15}$/.test(whatsapp)) {
+    errEl.textContent = '⚠️ Please enter a valid WhatsApp number'; errEl.style.display = 'block'; return;
+  }
+  if (pass.length < 6) {
+    errEl.textContent = '⚠️ Password must be at least 6 characters'; errEl.style.display = 'block'; return;
+  }
+  if (pass !== pass2) {
+    errEl.textContent = '❌ Passwords do not match'; errEl.style.display = 'block'; return;
+  }
+  // Check if username taken (built-in or registered)
+  const reserved = Object.values(BUILTIN_CREDENTIALS).map(c => c.username);
+  if (reserved.includes(username.toLowerCase())) {
+    errEl.textContent = '❌ This username is not available'; errEl.style.display = 'block'; return;
+  }
+  const users = getRegisteredUsers();
+  if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
+    errEl.textContent = '❌ Username already taken. Choose another.'; errEl.style.display = 'block'; return;
+  }
+  // Save new user
+  const newUser = { username, whatsapp, location, password: pass, registeredAt: new Date().toISOString() };
+  users.push(newUser);
+  saveRegisteredUsers(users);
+  successEl.style.display = 'block';
+  // Auto-fill sign-in form and switch
+  setTimeout(() => {
+    switchAuthTab('signin');
+    document.getElementById('siUser').value = username;
+    document.getElementById('siPass').value = '';
+    document.getElementById('siPass').focus();
+    showToast('🎉 Account created! Please sign in.');
+  }, 1500);
+}
+
 // Legacy login alias
 function doLogin() { doSignIn(); }
 
@@ -2258,46 +2308,41 @@ function previewEmoji(val) {
   }
 }
 
-async function saveItem() {
+function saveItem() {
   const name = document.getElementById('itemName').value.trim();
   if (!name) { showToast('⚠️ Please enter a name'); return; }
   const img = currentUploadedImgData || document.getElementById('itemImg').value.trim();
   const emoji = document.getElementById('itemEmoji').value.trim() || '🌿';
   const list = editingType === 'plant' ? plants : materials;
-  const tableName = editingType === 'plant' ? 'gt_plants' : 'gt_materials';
   if (editingType === 'plant') {
     const sci = document.getElementById('itemSci').value.trim();
     const type = document.getElementById('itemType').value;
     if (editingId === null) {
-      const newItem = { id: Date.now(), name, sci, type, img, emoji };
-      list.push(newItem);
-      await sbUpsert(tableName, newItem);
+      list.push({ id: Date.now(), name, sci, type, img, emoji });
     } else {
       const item = list.find(x=>x.id===editingId);
-      if (item) { item.name = name; item.sci = sci; item.type = type; item.img = img; item.emoji = emoji; await sbUpsert(tableName, item); }
+      if (item) { item.name = name; item.sci = sci; item.type = type; item.img = img; item.emoji = emoji; }
     }
   } else {
     if (editingId === null) {
-      const newItem = { id: Date.now(), name, img, emoji };
-      list.push(newItem);
-      await sbUpsert(tableName, newItem);
+      list.push({ id: Date.now(), name, img, emoji });
     } else {
       const item = list.find(x=>x.id===editingId);
-      if (item) { item.name = name; item.img = img; item.emoji = emoji; await sbUpsert(tableName, item); }
+      if (item) { item.name = name; item.img = img; item.emoji = emoji; }
     }
   }
+  save();
   closeItemModal();
   renderPlantsGrid();
   renderMaterialsGrid();
   showToast('✅ Saved successfully!');
 }
 
-async function deleteItem(type, id) {
+function deleteItem(type, id) {
   if (!confirm('Delete this item?')) return;
-  const tableName = type === 'plant' ? 'gt_plants' : 'gt_materials';
   if (type === 'plant') plants = plants.filter(x=>x.id!==id);
   else materials = materials.filter(x=>x.id!==id);
-  await sbDelete(tableName, id);
+  save();
   renderCatalog(plants, 'plantsGrid', 'plant');
   renderCatalog(materials, 'materialsGrid', 'material');
   showToast('🗑 Deleted');
@@ -2334,7 +2379,7 @@ function addFeatureField() {
   li.innerHTML = `<input type="text" placeholder="New feature..."><button onclick="this.parentElement.remove()">✕</button>`;
   ul.appendChild(li);
 }
-async function savePkg() {
+function savePkg() {
   const pkg = packages.find(x=>x.id===editingPkgId);
   if (!pkg) return;
   pkg.name = document.getElementById('pkgName').value.trim();
@@ -2342,7 +2387,7 @@ async function savePkg() {
   pkg.price = parseInt(document.getElementById('pkgPrice').value) || pkg.price;
   pkg.period = document.getElementById('pkgPeriod').value.trim();
   pkg.features = Array.from(document.querySelectorAll('#featureListEdit input')).map(i=>i.value.trim()).filter(Boolean);
-  await sbUpsert('gt_packages', pkg);
+  save();
   closePkgModal();
   renderPackages();
   showToast('✅ Package updated!');
@@ -2358,13 +2403,13 @@ function editContact() {
   document.getElementById('contactModal').classList.add('open');
 }
 function closeContactModal() { document.getElementById('contactModal').classList.remove('open'); }
-async function saveContact() {
+function saveContact() {
   contactInfo.address = document.getElementById('ceAddress').value;
   contactInfo.phone = document.getElementById('cePhone').value;
   contactInfo.email = document.getElementById('ceEmail').value;
   contactInfo.hours = document.getElementById('ceHours').value;
   contactInfo.whatsapp = document.getElementById('ceWhatsapp').value;
-  await _supabase.from('gt_settings').upsert({ key: 'contact', value: JSON.stringify(contactInfo) }, { onConflict: 'key' });
+  save();
   closeContactModal();
   renderContact();
   showToast('✅ Contact info updated!');
@@ -2385,15 +2430,19 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 3200);
 }
 
-// ===================== ACTIVITY LOG (Supabase) =====================
-async function getLogs() { return await sbGet('gt_logs'); }
-async function addLog(type, icon, action, user) {
-  await _supabase.from('gt_logs').insert({
+// ===================== ACTIVITY LOG =====================
+function getLogs() { return JSON.parse(safeStorage.getItem('gt_logs')) || []; }
+function saveLogs(logs) { safeStorage.setItem('gt_logs', JSON.stringify(logs)); }
+function addLog(type, icon, action, user) {
+  const logs = getLogs();
+  logs.unshift({
     id: Date.now(),
     type, icon, action,
     user: user || (currentUser ? currentUser.username : currentRole || 'guest'),
     time: new Date().toISOString()
   });
+  // Keep last 200 entries
+  saveLogs(logs.slice(0, 200));
 }
 function fmtTime(iso) {
   const d = new Date(iso);
@@ -2401,12 +2450,9 @@ function fmtTime(iso) {
     ' ' + d.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
 }
 
-// ===================== ORDERS (Supabase) =====================
-async function getOrders() { return await sbGet('gt_orders'); }
-async function saveOrders(orders) {
-  // Called after unshift — just upsert the first (newest) order
-  if (orders.length) await sbUpsert('gt_orders', orders[0]);
-}
+// ===================== ORDERS =====================
+function getOrders() { return JSON.parse(safeStorage.getItem('gt_orders')) || []; }
+function saveOrders(orders) { safeStorage.setItem('gt_orders', JSON.stringify(orders)); }
 
 // Cart state: { plantId: qty, ... }  and  { matId: qty, ... }
 let cart = { plants: {}, materials: {} };
@@ -2510,7 +2556,7 @@ function renderOrderSummary() {
   }
 }
 
-async function submitOrder() {
+function submitOrder() {
   const total = Object.values(cart.plants).reduce((a,b)=>a+b,0) + Object.values(cart.materials).reduce((a,b)=>a+b,0);
   if (total === 0) { showToast('⚠️ Please select at least one item'); return; }
   const notes = document.getElementById('orderNotes').value.trim();
@@ -2535,7 +2581,9 @@ async function submitOrder() {
     time: new Date().toISOString(),
     status: 'pending'
   };
-  await sbUpsert('gt_orders', order);
+  const orders = getOrders();
+  orders.unshift(order);
+  saveOrders(orders);
 
   // Log it
   const productStr = order.products.slice(0,3).map(p=>`${p.emoji}${p.name}×${p.qty}`).join(', ') + (order.products.length > 3 ? ` +${order.products.length-3} more` : '');
@@ -2584,10 +2632,8 @@ function setLogFilter(filter, btn) {
   renderLogList();
 }
 
-async function renderLogList() {
-  const allLogs = await getLogs();
-  const logs = allLogs.filter(l => logFilter === 'all' || l.type === logFilter)
-    .sort((a,b) => new Date(b.time) - new Date(a.time)).slice(0, 200);
+function renderLogList() {
+  const logs = getLogs().filter(l => logFilter === 'all' || l.type === logFilter);
   const el = document.getElementById('logList');
   if (logs.length === 0) {
     el.innerHTML = `<div class="log-empty">📭 No activity logs yet.</div>`;
@@ -2605,8 +2651,8 @@ async function renderLogList() {
     </div>`).join('');
 }
 
-async function renderOrdersTable() {
-  const orders = await getOrders();
+function renderOrdersTable() {
+  const orders = getOrders();
   const tbody = document.getElementById('ordersTableBody');
   if (orders.length === 0) {
     tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-light);">No orders yet.</td></tr>`;
@@ -2629,17 +2675,16 @@ async function renderOrdersTable() {
     </tr>`).join('');
 }
 
-async function renderAdminUsersList() {
+function renderAdminUsersList() {
   const list = document.getElementById('adminUsersList');
   // Built-in accounts
   const builtins = Object.values(BUILTIN_CREDENTIALS).map(c => ({
     username: c.username, role: c.role, builtin: true
   }));
   // Dynamic admins/staff
-  const dynAdmins = await getAdminAccounts();
+  const dynAdmins = getAdminAccounts();
   // Registered users
-  const regUsersRaw = await getRegisteredUsers();
-  const regUsers = regUsersRaw.map(u => ({ username: u.username, role: 'user', whatsapp: u.whatsapp, location: u.location }));
+  const regUsers = getRegisteredUsers().map(u => ({ username: u.username, role: 'user', whatsapp: u.whatsapp, location: u.location }));
 
   const all = [...builtins, ...dynAdmins, ...regUsers];
 
@@ -2661,13 +2706,11 @@ async function renderAdminUsersList() {
     </div>`).join('');
 }
 
-// Dynamic admin accounts stored in Supabase
-async function getAdminAccounts() { return await sbGet('gt_admins'); }
-async function saveAdminAccounts(list) {
-  for (const a of list) await sbUpsert('gt_admins', a);
-}
+// Dynamic admin accounts
+function getAdminAccounts() { return JSON.parse(safeStorage.getItem('gt_admins')) || []; }
+function saveAdminAccounts(list) { safeStorage.setItem('gt_admins', JSON.stringify(list)); }
 
-async function createAdminAccount() {
+function createAdminAccount() {
   const username = document.getElementById('newAdminUser').value.trim();
   const pass = document.getElementById('newAdminPass').value.trim();
   const role = document.getElementById('newAdminRole').value;
@@ -2681,13 +2724,13 @@ async function createAdminAccount() {
   const reserved = Object.values(BUILTIN_CREDENTIALS).map(c => c.username.toLowerCase());
   if (reserved.includes(username.toLowerCase())) { errEl.textContent = '❌ Username not available'; errEl.style.display = 'block'; return; }
 
-  const admins = await getAdminAccounts();
-  const users = await getRegisteredUsers();
+  const admins = getAdminAccounts();
+  const users = getRegisteredUsers();
   const allNames = [...admins, ...users].map(u => u.username.toLowerCase());
   if (allNames.includes(username.toLowerCase())) { errEl.textContent = '❌ Username already taken'; errEl.style.display = 'block'; return; }
 
-  admins.push({ id: Date.now(), username, password: pass, role, createdAt: new Date().toISOString() });
-  await saveAdminAccounts(admins);
+  admins.push({ username, password: pass, role, createdAt: new Date().toISOString() });
+  saveAdminAccounts(admins);
   addLog('admin', '⚙️', `Created new ${role} account: ${username}`);
   document.getElementById('newAdminUser').value = '';
   document.getElementById('newAdminPass').value = '';
@@ -2695,83 +2738,81 @@ async function createAdminAccount() {
   renderAdminUsersList();
 }
 
-async function deleteAccount(username, role) {
+function deleteAccount(username, role) {
   if (!confirm(`Remove account "${username}"?`)) return;
   if (role === 'user') {
-    const users = (await getRegisteredUsers()).filter(u => u.username !== username);
-    await saveRegisteredUsers(users);
-    // Also delete from Supabase directly
-    await _supabase.from('gt_user_profiles').delete().eq('username', username);
+    const users = getRegisteredUsers().filter(u => u.username !== username);
+    saveRegisteredUsers(users);
   } else {
-    const admins = (await getAdminAccounts()).filter(u => u.username !== username);
-    await _supabase.from('gt_admins').delete().eq('username', username);
-    await saveAdminAccounts(admins);
+    const admins = getAdminAccounts().filter(u => u.username !== username);
+    saveAdminAccounts(admins);
   }
   addLog('admin', '🗑️', `Removed ${role} account: ${username}`);
   showToast(`🗑 Account "${username}" removed`);
   renderAdminUsersList();
 }
 
-// ===================== PATCH SIGN-IN to support dynamic admins (Supabase) =====================
+// ===================== PATCH SIGN-IN to support dynamic admins =====================
+const _origSignIn = doSignIn;
 function doSignIn() {
   const u = document.getElementById('siUser').value.trim();
   const p = document.getElementById('siPass').value.trim();
   const errEl = document.getElementById('siErr');
   if (!u || !p) { errEl.textContent = '⚠️ Please enter username and password'; errEl.style.display = 'block'; return; }
 
-  (async () => {
-    // Built-in hardcoded accounts
-    for (const key of Object.keys(BUILTIN_CREDENTIALS)) {
-      const cred = BUILTIN_CREDENTIALS[key];
-      if (u === cred.username && p === cred.password) {
-        currentRole = cred.role;
-        currentUser = null;
-        startSessionTimer();
-        closeLogin();
-        updateNavActions();
-        renderAll();
-        addLog('auth', '🔑', `Signed in as ${cred.role}`);
-        showToast(`✅ Signed in as ${cred.role === 'admin' ? 'Admin' : 'Staff'}`);
-        return;
-      }
-    }
-    // Dynamic admin/staff from Supabase
-    const admins = await getAdminAccounts();
-    const foundAdmin = admins.find(a => a.username === u && a.password === p);
-    if (foundAdmin) {
-      currentRole = foundAdmin.role;
+  // Built-in
+  for (const key of Object.keys(BUILTIN_CREDENTIALS)) {
+    const cred = BUILTIN_CREDENTIALS[key];
+    if (u === cred.username && p === cred.password) {
+      currentRole = cred.role;
       currentUser = null;
+      saveSession(currentRole, null);
       startSessionTimer();
       closeLogin();
       updateNavActions();
       renderAll();
-      addLog('auth', '🔑', `Signed in as ${foundAdmin.role}`, foundAdmin.username);
-      showToast(`✅ Signed in as ${foundAdmin.role === 'admin' ? 'Admin' : 'Staff'}`);
+      addLog('auth', '🔑', `Signed in as ${cred.role}`);
+      showToast(`✅ Signed in as ${cred.role === 'admin' ? 'Admin' : 'Staff'}`);
       return;
     }
-    // Registered users via Supabase Auth (email = username@greentop.local)
-    const fakeEmail = u + '@greentop.local';
-    const { data, error } = await _supabase.auth.signInWithPassword({ email: fakeEmail, password: p });
-    if (!error && data.session) {
-      const profile = await sbGetSingle('gt_user_profiles', 'username', u);
-      currentRole = 'user';
-      currentUser = profile || { username: u, whatsapp: '', location: '' };
-      startSessionTimer();
-      closeLogin();
-      updateNavActions();
-      renderAll();
-      renderMyBookings();
-      addLog('auth', '🔑', `Signed in`, u);
-      showToast(`✅ Welcome back, ${u}!`);
-    } else {
-      errEl.textContent = '❌ Invalid username or password';
-      errEl.style.display = 'block';
-      setTimeout(() => errEl.style.display = 'none', 3000);
-    }
-  })();
+  }
+  // Dynamic admin/staff accounts
+  const admins = getAdminAccounts();
+  const foundAdmin = admins.find(a => a.username === u && a.password === p);
+  if (foundAdmin) {
+    currentRole = foundAdmin.role;
+    currentUser = null;
+    saveSession(currentRole, null);
+    startSessionTimer();
+    closeLogin();
+    updateNavActions();
+    renderAll();
+    addLog('auth', '🔑', `Signed in as ${foundAdmin.role}`, foundAdmin.username);
+    showToast(`✅ Signed in as ${foundAdmin.role === 'admin' ? 'Admin' : 'Staff'}`);
+    return;
+  }
+  // Registered users
+  const users = getRegisteredUsers();
+  const found = users.find(usr => usr.username === u && usr.password === p);
+  if (found) {
+    currentRole = 'user';
+    currentUser = found;
+    saveSession(currentRole, currentUser);
+    startSessionTimer();
+    closeLogin();
+    updateNavActions();
+    renderAll();
+    renderMyBookings();
+    addLog('auth', '🔑', `Signed in`, found.username);
+    showToast(`✅ Welcome back, ${found.username}!`);
+  } else {
+    errEl.textContent = '❌ Invalid username or password';
+    errEl.style.display = 'block';
+    setTimeout(() => errEl.style.display = 'none', 3000);
+  }
 }
 
-// Patch logout to log activity and sign out from Supabase
+// Patch logout to log activity
 const _origLogout = doLogout;
 function doLogout() {
   addLog('auth', '👋', `Signed out`);
@@ -2779,13 +2820,12 @@ function doLogout() {
   currentUser = null;
   cart = { plants: {}, materials: {} };
   clearSession();
-  _supabase.auth.signOut();
   updateNavActions();
   renderAll();
   showToast('👋 Signed out successfully');
 }
 
-// Patch register to use Supabase Auth
+// Patch register to log activity
 const _origReg = doRegister;
 function doRegister() {
   const username = document.getElementById('regUser').value.trim();
@@ -2805,32 +2845,20 @@ function doRegister() {
   if (pass !== pass2) { errEl.textContent = '❌ Passwords do not match'; errEl.style.display = 'block'; return; }
   const reserved = Object.values(BUILTIN_CREDENTIALS).map(c => c.username);
   if (reserved.includes(username.toLowerCase())) { errEl.textContent = '❌ This username is not available'; errEl.style.display = 'block'; return; }
-
-  (async () => {
-    const profiles = await sbGet('gt_user_profiles');
-    if (profiles.find(u => u.username.toLowerCase() === username.toLowerCase())) {
-      errEl.textContent = '❌ Username already taken.'; errEl.style.display = 'block'; return;
-    }
-    // Sign up via Supabase Auth using a fake email convention
-    const fakeEmail = username + '@greentop.local';
-    const { error } = await _supabase.auth.signUp({
-      email: fakeEmail,
-      password: pass,
-      options: { data: { username, whatsapp, location, role: 'user' } }
-    });
-    if (error) { errEl.textContent = '❌ ' + error.message; errEl.style.display = 'block'; return; }
-    // Save profile in gt_user_profiles
-    await sbUpsert('gt_user_profiles', { id: Date.now(), username, whatsapp, location, registeredAt: new Date().toISOString() });
-    addLog('auth', '✅', `New user registered: ${username} (${location})`);
-    successEl.style.display = 'block';
-    setTimeout(() => {
-      switchAuthTab('signin');
-      document.getElementById('siUser').value = username;
-      document.getElementById('siPass').value = '';
-      document.getElementById('siPass').focus();
-      showToast('🎉 Account created! Please sign in.');
-    }, 1500);
-  })();
+  const users = getRegisteredUsers();
+  if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) { errEl.textContent = '❌ Username already taken.'; errEl.style.display = 'block'; return; }
+  const newUser = { username, whatsapp, location, password: pass, registeredAt: new Date().toISOString() };
+  users.push(newUser);
+  saveRegisteredUsers(users);
+  addLog('auth', '✅', `New user registered: ${username} (${location})`);
+  successEl.style.display = 'block';
+  setTimeout(() => {
+    switchAuthTab('signin');
+    document.getElementById('siUser').value = username;
+    document.getElementById('siPass').value = '';
+    document.getElementById('siPass').focus();
+    showToast('🎉 Account created! Please sign in.');
+  }, 1500);
 }
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', function(e) {
@@ -2847,15 +2875,19 @@ const observer = new IntersectionObserver((entries) => {
 document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 
 // ===================== GALLERY =====================
-let gallery = [];
-let unlockedGallery = [];
+const defaultGallery = [
+  { id: 1, title: 'Rooftop Organic Garden', desc: 'RS Puram, Coimbatore', mediaType: 'image', src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Rooftop_garden_of_Robson_Square.jpg/640px-Rooftop_garden_of_Robson_Square.jpg', price: 0, featured: true },
+  { id: 2, title: 'Balcony Herb Garden', desc: 'Saibaba Colony', mediaType: 'image', src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Balcony_garden.jpg/640px-Balcony_garden.jpg', price: 0, featured: false },
+  { id: 3, title: 'Vertical Garden Wall', desc: 'Peelamedu Office', mediaType: 'image', src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Vertical_garden_in_Paris.jpg/640px-Vertical_garden_in_Paris.jpg', price: 99, featured: false },
+  { id: 4, title: 'Full Terrace Setup', desc: 'Singanallur Villa', mediaType: 'image', src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/GardenCenter.jpg/640px-GardenCenter.jpg', price: 149, featured: true },
+];
+let gallery = JSON.parse(safeStorage.getItem('gt_gallery')) || defaultGallery;
+let unlockedGallery = JSON.parse(safeStorage.getItem('gt_gallery_unlocked')) || [];
 let editingGalleryId = null;
 let geUploadedData = '';
 let geUploadedVideoData = '';
 
-async function saveGallery() {
-  for (const g of gallery) await sbUpsert('gt_gallery', g);
-}
+function saveGallery() { safeStorage.setItem('gt_gallery', JSON.stringify(gallery)); }
 
 function renderGalleryGrid() {
   const grid = document.getElementById('galleryGrid');
@@ -2925,10 +2957,7 @@ function openGalleryViewer(id) {
 function simulateGalleryUnlock() {
   const modal = document.getElementById('galleryViewerModal');
   const id = modal._currentItemId;
-  if (!unlockedGallery.includes(id)) {
-    unlockedGallery.push(id);
-    await _supabase.from('gt_settings').upsert({ key: 'gallery_unlocked', value: JSON.stringify(unlockedGallery) }, { onConflict: 'key' });
-  }
+  if (!unlockedGallery.includes(id)) { unlockedGallery.push(id); safeStorage.setItem('gt_gallery_unlocked', JSON.stringify(unlockedGallery)); }
   showToast('🔓 Gallery item unlocked! (Demo payment simulated)');
   document.getElementById('galleryViewerModal').classList.remove('open');
   renderGalleryGrid();
@@ -2981,7 +3010,7 @@ function previewGalleryMedia() {
   if (type === 'video') prev.innerHTML = `<video src="${src}" style="width:100%;max-height:160px;object-fit:cover;border-radius:10px;" controls></video>`;
   else prev.innerHTML = `<img src="${src}" style="width:100%;height:160px;object-fit:cover;border-radius:10px;">`;
 }
-async function saveGalleryItem() {
+function saveGalleryItem() {
   const title = document.getElementById('geTitle').value.trim();
   if (!title) { showToast('⚠️ Please enter a title'); return; }
   const mediaType = document.getElementById('geMediaType').value;
@@ -2990,21 +3019,18 @@ async function saveGalleryItem() {
   const featured = document.getElementById('geFeatured').value === '1';
   const desc = document.getElementById('geDesc').value.trim();
   if (editingGalleryId === null) {
-    const newItem = { id: Date.now(), title, desc, mediaType, src, price, featured };
-    gallery.push(newItem);
-    await sbUpsert('gt_gallery', newItem);
+    gallery.push({ id: Date.now(), title, desc, mediaType, src, price, featured });
   } else {
     const item = gallery.find(g => g.id === editingGalleryId);
-    if (item) { item.title=title; item.desc=desc; item.mediaType=mediaType; if(src) item.src=src; item.price=price; item.featured=featured; await sbUpsert('gt_gallery', item); }
+    if (item) { item.title=title; item.desc=desc; item.mediaType=mediaType; if(src) item.src=src; item.price=price; item.featured=featured; }
   }
-  closeGalleryEditModal(); renderGalleryGrid();
+  saveGallery(); closeGalleryEditModal(); renderGalleryGrid();
   showToast('✅ Gallery item saved!');
 }
-async function deleteGalleryItem(id) {
+function deleteGalleryItem(id) {
   if (!confirm('Delete this gallery item?')) return;
   gallery = gallery.filter(g => g.id !== id);
-  await sbDelete('gt_gallery', id);
-  renderGalleryGrid();
+  saveGallery(); renderGalleryGrid();
   showToast('🗑 Gallery item removed');
 }
 
@@ -3034,17 +3060,10 @@ const TIME_SLOTS = ['9:00 AM','10:00 AM','11:00 AM','12:00 PM','2:00 PM','3:00 P
 let selectedBookingDate = null;
 let selectedBookingSlot = null;
 
-async function getBookings() { return await sbGet('gt_bookings'); }
-async function saveBookings(b) {
-  if (b.length) await sbUpsert('gt_bookings', b[0]);
-}
-async function getSlotConfig() {
-  const row = await sbGetSingle('gt_settings', 'key', 'slot_config');
-  return row ? JSON.parse(row.value) : {};
-}
-async function saveSlotConfig(c) {
-  await _supabase.from('gt_settings').upsert({ key: 'slot_config', value: JSON.stringify(c) }, { onConflict: 'key' });
-}
+function getBookings() { return JSON.parse(safeStorage.getItem('gt_bookings')) || []; }
+function saveBookings(b) { safeStorage.setItem('gt_bookings', JSON.stringify(b)); }
+function getSlotConfig() { return JSON.parse(safeStorage.getItem('gt_slots')) || {}; }
+function saveSlotConfig(c) { safeStorage.setItem('gt_slots', JSON.stringify(c)); }
 
 function renderBookingCalendar() {
   const cal = document.getElementById('bookingCalendar');
@@ -3072,12 +3091,12 @@ function selectBookingDate(dateStr, btn) {
   renderTimeSlots();
 }
 
-async function renderTimeSlots() {
+function renderTimeSlots() {
   const wrap = document.getElementById('bookingSlotsWrap');
   if (!wrap || !selectedBookingDate) return;
-  const slotConfig = await getSlotConfig();
+  const slotConfig = getSlotConfig();
   const dateConfig = slotConfig[selectedBookingDate] || {};
-  const bookings = await getBookings();
+  const bookings = getBookings();
   const dateBookings = bookings.filter(b => b.date === selectedBookingDate);
   wrap.innerHTML = '<div class="time-slots-grid">' + TIME_SLOTS.map(slot => {
     const isBlocked = dateConfig[slot] === false;
@@ -3092,11 +3111,11 @@ async function renderTimeSlots() {
   }).join('') + '</div>';
 }
 
-async function selectSlot(slot, el) {
-  const slotConfig = await getSlotConfig();
+function selectSlot(slot, el) {
+  const slotConfig = getSlotConfig();
   const dateConfig = slotConfig[selectedBookingDate] || {};
   if (dateConfig[slot] === false) return; // blocked
-  const bookings = await getBookings();
+  const bookings = getBookings();
   const slotCount = bookings.filter(b => b.date === selectedBookingDate && b.slot === slot).length;
   if (slotCount >= 3) return; // full
   selectedBookingSlot = slot;
@@ -3104,7 +3123,7 @@ async function selectSlot(slot, el) {
   el.classList.add('selected');
 }
 
-async function submitVisitBooking() {
+function submitVisitBooking() {
   const name = document.getElementById('visitName').value.trim();
   const wa = document.getElementById('visitWA').value.trim();
   const purpose = document.getElementById('visitPurpose').value;
@@ -3112,8 +3131,10 @@ async function submitVisitBooking() {
   if (!wa) { showToast('⚠️ Please enter your WhatsApp number'); return; }
   if (!selectedBookingDate) { showToast('⚠️ Please select a date'); return; }
   if (!selectedBookingSlot) { showToast('⚠️ Please select a time slot'); return; }
+  const bookings = getBookings();
   const booking = { id: Date.now(), name, wa, purpose, date: selectedBookingDate, slot: selectedBookingSlot, status: 'pending', createdAt: new Date().toISOString(), user: currentUser ? currentUser.username : 'guest' };
-  await sbUpsert('gt_bookings', booking);
+  bookings.unshift(booking);
+  saveBookings(bookings);
   addLog('order', '📅', `Booking: ${name} on ${selectedBookingDate} at ${selectedBookingSlot}`);
   showToast(`✅ Booking confirmed for ${selectedBookingDate} at ${selectedBookingSlot}!`);
   document.getElementById('visitName').value = '';
@@ -3125,12 +3146,11 @@ async function submitVisitBooking() {
   renderMyBookings();
 }
 
-async function renderMyBookings() {
+function renderMyBookings() {
   const wrap = document.getElementById('myBookingsWrap');
   const list = document.getElementById('myBookingsList');
   if (!wrap || !list) return;
-  const allBookings = await getBookings();
-  const bookings = allBookings.filter(b => currentUser ? b.user === currentUser.username : true).slice(0,5);
+  const bookings = getBookings().filter(b => currentUser ? b.user === currentUser.username : true).slice(0,5);
   if (bookings.length === 0) { wrap.style.display = 'none'; return; }
   wrap.style.display = 'block';
   list.innerHTML = bookings.map(b => `
@@ -3142,10 +3162,10 @@ async function renderMyBookings() {
 }
 
 // Admin visits panel
-async function renderAdminVisits() {
+function renderAdminVisits() {
   const list = document.getElementById('adminVisitsList');
   if (!list) return;
-  const bookings = await getBookings();
+  const bookings = getBookings();
   if (bookings.length === 0) { list.innerHTML = '<p style="color:var(--text-light);text-align:center;padding:30px;">No bookings yet.</p>'; return; }
   list.innerHTML = `<table class="orders-table" style="width:100%;"><thead><tr><th>Name</th><th>Date & Time</th><th>Purpose</th><th>Status</th><th>Action</th></tr></thead><tbody>` +
     bookings.map(b => `<tr>
@@ -3159,18 +3179,19 @@ async function renderAdminVisits() {
       </td>
     </tr>`).join('') + '</tbody></table>';
 }
-async function updateBookingStatus(id, status) {
-  const { error } = await _supabase.from('gt_bookings').update({ status }).eq('id', id);
-  if (!error) { renderAdminVisits(); showToast(`✅ Booking ${status}`); }
+function updateBookingStatus(id, status) {
+  const bookings = getBookings();
+  const b = bookings.find(x => x.id === id);
+  if (b) { b.status = status; saveBookings(bookings); renderAdminVisits(); showToast(`✅ Booking ${status}`); }
 }
 
 // Admin slot management
-async function loadAdminSlots() {
+function loadAdminSlots() {
   const date = document.getElementById('adminSlotDate').value;
   if (!date) return;
-  const slotConfig = await getSlotConfig();
+  const slotConfig = getSlotConfig();
   const dateConfig = slotConfig[date] || {};
-  const bookings = (await getBookings()).filter(b => b.date === date);
+  const bookings = getBookings().filter(b => b.date === date);
   const panel = document.getElementById('adminSlotsPanel');
   panel.innerHTML = `<div style="font-size:13px;font-weight:600;color:var(--green-deep);margin-bottom:10px;">Slots for ${date}</div>
   <div class="slot-manage-grid">` +
@@ -3183,27 +3204,20 @@ async function loadAdminSlots() {
       </div>`;
     }).join('') + '</div>';
 }
-async function toggleSlot(date, slot, btn) {
-  const config = await getSlotConfig();
+function toggleSlot(date, slot, btn) {
+  const config = getSlotConfig();
   if (!config[date]) config[date] = {};
   const cur = config[date][slot] !== false;
   config[date][slot] = !cur;
-  await saveSlotConfig(config);
+  saveSlotConfig(config);
   btn.className = 'slot-toggle ' + (!cur ? 'on' : 'off');
   btn.textContent = !cur ? 'ON' : 'OFF';
   showToast(`Slot ${slot} on ${date} is now ${!cur?'available':'blocked'}`);
 }
 
 // ===================== PAGE EDITOR =====================
-let pageContent = {};
-(async () => {
-  const row = await sbGetSingle('gt_settings', 'key', 'page_content');
-  pageContent = row ? JSON.parse(row.value) : {};
-  applyPageContent();
-})();
-async function savePageContent() {
-  await _supabase.from('gt_settings').upsert({ key: 'page_content', value: JSON.stringify(pageContent) }, { onConflict: 'key' });
-}
+let pageContent = JSON.parse(safeStorage.getItem('gt_page')) || {};
+function savePageContent() { safeStorage.setItem('gt_page', JSON.stringify(pageContent)); }
 
 function applyPageContent() {
   // Logo
@@ -3425,9 +3439,14 @@ function savePEFooter() {
   savePageContent(); applyPageContent(); showToast('✅ Footer updated!');
 }
 
+// Apply on load
+applyPageContent();
+
 // ===================== INIT =====================
-// All init (session restore, data load, renderAll) is handled by the async IIFE above.
-// applyPageContent() is called separately after pageContent loads from Supabase.
+
+// Always restore nav state on load (handles both logged-in and logged-out)
+updateNavActions();
+renderAll();
 
 // ===================== UNIFIED CAROUSEL ENGINE =====================
 function makeCarousel({ trackId, dotsId, slideDir, cardGap, autoDelay }) {
