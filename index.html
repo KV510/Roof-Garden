@@ -443,6 +443,88 @@
   .feature-list-edit button { background: #fee2e2; color: #dc2626; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; font-size: 14px; flex-shrink: 0; }
   .btn-add-feature { background: var(--green-pale); color: var(--green-mid); border: none; border-radius: 50px; padding: 7px 16px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; }
 
+  /* ORDER STATUS BADGES */
+  .order-status-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 12px; border-radius: 50px; font-size: 12px; font-weight: 700;
+    letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  .status-pending   { background: #fef3c7; color: #92400e; }
+  .status-confirmed { background: #dbeafe; color: #1e40af; }
+  .status-processing{ background: #ede9fe; color: #5b21b6; }
+  .status-dispatched{ background: #fff7ed; color: #c2410c; }
+  .status-delivered { background: #d1fae5; color: #065f46; }
+  .status-cancelled { background: #fee2e2; color: #991b1b; }
+
+  /* USER MY ORDERS SECTION */
+  .my-orders-wrap { padding: 12px 0; }
+  .my-order-card {
+    background: white; border-radius: var(--radius); padding: 18px 20px;
+    border: 1.5px solid var(--green-pale); margin-bottom: 14px;
+    box-shadow: var(--shadow-card);
+  }
+  .my-order-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px; flex-wrap: wrap; gap: 8px;
+  }
+  .my-order-id { font-size: 12px; color: var(--text-light); }
+  .my-order-date { font-size: 12px; color: var(--text-light); }
+  .my-order-products { margin: 8px 0; font-size: 14px; color: var(--text-dark); line-height: 1.8; }
+  .my-order-notes { font-size: 13px; color: var(--text-light); font-style: italic; margin-top: 6px; }
+  .my-order-track {
+    display: flex; gap: 0; margin-top: 14px; padding-top: 14px;
+    border-top: 1.5px solid var(--green-pale); overflow-x: auto;
+  }
+  .track-step {
+    display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 60px;
+    position: relative;
+  }
+  .track-step:not(:last-child)::after {
+    content: ''; position: absolute; top: 14px; left: 50%; width: 100%; height: 2px;
+    background: var(--green-pale); z-index: 0;
+  }
+  .track-step.done:not(:last-child)::after { background: var(--green-mid); }
+  .track-dot {
+    width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--green-pale);
+    background: white; display: flex; align-items: center; justify-content: center;
+    font-size: 13px; z-index: 1; position: relative; transition: all 0.3s;
+  }
+  .track-step.done .track-dot { background: var(--green-mid); border-color: var(--green-mid); }
+  .track-step.active .track-dot { background: white; border-color: var(--green-mid); box-shadow: 0 0 0 3px rgba(64,145,108,0.2); }
+  .track-label { font-size: 10px; color: var(--text-light); margin-top: 5px; text-align: center; font-weight: 600; }
+  .track-step.done .track-label, .track-step.active .track-label { color: var(--green-deep); }
+
+  /* ADMIN ORDERS TABLE UPGRADE */
+  .admin-order-status-select {
+    padding: 5px 10px; border-radius: 50px; border: 1.5px solid var(--green-pale);
+    background: var(--green-mist); font-family: 'DM Sans', sans-serif;
+    font-size: 12px; font-weight: 600; cursor: pointer; outline: none;
+  }
+
+  /* CONFIRMATION MODAL */
+  .confirm-modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999; padding: 20px;
+    opacity: 0; pointer-events: none; transition: opacity 0.25s;
+  }
+  .confirm-modal-overlay.open { opacity: 1; pointer-events: all; }
+  .confirm-modal {
+    background: white; border-radius: var(--radius); padding: 32px 28px;
+    max-width: 440px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    transform: translateY(16px); transition: transform 0.25s;
+  }
+  .confirm-modal-overlay.open .confirm-modal { transform: translateY(0); }
+  .confirm-modal h3 { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--green-deep); margin-bottom: 8px; }
+  .confirm-modal p { font-size: 14px; color: var(--text-light); margin-bottom: 18px; line-height: 1.6; }
+  .confirm-modal-items { background: var(--green-mist); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 20px; border: 1.5px solid var(--green-pale); max-height: 200px; overflow-y: auto; }
+  .confirm-modal-item { font-size: 14px; color: var(--text-dark); padding: 4px 0; display: flex; justify-content: space-between; }
+  .confirm-modal-actions { display: flex; gap: 12px; }
+  .confirm-modal-actions .btn-cancel-order { flex: 1; padding: 12px; border-radius: 50px; border: 2px solid var(--green-pale); background: white; color: var(--text-mid); font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+  .confirm-modal-actions .btn-cancel-order:hover { background: var(--green-mist); }
+  .confirm-modal-actions .btn-confirm-order { flex: 2; padding: 12px; border-radius: 50px; border: none; background: linear-gradient(135deg, var(--green-deep), var(--green-mid)); color: white; font-size: 14px; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; box-shadow: 0 6px 20px rgba(45,106,79,0.35); }
+  .confirm-modal-actions .btn-confirm-order:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(45,106,79,0.45); }
+
   /* TOAST */
   .toast {
     position: fixed; bottom: 28px; right: 28px; z-index: 9999;
@@ -1252,6 +1334,32 @@
   </div>
 </div>
 
+<!-- ORDER CONFIRMATION MODAL -->
+<div class="confirm-modal-overlay" id="orderConfirmModal">
+  <div class="confirm-modal">
+    <h3>🛒 Confirm Your Order</h3>
+    <p>Please review your selected items before submitting.</p>
+    <div class="confirm-modal-items" id="confirmModalItems"></div>
+    <div id="confirmModalNotes" style="font-size:13px;color:var(--text-light);font-style:italic;margin-bottom:16px;display:none;"></div>
+    <div class="confirm-modal-actions">
+      <button class="btn-cancel-order" onclick="closeConfirmModal()">✕ Go Back</button>
+      <button class="btn-confirm-order" onclick="confirmAndPlaceOrder()">✅ Place Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- MY ORDERS MODAL (for logged-in users) -->
+<div class="modal-overlay" id="myOrdersModal">
+  <div class="modal" style="max-width:600px;">
+    <button class="modal-close" onclick="closeMyOrdersModal()">✕</button>
+    <h2 style="margin-bottom:4px;">📦 My Orders</h2>
+    <p style="font-size:13px;color:var(--text-light);margin-bottom:20px;">Track your order history and status.</p>
+    <div class="my-orders-wrap" id="myOrdersList">
+      <div style="text-align:center;padding:40px 20px;color:var(--text-light);">Loading orders…</div>
+    </div>
+  </div>
+</div>
+
 <!-- ADMIN DASHBOARD MODAL -->
 <div class="modal-overlay" id="adminModal">
   <div class="modal admin-modal">
@@ -1282,10 +1390,19 @@
 
     <!-- ORDERS TAB -->
     <div id="adminTab-orders" style="display:none;">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center;">
+        <div style="font-size:13px;font-weight:700;color:var(--text-mid);">Filter:</div>
+        <button class="log-filter-btn active" onclick="setOrderFilter('all',this)">All</button>
+        <button class="log-filter-btn" onclick="setOrderFilter('pending',this)">⏳ Pending</button>
+        <button class="log-filter-btn" onclick="setOrderFilter('confirmed',this)">✅ Confirmed</button>
+        <button class="log-filter-btn" onclick="setOrderFilter('processing',this)">🔄 Processing</button>
+        <button class="log-filter-btn" onclick="setOrderFilter('dispatched',this)">🚚 Dispatched</button>
+        <button class="log-filter-btn" onclick="setOrderFilter('delivered',this)">🎉 Delivered</button>
+      </div>
       <div style="overflow-x:auto;">
         <table class="orders-table" id="ordersTable">
           <thead><tr>
-            <th>User</th><th>Products Selected</th><th>Notes</th><th>Date</th>
+            <th>User</th><th>Products</th><th>Notes</th><th>Date</th><th>Status</th>
           </tr></thead>
           <tbody id="ordersTableBody"></tbody>
         </table>
@@ -2752,12 +2869,14 @@ function updateNavActions() {
     fab.style.display = 'none';
   } else if (currentRole === 'user') {
     desktopHtml = `
-      <button class="btn-primary" style="padding:9px 16px;font-size:13px;" onclick="openOrderModal()">🛒 My Order</button>
+      <button class="btn-primary" style="padding:9px 16px;font-size:13px;" onclick="openOrderModal()">🛒 New Order</button>
+      <button class="btn-login" style="padding:9px 16px;font-size:13px;" onclick="openMyOrdersModal()">📦 My Orders</button>
       <span class="role-badge role-staff">👤 ${currentUser.username}</span>
       <button class="btn-logout" onclick="doLogout()">Sign Out</button>
     `;
     mobileHtml = `
-      <button class="btn-primary" style="padding:9px 16px;font-size:13px;" onclick="closeMobileNav();openOrderModal()">🛒 My Order</button>
+      <button class="btn-primary" style="padding:9px 16px;font-size:13px;" onclick="closeMobileNav();openOrderModal()">🛒 New Order</button>
+      <button class="btn-login" style="padding:9px 16px;font-size:13px;" onclick="closeMobileNav();openMyOrdersModal()">📦 My Orders</button>
       <span class="role-badge role-staff" style="text-align:center;">👤 ${currentUser.username}</span>
       <button class="btn-logout" onclick="doLogout()">Sign Out</button>
     `;
@@ -3257,9 +3376,8 @@ function renderOrderSummary() {
 function submitOrder() {
   const total = Object.values(cart.plants).reduce((a,b)=>a+b,0) + Object.values(cart.materials).reduce((a,b)=>a+b,0);
   if (total === 0) { showToast('⚠️ Please select at least one item'); return; }
-  const notes = document.getElementById('orderNotes').value.trim();
 
-  // Build product list for storage
+  // Build preview for confirmation modal
   const selectedPlants = Object.entries(cart.plants).map(([id,qty]) => {
     const p = plants.find(x=>x.id==id);
     return p ? { id, name: p.name, emoji: p.emoji, type: 'plant', qty } : null;
@@ -3269,32 +3387,189 @@ function submitOrder() {
     return m ? { id, name: m.name, emoji: m.emoji, type: 'material', qty } : null;
   }).filter(Boolean);
 
+  const allItems = [...selectedPlants, ...selectedMats];
+  const notes = document.getElementById('orderNotes').value.trim();
+
+  // Populate confirmation modal
+  const itemsEl = document.getElementById('confirmModalItems');
+  itemsEl.innerHTML = allItems.map(i =>
+    `<div class="confirm-modal-item"><span>${i.emoji} ${i.name}</span><strong>× ${i.qty}</strong></div>`
+  ).join('');
+  const notesEl = document.getElementById('confirmModalNotes');
+  if (notes) {
+    notesEl.textContent = '📝 Notes: ' + notes;
+    notesEl.style.display = 'block';
+  } else {
+    notesEl.style.display = 'none';
+  }
+
+  // Store pending order data on window for confirmation step
+  window._pendingOrder = { selectedPlants, selectedMats, notes };
+
+  // Show confirmation modal
+  document.getElementById('orderConfirmModal').classList.add('open');
+}
+
+function closeConfirmModal() {
+  document.getElementById('orderConfirmModal').classList.remove('open');
+}
+
+async function confirmAndPlaceOrder() {
+  const { selectedPlants, selectedMats, notes } = window._pendingOrder || {};
+  if (!selectedPlants) return;
+
   const order = {
     id: Date.now(),
     user: currentUser.username,
-    whatsapp: currentUser.whatsapp,
-    location: currentUser.location,
+    whatsapp: currentUser.whatsapp || '',
+    location: currentUser.location || '',
     products: [...selectedPlants, ...selectedMats],
     notes,
     time: new Date().toISOString(),
     status: 'pending'
   };
+
+  // Save to localStorage and Firebase
   const orders = getOrders();
   orders.unshift(order);
   saveOrders(orders);
-  // Also write this order as its own Firebase document for easy admin queries
-  cloudAddOrder(order).catch(e => console.warn('[Firebase] order write error:', e));
+  try {
+    await cloudAddOrder(order);
+  } catch(e) { console.warn('[Firebase] order write error:', e); }
 
   // Log it
   const productStr = order.products.slice(0,3).map(p=>`${p.emoji}${p.name}×${p.qty}`).join(', ') + (order.products.length > 3 ? ` +${order.products.length-3} more` : '');
   addLog('order', '🛒', `Placed an order: ${productStr}`);
 
-  // Reset cart
+  // Reset
   cart = { plants: {}, materials: {} };
   updateCartBadge();
+  window._pendingOrder = null;
+  closeConfirmModal();
   closeOrderModal();
-  showToast('✅ Order submitted! We will contact you shortly.');
-  document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
+  showToast('✅ Order placed! We will contact you shortly.');
+
+  // Open My Orders so user sees their new order immediately
+  setTimeout(() => openMyOrdersModal(), 600);
+}
+
+// ── ORDER STATUS HELPERS ──────────────────────────────────────────────────
+const ORDER_STATUSES = [
+  { key: 'pending',    label: 'Pending',    icon: '⏳' },
+  { key: 'confirmed',  label: 'Confirmed',  icon: '✅' },
+  { key: 'processing', label: 'Processing', icon: '🔄' },
+  { key: 'dispatched', label: 'Dispatched', icon: '🚚' },
+  { key: 'delivered',  label: 'Delivered',  icon: '🎉' },
+];
+
+function statusBadge(status) {
+  const s = ORDER_STATUSES.find(x=>x.key===status) || { icon:'⏳', label: status };
+  return `<span class="order-status-badge status-${status}">${s.icon} ${s.label}</span>`;
+}
+
+function trackBar(status) {
+  const idx = ORDER_STATUSES.findIndex(x=>x.key===status);
+  return `<div class="my-order-track">` +
+    ORDER_STATUSES.map((s, i) => {
+      const done   = i < idx;
+      const active = i === idx;
+      return `<div class="track-step ${done?'done':''} ${active?'active':''}">
+        <div class="track-dot">${done ? '✓' : s.icon}</div>
+        <div class="track-label">${s.label}</div>
+      </div>`;
+    }).join('') +
+  `</div>`;
+}
+
+// ── MY ORDERS MODAL (user view) ───────────────────────────────────────────
+function openMyOrdersModal() {
+  if (!currentUser) { showToast('⚠️ Please sign in first'); openAuthModal('signin'); return; }
+  document.getElementById('myOrdersModal').classList.add('open');
+  renderMyOrders();
+}
+function closeMyOrdersModal() {
+  document.getElementById('myOrdersModal').classList.remove('open');
+}
+
+async function renderMyOrders() {
+  const el = document.getElementById('myOrdersList');
+  el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-light);">⏳ Loading…</div>`;
+
+  // Fetch fresh from Firebase if available
+  let allOrders = [];
+  try {
+    if (fbReady) {
+      const rows = await fbGetAll('gt_orders', 'time', 'desc');
+      if (rows) allOrders = rows;
+      else allOrders = getOrders();
+    } else {
+      allOrders = getOrders();
+    }
+  } catch(e) { allOrders = getOrders(); }
+
+  // Filter only current user's orders
+  const myOrders = allOrders.filter(o => o.user === currentUser.username);
+
+  if (myOrders.length === 0) {
+    el.innerHTML = `
+      <div style="text-align:center;padding:40px 20px;">
+        <div style="font-size:48px;margin-bottom:12px;">📦</div>
+        <div style="font-size:16px;font-weight:600;color:var(--green-deep);margin-bottom:8px;">No orders yet</div>
+        <div style="font-size:14px;color:var(--text-light);margin-bottom:20px;">Place your first order and track it here!</div>
+        <button class="btn-primary" style="padding:10px 24px;font-size:14px;" onclick="closeMyOrdersModal();openOrderModal()">🛒 Place an Order</button>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = myOrders.map(o => `
+    <div class="my-order-card">
+      <div class="my-order-header">
+        <div>
+          <div style="font-weight:700;font-size:14px;color:var(--green-deep);">Order #${String(o.id).slice(-6)}</div>
+          <div class="my-order-date">📅 ${fmtTime(o.time)}</div>
+        </div>
+        ${statusBadge(o.status || 'pending')}
+      </div>
+      <div class="my-order-products">
+        ${o.products.map(p=>`${p.emoji} <strong>${p.name}</strong> × ${p.qty}`).join('&nbsp;&nbsp;·&nbsp;&nbsp;')}
+      </div>
+      ${o.notes ? `<div class="my-order-notes">📝 ${o.notes}</div>` : ''}
+      ${trackBar(o.status || 'pending')}
+    </div>`).join('');
+}
+
+// ── ADMIN: update order status ────────────────────────────────────────────
+let adminOrderFilter = 'all';
+
+function setOrderFilter(filter, btn) {
+  adminOrderFilter = filter;
+  document.querySelectorAll('#adminTab-orders .log-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderOrdersTable();
+}
+
+async function updateOrderStatus(orderId, newStatus) {
+  // Update in localStorage
+  const orders = getOrders();
+  const idx = orders.findIndex(o => String(o.id) === String(orderId));
+  if (idx > -1) {
+    orders[idx].status = newStatus;
+    saveOrders(orders);
+  }
+
+  // Update the specific Firestore document (find by id field)
+  if (fbReady) {
+    try {
+      const snap = await db.collection('gt_orders').where('id', '==', Number(orderId)).get();
+      if (!snap.empty) {
+        await snap.docs[0].ref.update({ status: newStatus, updatedAt: new Date().toISOString() });
+      }
+    } catch(e) { console.warn('[Firebase] status update error:', e); }
+  }
+
+  showToast(`✅ Order marked as ${newStatus}`);
+  addLog('admin', '📦', `Order #${String(orderId).slice(-6)} status → ${newStatus}`);
+  renderOrdersTable();
 }
 
 // ===================== ADMIN DASHBOARD =====================
@@ -3351,15 +3626,38 @@ function renderLogList() {
     </div>`).join('');
 }
 
-function renderOrdersTable() {
-  const orders = getOrders();
+async function renderOrdersTable() {
   const tbody = document.getElementById('ordersTableBody');
-  if (orders.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-light);">No orders yet.</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-light);">⏳ Loading orders…</td></tr>`;
+
+  // Always fetch fresh from Firebase if available
+  let orders = [];
+  try {
+    if (fbReady) {
+      const rows = await fbGetAll('gt_orders', 'time', 'desc');
+      if (rows) {
+        orders = rows;
+        // Sync back to localStorage
+        safeStorage.setItem('gt_orders', JSON.stringify(orders));
+      } else {
+        orders = getOrders();
+      }
+    } else {
+      orders = getOrders();
+    }
+  } catch(e) { orders = getOrders(); }
+
+  // Apply filter
+  const filtered = adminOrderFilter === 'all' ? orders : orders.filter(o => (o.status || 'pending') === adminOrderFilter);
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-light);">${adminOrderFilter === 'all' ? 'No orders yet.' : `No ${adminOrderFilter} orders.`}</td></tr>`;
     return;
   }
-  tbody.innerHTML = orders.map(o => `
-    <tr>
+
+  tbody.innerHTML = filtered.map(o => {
+    const status = o.status || 'pending';
+    return `<tr>
       <td>
         <strong>${o.user}</strong>
         ${o.whatsapp ? `<div style="font-size:11px;color:var(--text-light);">📱 ${o.whatsapp}</div>` : ''}
@@ -3372,7 +3670,22 @@ function renderOrdersTable() {
       </td>
       <td style="max-width:140px;word-break:break-word;">${o.notes || '—'}</td>
       <td style="white-space:nowrap;">${fmtTime(o.time)}</td>
-    </tr>`).join('');
+      <td>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-start;">
+          ${statusBadge(status)}
+          <select class="admin-order-status-select" onchange="updateOrderStatus('${o.id}', this.value)">
+            <option value="">— Update Status —</option>
+            <option value="pending"    ${status==='pending'    ?'selected':''}>⏳ Pending</option>
+            <option value="confirmed"  ${status==='confirmed'  ?'selected':''}>✅ Confirmed</option>
+            <option value="processing" ${status==='processing' ?'selected':''}>🔄 Processing</option>
+            <option value="dispatched" ${status==='dispatched' ?'selected':''}>🚚 Dispatched</option>
+            <option value="delivered"  ${status==='delivered'  ?'selected':''}>🎉 Delivered</option>
+            <option value="cancelled"  ${status==='cancelled'  ?'selected':''}>❌ Cancelled</option>
+          </select>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
 }
 
 function renderAdminUsersList() {
