@@ -379,26 +379,26 @@
   }
   .modal-overlay.open { display: flex; }
   .modal {
-    background: white; border-radius: var(--radius); padding: 36px 32px 32px;
-    width: 100%; max-width: 440px; max-height: calc(100vh - 32px);
+    background: white; border-radius: var(--radius); padding: 28px 24px 24px;
+    width: 100%; max-width: 440px; max-height: min(82vh, 680px);
     overflow-y: auto; position: relative;
     box-shadow: 0 24px 80px rgba(0,0,0,0.25);
     animation: modalIn 0.3s ease;
     flex-shrink: 0;
   }
   @keyframes modalIn { from { transform: scale(0.92) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
-  .modal h2 { font-family: 'Playfair Display', serif; font-size: 24px; color: var(--green-deep); margin-bottom: 6px; padding-right: 36px; }
-  .modal p { font-size: 14px; color: var(--text-light); margin-bottom: 24px; }
+  .modal h2 { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--green-deep); margin-bottom: 4px; padding-right: 36px; }
+  .modal p { font-size: 13px; color: var(--text-light); margin-bottom: 18px; }
   .modal-close {
-    position: absolute; top: 14px; right: 14px; width: 34px; height: 34px;
+    position: absolute; top: 12px; right: 12px; width: 32px; height: 32px;
     border-radius: 50%; border: none; background: var(--green-pale); color: var(--green-deep);
-    font-size: 16px; font-weight: 700; cursor: pointer;
+    font-size: 15px; font-weight: 700; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     z-index: 10; transition: background 0.2s; flex-shrink: 0;
   }
   .modal-close:hover { background: var(--green-light); color: white; }
   @media (max-width: 480px) {
-    .modal { padding: 28px 18px 24px; border-radius: 16px; }
+    .modal { padding: 24px 16px 20px; border-radius: 16px; max-height: min(85vh, 600px); }
   }
   .tab-switch { display: flex; gap: 0; margin-bottom: 24px; border-radius: var(--radius-sm); overflow: hidden; border: 1.5px solid var(--green-pale); }
   .tab-btn {
@@ -520,7 +520,7 @@
   .confirm-modal-overlay.open { opacity: 1; pointer-events: all; }
   .confirm-modal {
     background: white; border-radius: var(--radius); padding: 32px 28px 28px;
-    max-width: 440px; max-height: calc(100vh - 32px); width: 100%;
+    max-width: 440px; max-height: min(82vh, 600px); width: 100%;
     box-shadow: 0 20px 60px rgba(0,0,0,0.25);
     transform: translateY(16px); transition: transform 0.25s;
     overflow-y: auto; position: relative;
@@ -636,7 +636,7 @@
   }
 
   /* ORDER MODAL – two-column */
-  .order-modal { max-width: 820px; max-height: calc(100vh - 32px); display: flex; flex-direction: column; overflow: hidden; }
+  .order-modal { max-width: 820px; max-height: min(82vh, 680px); display: flex; flex-direction: column; overflow: hidden; }
   .order-modal-body { display: flex; gap: 0; flex: 1; overflow: hidden; min-height: 0; }
   .order-left { flex: 1; overflow-y: auto; padding: 0 20px 20px 0; border-right: 1.5px solid var(--green-pale); }
   .order-right {
@@ -649,7 +649,7 @@
     .order-modal-body { flex-direction: column; overflow-y: auto; }
     .order-left { border-right: none; border-bottom: 1.5px solid var(--green-pale); padding: 0 0 20px 0; overflow-y: visible; }
     .order-right { width: 100%; padding: 20px 0 0 0; overflow-y: visible; }
-    .order-modal { max-height: calc(100vh - 32px); overflow-y: auto; }
+    .order-modal { max-height: min(85vh, 600px); overflow-y: auto; }
   }
   /* submit btn state */
   .order-submit-btn {
@@ -721,7 +721,7 @@
   .btn-admin-dash:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(124,58,237,0.35); }
 
   /* ADMIN DASHBOARD MODAL */
-  .admin-modal { max-width: 720px; max-height: calc(100vh - 32px); overflow-y: auto; }
+  .admin-modal { max-width: 720px; max-height: min(82vh, 680px); overflow-y: auto; }
   .admin-tabs {
     display: flex; gap: 0; margin-bottom: 24px;
     border-radius: var(--radius-sm); overflow: hidden;
@@ -775,6 +775,17 @@
   .orders-table td { padding: 10px 12px; border-bottom: 1px solid var(--green-pale); color: var(--text-mid); vertical-align: top; }
   .orders-table tr:hover td { background: #f0fdf4; }
   .order-products-list { font-size: 12px; color: var(--text-light); }
+
+  /* ADMIN ORDER CARDS (replaces table on mobile) */
+  .admin-order-card {
+    background: white; border: 1.5px solid var(--green-pale); border-radius: 12px;
+    padding: 14px 16px; margin-bottom: 12px; box-shadow: 0 1px 6px rgba(45,106,79,0.07);
+  }
+  .admin-order-card-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+  .admin-order-card-user { font-weight: 700; font-size: 14px; color: var(--green-deep); }
+  .admin-order-card-meta { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+  .admin-order-card-products { font-size: 13px; color: var(--text-dark); margin: 6px 0; line-height: 1.7; }
+  .admin-order-card-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--green-pale); }
 
   /* CREATE ADMIN */
   .admin-create-form { background: var(--green-mist); border-radius: 12px; padding: 20px; border: 1.5px solid var(--green-pale); }
@@ -1369,7 +1380,7 @@
 
 <!-- MY ORDERS MODAL (for logged-in users) -->
 <div class="modal-overlay" id="myOrdersModal">
-  <div class="modal" style="max-width:600px;max-height:calc(100vh - 32px);display:flex;flex-direction:column;overflow:hidden;">
+  <div class="modal" style="max-width:600px;max-height:min(82vh,680px);display:flex;flex-direction:column;overflow:hidden;">
     <button class="modal-close" onclick="closeMyOrdersModal()">✕</button>
     <h2 style="margin-bottom:4px;">📦 My Orders</h2>
     <p style="font-size:13px;color:var(--text-light);margin-bottom:16px;">Track your order history and status.</p>
@@ -1409,8 +1420,8 @@
 
     <!-- ORDERS TAB -->
     <div id="adminTab-orders" style="display:none;">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center;">
-        <div style="font-size:13px;font-weight:700;color:var(--text-mid);">Filter:</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;">
+        <span style="font-size:12px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;">Filter:</span>
         <button class="log-filter-btn active" onclick="setOrderFilter('all',this)">All</button>
         <button class="log-filter-btn" onclick="setOrderFilter('pending',this)">⏳ Pending</button>
         <button class="log-filter-btn" onclick="setOrderFilter('confirmed',this)">✅ Confirmed</button>
@@ -1418,14 +1429,7 @@
         <button class="log-filter-btn" onclick="setOrderFilter('dispatched',this)">🚚 Dispatched</button>
         <button class="log-filter-btn" onclick="setOrderFilter('delivered',this)">🎉 Delivered</button>
       </div>
-      <div style="overflow-x:auto;">
-        <table class="orders-table" id="ordersTable">
-          <thead><tr>
-            <th>User</th><th>Products</th><th>Notes</th><th>Date</th><th>Status</th>
-          </tr></thead>
-          <tbody id="ordersTableBody"></tbody>
-        </table>
-      </div>
+      <div id="adminOrderCards"></div>
     </div>
 
     <!-- USERS & ADMINS TAB -->
@@ -1502,10 +1506,9 @@
     <button class="modal-close" onclick="closeLogin()">✕</button>
 
     <!-- Tab Switch -->
-    <div class="tab-switch" style="margin-bottom:24px;">
+    <div class="tab-switch" style="margin-bottom:20px;">
       <button class="tab-btn active" id="tabSignin" onclick="switchAuthTab('signin')">Sign In</button>
       <button class="tab-btn" id="tabRegister" onclick="switchAuthTab('register')">Register</button>
-      <button class="tab-btn" id="tabAdmin" onclick="switchAuthTab('admin')" style="font-size:12px;">⚙️ Admin</button>
     </div>
 
     <!-- CUSTOMER SIGN IN FORM -->
@@ -1524,32 +1527,6 @@
       <button class="btn-submit" onclick="doSignIn()">Sign In</button>
       <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-light);">
         Don't have an account? <a href="#" onclick="switchAuthTab('register');return false;" style="color:var(--green-mid);font-weight:600;">Register here</a>
-      </p>
-    </div>
-
-    <!-- ADMIN / STAFF SIGN IN FORM (Firebase Auth — no passwords in code) -->
-    <div id="adminSigninForm" style="display:none;">
-      <h2 style="margin-bottom:4px;">⚙️ Admin / Staff Login</h2>
-      <p style="margin-bottom:8px;font-size:13px;color:var(--text-light);">Securely authenticated via Firebase. Credentials are never stored in code.</p>
-      <div style="background:#f0fdf4;border:1.5px solid var(--green-pale);border-radius:10px;padding:12px 14px;margin-bottom:18px;font-size:12px;color:var(--text-mid);display:flex;gap:8px;align-items:flex-start;">
-        <span style="font-size:16px;">🔒</span>
-        <span>Your login is verified directly with Firebase — no passwords are stored in this file.</span>
-      </div>
-      <div class="input-wrap">
-        <label>Admin Email</label>
-        <input type="email" id="adminEmail" placeholder="admin@yourdomain.com" onkeydown="if(event.key==='Enter')doAdminSignIn()">
-      </div>
-      <div class="input-wrap">
-        <label>Password</label>
-        <div style="position:relative;">
-          <input type="password" id="adminPass" placeholder="Your Firebase Auth password" style="width:100%;padding-right:40px;" onkeydown="if(event.key==='Enter')doAdminSignIn()">
-          <span onclick="togglePwd('adminPass',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;color:var(--text-light);">👁</span>
-        </div>
-      </div>
-      <div class="error-msg" id="adminErr">❌ Invalid credentials</div>
-      <button class="btn-submit" id="adminSigninBtn" onclick="doAdminSignIn()">🔐 Sign In Securely</button>
-      <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text-light);">
-        Forgot password? <a href="https://console.firebase.google.com" target="_blank" style="color:var(--green-mid);font-weight:600;">Reset in Firebase Console</a>
       </p>
     </div>
 
@@ -2750,19 +2727,48 @@ function clearAuthForms() {
 }
 function switchAuthTab(tab) {
   authTab = tab;
-  document.getElementById('signinForm').style.display      = tab === 'signin'   ? 'block' : 'none';
-  document.getElementById('registerForm').style.display    = tab === 'register' ? 'block' : 'none';
-  document.getElementById('adminSigninForm').style.display = tab === 'admin'    ? 'block' : 'none';
+  document.getElementById('signinForm').style.display   = tab === 'signin'   ? 'block' : 'none';
+  document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
+  const adminForm = document.getElementById('adminSigninForm');
+  if (adminForm) adminForm.style.display = tab === 'admin' ? 'block' : 'none';
   document.getElementById('tabSignin').classList.toggle('active',   tab === 'signin');
   document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
-  document.getElementById('tabAdmin').classList.toggle('active',    tab === 'admin');
   document.getElementById('siErr').style.display    = 'none';
   document.getElementById('regErr').style.display   = 'none';
   document.getElementById('regSuccess').style.display = 'none';
-  if (document.getElementById('adminErr')) document.getElementById('adminErr').style.display = 'none';
 }
 // Legacy alias
 function switchTab(tab) { switchAuthTab(tab); }
+
+// Hidden admin login: triple-click the logo to open admin form
+let _logoTaps = 0, _logoTimer = null;
+function _handleLogoTap() {
+  _logoTaps++;
+  clearTimeout(_logoTimer);
+  _logoTimer = setTimeout(() => { _logoTaps = 0; }, 800);
+  if (_logoTaps >= 3) {
+    _logoTaps = 0;
+    // Re-inject admin form if removed
+    let adminForm = document.getElementById('adminSigninForm');
+    if (!adminForm) {
+      adminForm = document.createElement('div');
+      adminForm.id = 'adminSigninForm';
+      adminForm.style.display = 'none';
+      adminForm.innerHTML = `
+        <h2 style="margin-bottom:4px;">⚙️ Admin Login</h2>
+        <div class="input-wrap"><label>Email</label><input type="email" id="adminEmail" placeholder="admin@yourdomain.com" onkeydown="if(event.key==='Enter')doAdminSignIn()"></div>
+        <div class="input-wrap"><label>Password</label><div style="position:relative;"><input type="password" id="adminPass" placeholder="Password" style="width:100%;padding-right:40px;" onkeydown="if(event.key==='Enter')doAdminSignIn()"><span onclick="togglePwd('adminPass',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;color:var(--text-light);">👁</span></div></div>
+        <div class="error-msg" id="adminErr"></div>
+        <button class="btn-submit" id="adminSigninBtn" onclick="doAdminSignIn()">🔐 Sign In</button>`;
+      document.getElementById('signinForm').parentNode.appendChild(adminForm);
+    }
+    openAuthModal('admin');
+  }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const logoEl = document.querySelector('.logo');
+  if (logoEl) { logoEl.addEventListener('click', _handleLogoTap); logoEl.style.cursor = 'pointer'; }
+});
 
 function togglePwd(id, icon) {
   const inp = document.getElementById(id);
@@ -3646,64 +3652,58 @@ function renderLogList() {
 }
 
 async function renderOrdersTable() {
-  const tbody = document.getElementById('ordersTableBody');
-  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-light);">⏳ Loading orders…</td></tr>`;
+  const container = document.getElementById('adminOrderCards');
+  if (!container) return;
+  container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-light);">⏳ Loading orders…</div>`;
 
-  // Always fetch fresh from Firebase if available
   let orders = [];
   try {
     if (fbReady) {
       const rows = await fbGetAll('gt_orders', 'time', 'desc');
-      if (rows) {
-        orders = rows;
-        // Sync back to localStorage
-        safeStorage.setItem('gt_orders', JSON.stringify(orders));
-      } else {
-        orders = getOrders();
-      }
+      if (rows) { orders = rows; safeStorage.setItem('gt_orders', JSON.stringify(orders)); }
+      else orders = getOrders();
     } else {
       orders = getOrders();
     }
   } catch(e) { orders = getOrders(); }
 
-  // Apply filter
   const filtered = adminOrderFilter === 'all' ? orders : orders.filter(o => (o.status || 'pending') === adminOrderFilter);
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-light);">${adminOrderFilter === 'all' ? 'No orders yet.' : `No ${adminOrderFilter} orders.`}</td></tr>`;
+    container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-light);">${adminOrderFilter === 'all' ? 'No orders yet.' : `No ${adminOrderFilter} orders.`}</div>`;
     return;
   }
 
-  tbody.innerHTML = filtered.map(o => {
+  container.innerHTML = filtered.map(o => {
     const status = o.status || 'pending';
-    return `<tr>
-      <td>
-        <strong>${o.user}</strong>
-        ${o.whatsapp ? `<div style="font-size:11px;color:var(--text-light);">📱 ${o.whatsapp}</div>` : ''}
-        ${o.location ? `<div style="font-size:11px;color:var(--text-light);">📍 ${o.location}</div>` : ''}
-      </td>
-      <td>
-        <div class="order-products-list">
-          ${o.products.map(p=>`${p.emoji} ${p.name} ×${p.qty}`).join('<br>')}
+    return `<div class="admin-order-card">
+      <div class="admin-order-card-row">
+        <div>
+          <div class="admin-order-card-user">👤 ${o.user}</div>
+          <div class="admin-order-card-meta">
+            ${o.whatsapp ? `📱 ${o.whatsapp}` : ''}
+            ${o.location ? ` &nbsp;📍 ${o.location}` : ''}
+          </div>
         </div>
-      </td>
-      <td style="max-width:140px;word-break:break-word;">${o.notes || '—'}</td>
-      <td style="white-space:nowrap;">${fmtTime(o.time)}</td>
-      <td>
-        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-start;">
-          ${statusBadge(status)}
-          <select class="admin-order-status-select" onchange="updateOrderStatus('${o.id}', this.value)">
-            <option value="">— Update Status —</option>
-            <option value="pending"    ${status==='pending'    ?'selected':''}>⏳ Pending</option>
-            <option value="confirmed"  ${status==='confirmed'  ?'selected':''}>✅ Confirmed</option>
-            <option value="processing" ${status==='processing' ?'selected':''}>🔄 Processing</option>
-            <option value="dispatched" ${status==='dispatched' ?'selected':''}>🚚 Dispatched</option>
-            <option value="delivered"  ${status==='delivered'  ?'selected':''}>🎉 Delivered</option>
-            <option value="cancelled"  ${status==='cancelled'  ?'selected':''}>❌ Cancelled</option>
-          </select>
-        </div>
-      </td>
-    </tr>`;
+        <div style="font-size:11px;color:var(--text-light);text-align:right;">📅 ${fmtTime(o.time)}<br><span style="font-size:10px;opacity:.7;">ID #${String(o.id).slice(-6)}</span></div>
+      </div>
+      <div class="admin-order-card-products">
+        ${o.products.map(p=>`${p.emoji} <strong>${p.name}</strong> ×${p.qty}`).join(' &nbsp;·&nbsp; ')}
+      </div>
+      ${o.notes ? `<div style="font-size:12px;color:var(--text-light);font-style:italic;margin-bottom:4px;">📝 ${o.notes}</div>` : ''}
+      <div class="admin-order-card-footer">
+        ${statusBadge(status)}
+        <select class="admin-order-status-select" onchange="updateOrderStatus('${o.id}', this.value)">
+          <option value="">— Update Status —</option>
+          <option value="pending"    ${status==='pending'    ?'selected':''}>⏳ Pending</option>
+          <option value="confirmed"  ${status==='confirmed'  ?'selected':''}>✅ Confirmed</option>
+          <option value="processing" ${status==='processing' ?'selected':''}>🔄 Processing</option>
+          <option value="dispatched" ${status==='dispatched' ?'selected':''}>🚚 Dispatched</option>
+          <option value="delivered"  ${status==='delivered'  ?'selected':''}>🎉 Delivered</option>
+          <option value="cancelled"  ${status==='cancelled'  ?'selected':''}>❌ Cancelled</option>
+        </select>
+      </div>
+    </div>`;
   }).join('');
 }
 
