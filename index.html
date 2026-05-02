@@ -1609,6 +1609,7 @@
         " onmouseover="this.style.borderColor='var(--green-mid)'" onmouseout="this.style.borderColor='var(--green-light)'">
           <span style="font-size:20px;">📁</span> Upload from Device
           <input type="file" id="itemImgFile" accept="image/*" style="display:none" onchange="handleImgUpload(this)">
+          <div id="itemImgProgress"></div>
         </label>
         <div style="display:flex;align-items:center;gap:8px;">
           <div style="flex:1;height:1px;background:var(--green-pale);"></div>
@@ -1712,6 +1713,7 @@
       <label for="geImgFile" style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;border:2px dashed var(--green-light);background:var(--green-mist);cursor:pointer;font-size:13px;color:var(--green-mid);font-weight:600;">
         <span style="font-size:20px;">📁</span> Upload Image
         <input type="file" id="geImgFile" accept="image/*" style="display:none" onchange="handleGalleryImgUpload(this)">
+          <div id="geImgProgress"></div>
       </label>
       <div style="text-align:center;font-size:12px;color:var(--text-light);margin:4px 0;">or</div>
       <input type="text" id="geImgUrl" placeholder="Paste image URL" oninput="previewGalleryMedia()">
@@ -1721,6 +1723,7 @@
       <label for="geVideoFile" style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;border:2px dashed var(--green-light);background:var(--green-mist);cursor:pointer;font-size:13px;color:var(--green-mid);font-weight:600;">
         <span style="font-size:20px;">🎥</span> Upload Video
         <input type="file" id="geVideoFile" accept="video/*" style="display:none" onchange="handleGalleryVideoUpload(this)">
+          <div id="geVideoProgress"></div>
       </label>
     </div>
     <div id="geMediaPreview" style="margin:10px 0;min-height:80px;border-radius:10px;overflow:hidden;background:var(--green-mist);display:flex;align-items:center;justify-content:center;font-size:40px;">🖼</div>
@@ -1784,6 +1787,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 <!-- Auth is used to identify admin users so Firestore rules can allow admin writes -->
 
 <script>
@@ -1837,8 +1841,9 @@ const FIREBASE_CONFIGS = {
 };
 
 /* ── initialise Firebase ── */
-let db   = null;   // Firestore instance
-let auth = null;   // Firebase Auth instance
+let db      = null;   // Firestore instance
+let auth    = null;   // Firebase Auth instance
+let storage = null;   // Firebase Storage instance
 let fbReady      = false;  // true once Firestore is reachable
 let fbAdminReady = false;  // true once an admin is signed into Firebase Auth
 
@@ -1854,8 +1859,9 @@ let fbAdminReady = false;  // true once an admin is signed into Firebase Auth
   }
   try {
     if (!firebase.apps.length) firebase.initializeApp(cfg);
-    db   = firebase.firestore();
-    auth = firebase.auth();
+    db      = firebase.firestore();
+    auth    = firebase.auth();
+    storage = firebase.storage();
     fbReady = true;
     console.info('[GreenTop] Firebase connected (' + FIREBASE_ENV + '):', cfg.projectId);
 
@@ -1978,7 +1984,24 @@ async function fbAuthSignOut() {
     logs           – activity log entries (one doc per event)
     enquiry        – visit bookings + contact enquiries
     gallery        – gallery items blob
-    images         – (reserved for future image uploads)
+
+  Firebase Storage folders:
+    images/plants/   – plant & material catalog photos (uploaded via admin)
+    images/gallery/  – gallery images
+    images/videos/   – gallery videos
+    images/logo/     – site logo image
+
+  Recommended Storage Security Rules:
+    rules_version = '2';
+    service firebase.storage {
+      match /b/{bucket}/o {
+        // Anyone can read (serve images publicly)
+        match /images/{allPaths=**} {
+          allow read: if true;
+          allow write: if request.auth != null;  // must be signed-in (admin)
+        }
+      }
+    }
   ================================================================ */
 
 /* ── Low-level Firestore helpers ── */
@@ -2107,10 +2130,19 @@ async function cloudLoadAppData() {
 }
 
 async function cloudSaveAppData() {
-  /* Called by the existing save() function */
+  /* Called by the existing save() function. Strip base64 before writing. */
+  function sanitiseImgList(list) {
+    return list.map(item => ({
+      ...item,
+      img: item.img && item.img.startsWith('http') ? item.img
+         : item.img && item.img.startsWith('blob:') ? ''
+         : item.img && item.img.startsWith('data:') ? '[pending-upload]'
+         : (item.img || '')
+    }));
+  }
   await Promise.all([
-    cloudSet('config', 'plants',     'gt_plants',    plants),
-    cloudSet('config', 'materials',  'gt_materials', materials),
+    cloudSet('config', 'plants',     'gt_plants',    sanitiseImgList(plants)),
+    cloudSet('config', 'materials',  'gt_materials', sanitiseImgList(materials)),
     cloudSet('config', 'packages',   'gt_packages',  packages),
     cloudSet('config', 'contact',    'gt_contact',   contactInfo),
   ]);
@@ -2259,6 +2291,107 @@ function hideFirebaseLoader() {
   el.style.opacity = '0';
   setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 400);
 }
+/* ================================================================
+  FIREBASE STORAGE — IMAGE / VIDEO UPLOAD HELPERS
+  ================================================================
+  All user-uploaded files go to Firebase Storage.
+  Firestore/localStorage only ever store the resulting https:// URL.
+
+  Storage folder layout:
+    images/plants/       – plant & material catalog photos
+    images/gallery/      – gallery images
+    images/videos/       – gallery videos
+    images/logo/         – site logo image
+  ================================================================ */
+
+/**
+ * Upload a File object to Firebase Storage and return the public download URL.
+ * Shows an inline progress bar inside `progressContainerId` (optional).
+ * Falls back to base64 data-URL if Storage is unavailable (offline / unconfigured).
+ *
+ * @param {File}   file               – the File from an <input type="file">
+ * @param {string} folder             – storage folder, e.g. 'images/gallery'
+ * @param {string} [progressId]       – id of a <div> to show upload progress in
+ * @returns {Promise<string>}          – resolves with the download URL or base64 fallback
+ */
+async function uploadToStorage(file, folder, progressId) {
+  // If Storage is not ready, fall back to base64 in-memory (works offline)
+  if (!storage) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result);
+      reader.onerror = () => reject(new Error('FileReader failed'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Show progress UI
+  const progressEl = progressId ? document.getElementById(progressId) : null;
+  if (progressEl) {
+    progressEl.innerHTML = `
+      <div style="margin-top:8px;font-size:12px;color:var(--text-light);font-weight:600;">
+        ⬆️ Uploading… <span id="${progressId}-pct">0%</span>
+      </div>
+      <div style="height:4px;background:var(--green-pale);border-radius:4px;margin-top:4px;overflow:hidden;">
+        <div id="${progressId}-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--green-deep),var(--green-mid));border-radius:4px;transition:width 0.3s;"></div>
+      </div>`;
+  }
+
+  const ext      = file.name.split('.').pop().toLowerCase();
+  const filename = Date.now() + '_' + Math.random().toString(36).slice(2, 8) + '.' + ext;
+  const ref      = storage.ref(folder + '/' + filename);
+
+  return new Promise((resolve, reject) => {
+    const task = ref.put(file, { contentType: file.type });
+
+    task.on('state_changed',
+      snapshot => {
+        const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+        if (progressId) {
+          const pctEl = document.getElementById(progressId + '-pct');
+          const barEl = document.getElementById(progressId + '-bar');
+          if (pctEl) pctEl.textContent = pct + '%';
+          if (barEl) barEl.style.width  = pct + '%';
+        }
+      },
+      err => {
+        console.warn('[Storage] Upload error:', err);
+        // Clear progress UI on error
+        if (progressEl) progressEl.innerHTML = `<div style="font-size:12px;color:#dc2626;margin-top:6px;">⚠️ Upload failed — using local preview</div>`;
+        // Graceful fallback: base64
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = () => reject(err);
+        reader.readAsDataURL(file);
+      },
+      async () => {
+        // Clear progress UI on success
+        if (progressEl) progressEl.innerHTML = `<div style="font-size:12px;color:var(--green-mid);font-weight:600;margin-top:6px;">✅ Uploaded to cloud</div>`;
+        try {
+          const url = await task.snapshot.ref.getDownloadURL();
+          resolve(url);
+        } catch(e) {
+          reject(e);
+        }
+      }
+    );
+  });
+}
+
+/**
+ * Delete a file from Firebase Storage by its public download URL.
+ * Safe to call even if Storage is not configured (no-op).
+ */
+async function deleteFromStorage(url) {
+  if (!storage || !url || url.startsWith('data:') || !url.includes('firebasestorage')) return;
+  try {
+    await storage.refFromURL(url).delete();
+  } catch(e) {
+    // File may already be gone — not an error
+    console.warn('[Storage] Delete skipped:', e.message);
+  }
+}
+
 
 </script>
 
@@ -3016,18 +3149,23 @@ let currentUploadedImgData = '';
 function handleImgUpload(input) {
   const file = input.files[0];
   if (!file) return;
-  // Clear URL field since file takes priority
   document.getElementById('itemImg').value = '';
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    currentUploadedImgData = e.target.result;
-    previewImg(currentUploadedImgData, document.getElementById('itemEmoji').value);
-    // Show filename + clear button
-    document.getElementById('imgFileName').textContent = '📎 ' + file.name;
-    document.getElementById('imgFileName').style.display = 'block';
-    document.getElementById('clearImgBtn').style.display = 'inline-block';
-  };
-  reader.readAsDataURL(file);
+  // Show filename + clear button immediately
+  document.getElementById('imgFileName').textContent = '📎 ' + file.name;
+  document.getElementById('imgFileName').style.display = 'block';
+  document.getElementById('clearImgBtn').style.display = 'inline-block';
+  // Preview instantly with local blob URL (fast) while upload happens in background
+  const localUrl = URL.createObjectURL(file);
+  currentUploadedImgData = localUrl;
+  previewImg(localUrl, document.getElementById('itemEmoji').value);
+  // Upload to Firebase Storage (or fall back to base64 if offline)
+  uploadToStorage(file, 'images/plants', 'itemImgProgress').then(url => {
+    currentUploadedImgData = url;
+    // Update preview with final URL (in case blob URL expires)
+    previewImg(url, document.getElementById('itemEmoji').value);
+  }).catch(err => {
+    console.warn('[Storage] plant img upload failed, keeping local preview:', err);
+  });
 }
 
 function handleImgUrl(url) {
@@ -3068,10 +3206,15 @@ function previewEmoji(val) {
   }
 }
 
-function saveItem() {
+async function saveItem() {
   const name = document.getElementById('itemName').value.trim();
   if (!name) { showToast('⚠️ Please enter a name'); return; }
-  const img = currentUploadedImgData || document.getElementById('itemImg').value.trim();
+  // Guard: if user hit Save while upload is still running (img is a blob URL), wait/warn
+  let img = currentUploadedImgData || document.getElementById('itemImg').value.trim();
+  if (img && img.startsWith('blob:')) {
+    showToast('⏳ Image still uploading — please wait a moment…');
+    return;
+  }
   const emoji = document.getElementById('itemEmoji').value.trim() || '🌿';
   const list = editingType === 'plant' ? plants : materials;
   if (editingType === 'plant') {
@@ -3300,11 +3443,8 @@ function fmtTime(iso) {
 function getOrders() { return JSON.parse(safeStorage.getItem('gt_orders')) || []; }
 function saveOrders(orders) {
   safeStorage.setItem('gt_orders', JSON.stringify(orders));
-  // Individual orders are written via cloudAddOrder; bulk writes happen here for edits
-  if (fbReady) {
-    // orders are saved per-doc via cloudAddOrder; no bulk backup needed
-      .catch(e => console.warn('[Firebase] orders backup error:', e));
-  }
+  // Individual orders are written per-doc via cloudAddOrder.
+  // Status/note updates go directly to Firestore in updateOrderStatus.
 }
 
 // Cart state: { plantId: qty, ... }  and  { matId: qty, ... }
@@ -4022,7 +4162,16 @@ let geUploadedVideoData = '';
 
 function saveGallery() {
   safeStorage.setItem('gt_gallery', JSON.stringify(gallery));
-  cloudSaveGallery(gallery).catch(e => console.warn('[Firebase] gallery save error:', e));
+  // Strip base64 data: URLs before writing to Firestore — only https:// URLs allowed
+  const galleryForCloud = gallery.map(item => ({
+    ...item,
+    src: (item.src && (item.src.startsWith('http') || item.src.startsWith('blob:')))
+      ? item.src.startsWith('blob:') ? '' : item.src   // blob: means upload pending
+      : item.src && item.src.startsWith('data:')
+        ? '[pending-upload]'   // base64 — too large for Firestore, skip
+        : (item.src || '')
+  }));
+  cloudSaveGallery(galleryForCloud).catch(e => console.warn('[Firebase] gallery save error:', e));
 }
 
 function renderGalleryGrid() {
@@ -4128,15 +4277,28 @@ function toggleGalleryMediaInputs() {
 }
 function handleGalleryImgUpload(input) {
   const file = input.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => { geUploadedData = e.target.result; document.getElementById('geImgUrl').value = ''; previewGalleryMedia(); };
-  reader.readAsDataURL(file);
+  document.getElementById('geImgUrl').value = '';
+  // Instant local preview
+  const localUrl = URL.createObjectURL(file);
+  geUploadedData = localUrl;
+  previewGalleryMedia();
+  // Upload to Firebase Storage
+  uploadToStorage(file, 'images/gallery', 'geImgProgress').then(url => {
+    geUploadedData = url;
+    previewGalleryMedia();
+  }).catch(err => console.warn('[Storage] gallery img upload failed:', err));
 }
 function handleGalleryVideoUpload(input) {
   const file = input.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => { geUploadedVideoData = e.target.result; previewGalleryMedia(); };
-  reader.readAsDataURL(file);
+  // Instant local preview
+  const localUrl = URL.createObjectURL(file);
+  geUploadedVideoData = localUrl;
+  previewGalleryMedia();
+  // Upload to Firebase Storage (videos folder)
+  uploadToStorage(file, 'images/videos', 'geVideoProgress').then(url => {
+    geUploadedVideoData = url;
+    previewGalleryMedia();
+  }).catch(err => console.warn('[Storage] gallery video upload failed:', err));
 }
 function previewGalleryMedia() {
   const type = document.getElementById('geMediaType').value;
@@ -4146,11 +4308,16 @@ function previewGalleryMedia() {
   if (type === 'video') prev.innerHTML = `<video src="${src}" style="width:100%;max-height:160px;object-fit:cover;border-radius:10px;" controls></video>`;
   else prev.innerHTML = `<img src="${src}" style="width:100%;height:160px;object-fit:cover;border-radius:10px;">`;
 }
-function saveGalleryItem() {
+async function saveGalleryItem() {
   const title = document.getElementById('geTitle').value.trim();
   if (!title) { showToast('⚠️ Please enter a title'); return; }
   const mediaType = document.getElementById('geMediaType').value;
   const src = mediaType === 'video' ? geUploadedVideoData : (geUploadedData || document.getElementById('geImgUrl').value.trim());
+  // Guard: blob URL means upload is still in progress
+  if (src && src.startsWith('blob:')) {
+    showToast('⏳ Media still uploading — please wait a moment…');
+    return;
+  }
   const price = parseInt(document.getElementById('gePrice').value) || 0;
   const featured = document.getElementById('geFeatured').value === '1';
   const desc = document.getElementById('geDesc').value.trim();
@@ -4165,6 +4332,9 @@ function saveGalleryItem() {
 }
 function deleteGalleryItem(id) {
   if (!confirm('Delete this gallery item?')) return;
+  const item = gallery.find(g => g.id === id);
+  // Delete from Firebase Storage if it was stored there
+  if (item && item.src) deleteFromStorage(item.src);
   gallery = gallery.filter(g => g.id !== id);
   saveGallery(); renderGalleryGrid();
   showToast('🗑 Gallery item removed');
@@ -4503,9 +4673,17 @@ function switchPageEditorTab(tab) {
 
 function handleLogoUpload(input) {
   const file = input.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => { pageContent.logoImgSrc = e.target.result; switchPageEditorTab('logo'); };
-  reader.readAsDataURL(file);
+  // Instant local preview
+  const localUrl = URL.createObjectURL(file);
+  pageContent.logoImgSrc = localUrl;
+  switchPageEditorTab('logo');
+  // Upload to Firebase Storage
+  uploadToStorage(file, 'images/logo', 'logoImgProgress').then(url => {
+    pageContent.logoImgSrc = url;
+    savePageContent();
+    applyPageContent();
+    switchPageEditorTab('logo');
+  }).catch(err => console.warn('[Storage] logo upload failed:', err));
 }
 function clearLogoImg() { delete pageContent.logoImgSrc; savePageContent(); applyPageContent(); switchPageEditorTab('logo'); }
 
