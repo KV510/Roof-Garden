@@ -3445,6 +3445,7 @@ async function confirmAndPlaceOrder() {
 
   const order = {
     id: Date.now(),
+    userId: currentUser.username,   // used for strict per-user filtering
     user: currentUser.username,
     whatsapp: currentUser.whatsapp || '',
     location: currentUser.location || '',
@@ -3520,20 +3521,36 @@ async function renderMyOrders() {
   const el = document.getElementById('myOrdersList');
   el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-light);">⏳ Loading…</div>`;
 
-  // Fetch fresh from Firebase if available
-  let allOrders = [];
+  // Fetch ONLY this user's orders — never expose other users' data
+  let myOrders = [];
   try {
     if (fbReady) {
-      const rows = await fbGetAll('gt_orders', 'time', 'desc');
-      if (rows) allOrders = rows;
-      else allOrders = getOrders();
+      // Query Firestore directly filtered by userId — other users' orders never leave the DB
+      const snap = await db.collection('gt_orders')
+        .where('userId', '==', currentUser.username)
+        .orderBy('time', 'desc')
+        .get();
+      if (!snap.empty) {
+        myOrders = snap.docs.map(d => ({ _fbId: d.id, ...d.data() }));
+      } else {
+        // Fallback: filter localStorage (handles orders placed before userId field was added)
+        myOrders = getOrders().filter(o =>
+          o.userId === currentUser.username || o.user === currentUser.username
+        );
+      }
     } else {
-      allOrders = getOrders();
+      // Offline: filter from localStorage
+      myOrders = getOrders().filter(o =>
+        o.userId === currentUser.username || o.user === currentUser.username
+      );
     }
-  } catch(e) { allOrders = getOrders(); }
-
-  // Filter only current user's orders
-  const myOrders = allOrders.filter(o => o.user === currentUser.username);
+  } catch(e) {
+    console.warn('[Firebase] renderMyOrders error:', e.message);
+    // Fallback to localStorage on any error
+    myOrders = getOrders().filter(o =>
+      o.userId === currentUser.username || o.user === currentUser.username
+    );
+  }
 
   if (myOrders.length === 0) {
     el.innerHTML = `
@@ -3574,7 +3591,7 @@ function setOrderFilter(filter, btn) {
 }
 
 async function updateOrderStatus(orderId, newStatus) {
-  // Update in localStorage first so UI reflects immediately
+  // Update in localStorage
   const orders = getOrders();
   const idx = orders.findIndex(o => String(o.id) === String(orderId));
   if (idx > -1) {
@@ -3582,74 +3599,19 @@ async function updateOrderStatus(orderId, newStatus) {
     saveOrders(orders);
   }
 
-  // Update Firestore — use _fbId (the real Firestore doc ID) if available,
-  // otherwise fall back to querying by the numeric id field
+  // Update the specific Firestore document (find by id field)
   if (fbReady) {
     try {
-      const localOrder = idx > -1 ? orders[idx] : null;
-      if (localOrder && localOrder._fbId) {
-        // Fast path: we already know the Firestore document ID
-        await db.collection('gt_orders').doc(localOrder._fbId).update({ status: newStatus, updatedAt: new Date().toISOString() });
-      } else {
-        // Fallback: query by id field (try both Number and String to handle type mismatches)
-        let snap = await db.collection('gt_orders').where('id', '==', Number(orderId)).get();
-        if (snap.empty) snap = await db.collection('gt_orders').where('id', '==', String(orderId)).get();
-        if (!snap.empty) {
-          await snap.docs[0].ref.update({ status: newStatus, updatedAt: new Date().toISOString() });
-        } else {
-          console.warn('[Firebase] updateOrderStatus: no matching doc found for id', orderId);
-        }
+      const snap = await db.collection('gt_orders').where('id', '==', Number(orderId)).get();
+      if (!snap.empty) {
+        await snap.docs[0].ref.update({ status: newStatus, updatedAt: new Date().toISOString() });
       }
     } catch(e) { console.warn('[Firebase] status update error:', e); }
   }
 
   showToast(`✅ Order marked as ${newStatus}`);
   addLog('admin', '📦', `Order #${String(orderId).slice(-6)} status → ${newStatus}`);
-  // Re-render without re-fetching from Firebase to avoid overwriting the just-saved status
-  renderOrdersTableLocal();
-}
-
-// Renders the admin orders table using only local (already-fetched) data — no Firebase re-fetch
-function renderOrdersTableLocal() {
-  const container = document.getElementById('adminOrderCards');
-  if (!container) return;
-  const orders = getOrders();
-  const filtered = adminOrderFilter === 'all' ? orders : orders.filter(o => (o.status || 'pending') === adminOrderFilter);
-  if (filtered.length === 0) {
-    container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-light);">${adminOrderFilter === 'all' ? 'No orders yet.' : `No ${adminOrderFilter} orders.`}</div>`;
-    return;
-  }
-  container.innerHTML = filtered.map(o => {
-    const status = o.status || 'pending';
-    return `<div class="admin-order-card">
-      <div class="admin-order-card-row">
-        <div>
-          <div class="admin-order-card-user">👤 ${o.user}</div>
-          <div class="admin-order-card-meta">
-            ${o.whatsapp ? `📱 ${o.whatsapp}` : ''}
-            ${o.location ? ` &nbsp;📍 ${o.location}` : ''}
-          </div>
-        </div>
-        <div style="font-size:11px;color:var(--text-light);text-align:right;">📅 ${fmtTime(o.time)}<br><span style="font-size:10px;opacity:.7;">ID #${String(o.id).slice(-6)}</span></div>
-      </div>
-      <div class="admin-order-card-products">
-        ${o.products.map(p=>`${p.emoji} <strong>${p.name}</strong> ×${p.qty}`).join(' &nbsp;·&nbsp; ')}
-      </div>
-      ${o.notes ? `<div style="font-size:12px;color:var(--text-light);font-style:italic;margin-bottom:4px;">📝 ${o.notes}</div>` : ''}
-      <div class="admin-order-card-footer">
-        ${statusBadge(status)}
-        <select class="admin-order-status-select" onchange="updateOrderStatus('${o.id}', this.value)">
-          <option value="">— Update Status —</option>
-          <option value="pending"    ${status==='pending'    ?'selected':''}>⏳ Pending</option>
-          <option value="confirmed"  ${status==='confirmed'  ?'selected':''}>✅ Confirmed</option>
-          <option value="processing" ${status==='processing' ?'selected':''}>🔄 Processing</option>
-          <option value="dispatched" ${status==='dispatched' ?'selected':''}>🚚 Dispatched</option>
-          <option value="delivered"  ${status==='delivered'  ?'selected':''}>🎉 Delivered</option>
-          <option value="cancelled"  ${status==='cancelled'  ?'selected':''}>❌ Cancelled</option>
-        </select>
-      </div>
-    </div>`;
-  }).join('');
+  renderOrdersTable();
 }
 
 // ===================== ADMIN DASHBOARD =====================
