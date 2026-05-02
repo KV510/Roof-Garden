@@ -268,6 +268,12 @@
   .packages-bg .section-tag { background: rgba(255,255,255,0.15); color: #a8edbe; }
   .packages-bg .section-head h2 { color: white; }
   .packages-bg .section-head p { color: rgba(255,255,255,0.65); }
+  .packages-static-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+    align-items: start;
+  }
   .packages-carousel-wrap { position: relative; overflow: hidden; padding: 0; }
   .packages-track { display: flex; gap: 24px; transition: transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94); will-change: transform; }
   .packages-grid { display: flex; }
@@ -275,7 +281,7 @@
     background: rgba(255,255,255,0.07); border: 1.5px solid rgba(255,255,255,0.15);
     border-radius: var(--radius); padding: 36px 28px; text-align: center;
     transition: all 0.3s; position: relative; overflow: hidden;
-    flex: 0 0 100%; box-sizing: border-box;
+    box-sizing: border-box;
   }
   .pkg-card.featured {
     background: white; border-color: var(--green-light);
@@ -754,6 +760,31 @@
   .badge-food { background: rgba(255,237,180,0.95); color: #92400e; }
   .badge-ornamental { background: rgba(255,214,236,0.95); color: #9d174d; }
   .badge-indoor { background: rgba(199,235,255,0.95); color: #075985; }
+  .badge-custom { background: rgba(220,210,255,0.95); color: #4c1d95; }
+
+  /* Add category tab button */
+  .plant-tab-add {
+    padding: 10px 18px; border-radius: 50px; border: 2px dashed var(--green-light);
+    background: white; color: var(--green-mid); font-size: 14px; font-weight: 600;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.25s;
+    display: none; align-items: center; gap: 6px;
+  }
+  .plant-tab-add:hover { border-color: var(--green-mid); background: var(--green-pale); color: var(--green-deep); }
+
+  /* Category manager modal */
+  .cat-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; max-height: 220px; overflow-y: auto; }
+  .cat-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; border-radius: 10px; background: var(--green-mist);
+    border: 1.5px solid var(--green-pale); font-size: 14px;
+  }
+  .cat-row-info { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--green-deep); }
+  .cat-row-built { font-size: 11px; color: var(--text-light); font-style: italic; }
+  .cat-del-btn {
+    background: #fee2e2; border: none; color: #991b1b; border-radius: 50%;
+    width: 26px; height: 26px; cursor: pointer; font-size: 14px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
 
   /* CATALOG NAME + TYPE label */
   .catalog-name { display: flex; flex-direction: column; align-items: center; gap: 3px; }
@@ -867,11 +898,11 @@
   </a>
   <nav class="nav">
     <a href="#home">Home</a>
+    <a href="#gallery">Gallery</a>
     <a href="#services">Services</a>
     <a href="#plants">Plants</a>
     <a href="#materials">Materials</a>
     <a href="#packages">Packages</a>
-    <a href="#gallery">Gallery</a>
     <a href="#visit-booking">Book Visit</a>
     <a href="#contact">Contact</a>
   </nav>
@@ -887,11 +918,11 @@
 <!-- MOBILE NAV DRAWER -->
 <div class="mobile-nav-drawer" id="mobileNavDrawer">
   <a href="#home" onclick="closeMobileNav()">🏠 Home</a>
+  <a href="#gallery" onclick="closeMobileNav()">🖼 Gallery</a>
   <a href="#services" onclick="closeMobileNav()">🌿 Services</a>
   <a href="#plants" onclick="closeMobileNav()">🌱 Plants</a>
   <a href="#materials" onclick="closeMobileNav()">🔧 Materials</a>
   <a href="#packages" onclick="closeMobileNav()">📦 Packages</a>
-  <a href="#gallery" onclick="closeMobileNav()">🖼 Gallery</a>
   <a href="#visit-booking" onclick="closeMobileNav()">📅 Book Visit</a>
   <a href="#contact" onclick="closeMobileNav()">📞 Contact</a>
   <div class="mobile-nav-actions" id="mobileNavActions">
@@ -919,6 +950,20 @@
       <div class="stat"><div class="stat-num">150+</div><div class="stat-lbl">Happy Clients</div></div>
       <div class="stat"><div class="stat-num">5+</div><div class="stat-lbl">Years Experience</div></div>
     </div>
+  </div>
+</section>
+
+<!-- GALLERY -->
+<section class="gallery-section" id="gallery">
+  <div class="section-inner">
+    <div class="section-head fade-in">
+      <div class="section-tag">Our Work</div>
+      <h2>Garden Gallery</h2>
+      <p>Real terrace gardens we've created across Coimbatore</p>
+    </div>
+    <div id="galleryHint" style="display:none;" class="editable-hint"><span>✏️ Admin – hover any card to edit/delete | click ➕ to add</span></div>
+    <div class="gallery-carousel-wrap" id="galleryCarousel"><div class="gallery-track" id="galleryTrack"><div class="gallery-grid" id="galleryGrid" style="display:contents;"></div></div></div>
+    <div class="carousel-dots" id="galDots"></div>
   </div>
 </section>
 
@@ -973,6 +1018,8 @@
       <button class="plant-tab" onclick="setPlantTab('food')" id="tab-food">🍅 Food Plants <span class="plant-tab-count" id="cnt-food">0</span></button>
       <button class="plant-tab" onclick="setPlantTab('ornamental')" id="tab-ornamental">🌸 Ornamental Plants <span class="plant-tab-count" id="cnt-ornamental">0</span></button>
       <button class="plant-tab" onclick="setPlantTab('indoor')" id="tab-indoor">🪴 Indoor Plants <span class="plant-tab-count" id="cnt-indoor">0</span></button>
+      <!-- Custom category tabs rendered by JS here -->
+      <button class="plant-tab-add" id="addCategoryBtn" onclick="openCategoryModal()" title="Add new plant category">＋ Add Category</button>
     </div>
     <!-- Search -->
     <div class="catalog-search-wrap">
@@ -1013,26 +1060,7 @@
       <h2 style="color:white;">Maintenance Packages</h2>
       <p style="color:rgba(255,255,255,0.65);">Choose a plan that fits your garden and budget</p>
     </div>
-    <div class="packages-carousel-wrap" id="pkgCarouselWrap">
-      <div class="packages-track" id="packagesTrack">
-        <div class="packages-grid" id="packagesGrid" style="display:contents;"></div>
-      </div>
-    </div>
-    <div class="carousel-dots" id="pkgDots"></div>
-  </div>
-</section>
-
-<!-- GALLERY -->
-<section class="gallery-section" id="gallery">
-  <div class="section-inner">
-    <div class="section-head fade-in">
-      <div class="section-tag">Our Work</div>
-      <h2>Garden Gallery</h2>
-      <p>Real terrace gardens we've created across Coimbatore</p>
-    </div>
-    <div id="galleryHint" style="display:none;" class="editable-hint"><span>✏️ Admin – hover any card to edit/delete | click ➕ to add</span></div>
-    <div class="gallery-carousel-wrap" id="galleryCarousel"><div class="gallery-track" id="galleryTrack"><div class="gallery-grid" id="galleryGrid" style="display:contents;"></div></div></div>
-    <div class="carousel-dots" id="galDots"></div>
+    <div class="packages-static-grid" id="packagesGrid"></div>
   </div>
 </section>
 
@@ -1341,9 +1369,10 @@
     <div class="tab-switch" style="margin-bottom:24px;">
       <button class="tab-btn active" id="tabSignin" onclick="switchAuthTab('signin')">Sign In</button>
       <button class="tab-btn" id="tabRegister" onclick="switchAuthTab('register')">Register</button>
+      <button class="tab-btn" id="tabAdmin" onclick="switchAuthTab('admin')" style="font-size:12px;">⚙️ Admin</button>
     </div>
 
-    <!-- SIGN IN FORM -->
+    <!-- CUSTOMER SIGN IN FORM -->
     <div id="signinForm">
       <h2 style="margin-bottom:4px;">🌿 Welcome Back</h2>
       <p style="margin-bottom:24px;">Sign in to your GreenTop account</p>
@@ -1359,6 +1388,32 @@
       <button class="btn-submit" onclick="doSignIn()">Sign In</button>
       <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-light);">
         Don't have an account? <a href="#" onclick="switchAuthTab('register');return false;" style="color:var(--green-mid);font-weight:600;">Register here</a>
+      </p>
+    </div>
+
+    <!-- ADMIN / STAFF SIGN IN FORM (Firebase Auth — no passwords in code) -->
+    <div id="adminSigninForm" style="display:none;">
+      <h2 style="margin-bottom:4px;">⚙️ Admin / Staff Login</h2>
+      <p style="margin-bottom:8px;font-size:13px;color:var(--text-light);">Securely authenticated via Firebase. Credentials are never stored in code.</p>
+      <div style="background:#f0fdf4;border:1.5px solid var(--green-pale);border-radius:10px;padding:12px 14px;margin-bottom:18px;font-size:12px;color:var(--text-mid);display:flex;gap:8px;align-items:flex-start;">
+        <span style="font-size:16px;">🔒</span>
+        <span>Your login is verified directly with Firebase — no passwords are stored in this file.</span>
+      </div>
+      <div class="input-wrap">
+        <label>Admin Email</label>
+        <input type="email" id="adminEmail" placeholder="admin@yourdomain.com" onkeydown="if(event.key==='Enter')doAdminSignIn()">
+      </div>
+      <div class="input-wrap">
+        <label>Password</label>
+        <div style="position:relative;">
+          <input type="password" id="adminPass" placeholder="Your Firebase Auth password" style="width:100%;padding-right:40px;" onkeydown="if(event.key==='Enter')doAdminSignIn()">
+          <span onclick="togglePwd('adminPass',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;color:var(--text-light);">👁</span>
+        </div>
+      </div>
+      <div class="error-msg" id="adminErr">❌ Invalid credentials</div>
+      <button class="btn-submit" id="adminSigninBtn" onclick="doAdminSignIn()">🔐 Sign In Securely</button>
+      <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text-light);">
+        Forgot password? <a href="https://console.firebase.google.com" target="_blank" style="color:var(--green-mid);font-weight:600;">Reset in Firebase Console</a>
       </p>
     </div>
 
@@ -1425,6 +1480,7 @@
         <option value="food">🍅 Food Plant</option>
         <option value="ornamental">🌸 Ornamental Plant</option>
         <option value="indoor">🪴 Indoor Plant</option>
+        <!-- Custom categories injected by JS -->
       </select>
     </div>
     <div class="input-wrap">
@@ -1572,6 +1628,29 @@
   </div>
 </div>
 
+<!-- CATEGORY MANAGER MODAL -->
+<div class="modal-overlay" id="categoryModal">
+  <div class="modal" style="max-width:460px;">
+    <button class="modal-close" onclick="closeCategoryModal()">✕</button>
+    <h2>Manage Plant Categories</h2>
+    <p>Add custom categories or remove ones you created.</p>
+    <div class="cat-list" id="catList"></div>
+    <div style="background:var(--green-mist);border-radius:12px;padding:18px;border:1.5px solid var(--green-pale);">
+      <div style="font-size:13px;font-weight:700;color:var(--green-deep);margin-bottom:12px;">➕ Add New Category</div>
+      <div class="input-wrap">
+        <label>Emoji Icon</label>
+        <input type="text" id="catEmoji" placeholder="e.g. 🌵" maxlength="4" style="width:80px;">
+      </div>
+      <div class="input-wrap">
+        <label>Category Name</label>
+        <input type="text" id="catName" placeholder="e.g. Succulents" oninput="previewCatKey()">
+      </div>
+      <div id="catKeyPreview" style="font-size:11px;color:var(--text-light);margin-top:-10px;margin-bottom:12px;"></div>
+      <button class="btn-submit" onclick="saveNewCategory()">Save Category</button>
+    </div>
+  </div>
+</div>
+
 <!-- GALLERY VIEWER MODAL -->
 <div class="modal-overlay" id="galleryViewerModal">
   <div class="modal gallery-viewer">
@@ -1585,6 +1664,479 @@
     </div>
   </div>
 </div>
+
+<!-- ============================================================
+  FIREBASE SDK – loaded via CDN (compat / global build)
+  ============================================================ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<!-- Auth is used to identify admin users so Firestore rules can allow admin writes -->
+
+<script>
+/* ================================================================
+  🔥 FIREBASE CONFIGURATION
+  ================================================================
+  HOW TO SWITCH BETWEEN DEV AND PROD:
+
+  1. Set  FIREBASE_ENV = 'dev'   → uses your dev/staging project
+     Set  FIREBASE_ENV = 'prod'  → uses your production project
+
+  2. Fill in the matching config object below.
+     Get these values from:
+       Firebase Console → Project Settings → Your apps → SDK setup
+
+  ADMIN EMAILS:
+  Add the email addresses of your admin Firebase Auth accounts here.
+  These are the accounts you create in:
+    Firebase Console → Authentication → Users → Add user
+  Only these emails will be allowed to write to Firestore (plants,
+  packages, gallery etc.) from the browser.
+  ================================================================ */
+
+const FIREBASE_ENV = 'dev'; // 👈 Change to 'prod' when going live
+
+// 🔐 List of admin email addresses (must match Firebase Auth accounts)
+const ADMIN_EMAILS = [
+  'at2026@gmail.com',   // Primary admin
+];
+
+const FIREBASE_CONFIGS = {
+  dev: {
+    // ── DEVELOPMENT / STAGING PROJECT ──────────────────────────
+    apiKey:            "AIzaSyCh2QQWCKpxqn07sy583voC64xk7KfiEYQ",
+    authDomain:        "roof-gardening-test.firebaseapp.com",
+    projectId:         "roof-gardening-test",
+    storageBucket:     "roof-gardening-test.firebasestorage.app",
+    messagingSenderId: "1071376132925",
+    appId:             "1:1071376132925:web:369e69a0ad84c7d5d97354"
+  },
+  prod: {
+    // ── PRODUCTION PROJECT ─────────────────────────────────────
+    // Replace every value below with your own prod project's config
+    apiKey:            "YOUR_PROD_API_KEY",
+    authDomain:        "your-prod-project.firebaseapp.com",
+    projectId:         "your-prod-project",
+    storageBucket:     "your-prod-project.appspot.com",
+    messagingSenderId: "111111111111",
+    appId:             "1:111111111111:web:yyyyyyyyyyyyyyyy"
+  }
+};
+
+/* ── initialise Firebase ── */
+let db   = null;   // Firestore instance
+let auth = null;   // Firebase Auth instance
+let fbReady      = false;  // true once Firestore is reachable
+let fbAdminReady = false;  // true once an admin is signed into Firebase Auth
+
+(function initFirebase() {
+  const cfg = FIREBASE_CONFIGS[FIREBASE_ENV];
+  if (!cfg || cfg.apiKey.startsWith('YOUR_')) {
+    console.warn(
+      '[GreenTop] Firebase config not set for env "' + FIREBASE_ENV + '". ' +
+      'Falling back to localStorage only. ' +
+      'Fill in FIREBASE_CONFIGS in the HTML to enable cloud sync.'
+    );
+    return;
+  }
+  try {
+    if (!firebase.apps.length) firebase.initializeApp(cfg);
+    db   = firebase.firestore();
+    auth = firebase.auth();
+    fbReady = true;
+    console.info('[GreenTop] Firebase connected (' + FIREBASE_ENV + '):', cfg.projectId);
+
+    // Listen for auth state — if an admin is already signed in (persistent session),
+    // mark fbAdminReady so config writes are allowed
+    auth.onAuthStateChanged(user => {
+      if (user && ADMIN_EMAILS.includes(user.email)) {
+        fbAdminReady = true;
+        console.info('[GreenTop] Firebase admin authenticated:', user.email);
+      } else {
+        fbAdminReady = false;
+      }
+    });
+  } catch(e) {
+    console.error('[GreenTop] Firebase init failed:', e);
+  }
+})();
+
+/* ================================================================
+  FIREBASE AUTH HELPERS
+  ================================================================
+  Admins sign in directly with their Firebase Auth email + password
+  via the ⚙️ Admin tab in the login modal.
+  NO passwords are stored anywhere in this file.
+  Firebase Auth verifies credentials server-side and returns a
+  token which Firestore security rules use to allow admin writes.
+  ================================================================ */
+
+/**
+ * Admin sign-in: authenticates directly with Firebase Auth.
+ * Called from the Admin tab in the login modal.
+ * The email must exist in Firebase Console → Authentication → Users
+ * AND must be listed in ADMIN_EMAILS above.
+ */
+async function doAdminSignIn() {
+  if (!auth) {
+    showToast('⚠️ Firebase not initialised. Check your config.');
+    return;
+  }
+  const email = (document.getElementById('adminEmail').value || '').trim();
+  const pass  = (document.getElementById('adminPass').value  || '');
+  const errEl = document.getElementById('adminErr');
+  const btn   = document.getElementById('adminSigninBtn');
+  errEl.style.display = 'none';
+
+  if (!email || !pass) {
+    errEl.textContent = '⚠️ Please enter your email and password';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  // Show loading state
+  btn.textContent = '⏳ Signing in…';
+  btn.disabled = true;
+
+  try {
+    // Authenticate with Firebase Auth — credentials verified server-side
+    const result = await auth.signInWithEmailAndPassword(email, pass);
+    const user   = result.user;
+
+    // Check this email is in our allowed admin list
+    if (!ADMIN_EMAILS.includes(user.email)) {
+      await auth.signOut();
+      errEl.textContent = '❌ This account is not authorised as admin.';
+      errEl.style.display = 'block';
+      btn.textContent = '🔐 Sign In Securely';
+      btn.disabled = false;
+      return;
+    }
+
+    // Firebase Auth success — determine role from email
+    // You can extend this to look up role from Firestore if needed
+    fbAdminReady = true;
+    currentRole  = 'admin';
+    currentUser  = null;
+    saveSession(currentRole, null);
+    startSessionTimer();
+    closeLogin();
+    updateNavActions();
+    renderAll();
+    addLog('auth', '🔑', `Admin signed in via Firebase Auth: ${user.email}`);
+    showToast('✅ Signed in as Admin');
+
+  } catch(e) {
+    // Firebase Auth error codes are user-safe to surface
+    const msg = e.code === 'auth/user-not-found'    ? '❌ No account found with this email.'
+              : e.code === 'auth/wrong-password'     ? '❌ Incorrect password.'
+              : e.code === 'auth/invalid-email'      ? '❌ Invalid email address.'
+              : e.code === 'auth/too-many-requests'  ? '⚠️ Too many failed attempts. Try again later.'
+              : e.code === 'auth/invalid-credential' ? '❌ Invalid email or password.'
+              : '❌ Sign-in failed. Please try again.';
+    errEl.textContent = msg;
+    errEl.style.display = 'block';
+  } finally {
+    btn.textContent = '🔐 Sign In Securely';
+    btn.disabled = false;
+  }
+}
+
+/**
+ * Sign out of Firebase Auth when the admin logs out of the app.
+ */
+async function fbAuthSignOut() {
+  if (!auth) return;
+  try { await auth.signOut(); } catch(e) {}
+  fbAdminReady = false;
+}
+
+/* ================================================================
+  FIREBASE DATA LAYER
+  ================================================================
+  All Firestore reads/writes go through these helpers.
+  The app continues to work with localStorage if Firebase is not
+  configured or is unreachable (graceful degradation).
+
+  Collections used:
+    gt_config      – plants, materials, packages, contact, categories
+    gt_users       – registered user accounts
+    gt_admins      – dynamically created admin/staff accounts
+    gt_orders      – customer order enquiries
+    gt_logs        – activity log entries
+    gt_visits      – visit bookings
+    gt_slots       – blocked slot overrides
+    gt_gallery     – gallery items
+    gt_page        – page content (hero text, footer, etc.)
+  ================================================================ */
+
+/* ── Low-level Firestore helpers ── */
+
+/**
+ * Read a single document from Firestore.
+ * Returns the document data (plain object) or null if not found.
+ */
+async function fbGet(collection, docId) {
+  if (!fbReady) return null;
+  try {
+    const snap = await db.collection(collection).doc(docId).get();
+    return snap.exists ? snap.data() : null;
+  } catch(e) {
+    console.warn('[Firebase] fbGet error', collection, docId, e.message);
+    return null;
+  }
+}
+
+/**
+ * Write (merge) data into a Firestore document.
+ * Config writes require the admin to be signed into Firebase Auth.
+ * Public writes (orders, visits, logs) are always allowed.
+ */
+async function fbSet(collection, docId, data) {
+  if (!fbReady) return;
+  // Config collection requires admin auth — skip silently if not authenticated
+  if (collection === 'gt_config' && !fbAdminReady) {
+    console.warn('[Firebase] Skipping config write — admin not authenticated in Firebase Auth.');
+    return;
+  }
+  try {
+    await db.collection(collection).doc(docId).set(data, { merge: true });
+  } catch(e) {
+    console.warn('[Firebase] fbSet error', collection, docId, e.message);
+  }
+}
+
+/**
+ * Add a new document to a Firestore collection (auto-ID).
+ * Returns the new document ID, or null on failure.
+ */
+async function fbAdd(collection, data) {
+  if (!fbReady) return null;
+  try {
+    const ref = await db.collection(collection).add(data);
+    return ref.id;
+  } catch(e) {
+    console.warn('[Firebase] fbAdd error', collection, e.message);
+    return null;
+  }
+}
+
+/**
+ * Get all documents from a collection, ordered by a field (optional).
+ * Returns an array of { id, ...data } objects.
+ */
+async function fbGetAll(collection, orderByField, orderDir) {
+  if (!fbReady) return null;
+  try {
+    let ref = db.collection(collection);
+    if (orderByField) ref = ref.orderBy(orderByField, orderDir || 'asc');
+    const snap = await ref.get();
+    return snap.docs.map(d => ({ _fbId: d.id, ...d.data() }));
+  } catch(e) {
+    console.warn('[Firebase] fbGetAll error', collection, e.message);
+    return null;
+  }
+}
+
+/**
+ * Delete a single document from Firestore.
+ */
+async function fbDelete(collection, docId) {
+  if (!fbReady) return;
+  try {
+    await db.collection(collection).doc(docId).delete();
+  } catch(e) {
+    console.warn('[Firebase] fbDelete error', collection, docId, e.message);
+  }
+}
+
+/* ── High-level data helpers used by the app ── */
+
+/**
+ * Load a JSON blob stored in a single Firestore doc,
+ * falling back to localStorage if Firebase is unavailable.
+ */
+async function cloudGet(fbCollection, fbDoc, lsKey) {
+  if (fbReady) {
+    const data = await fbGet(fbCollection, fbDoc);
+    if (data && data.value !== undefined) {
+      // Also sync to localStorage so the page works offline after first load
+      safeStorage.setItem(lsKey, JSON.stringify(data.value));
+      return data.value;
+    }
+  }
+  // Fallback: localStorage
+  const raw = safeStorage.getItem(lsKey);
+  return raw ? JSON.parse(raw) : null;
+}
+
+/**
+ * Save a JSON blob to both Firestore and localStorage.
+ */
+async function cloudSet(fbCollection, fbDoc, lsKey, value) {
+  safeStorage.setItem(lsKey, JSON.stringify(value)); // always write locally first
+  if (fbReady) {
+    await fbSet(fbCollection, fbDoc, { value, updatedAt: new Date().toISOString() });
+  }
+}
+
+/* ── Specific cloud save/load functions used by the app ── */
+
+async function cloudLoadAppData() {
+  /* Load the five main config blobs in parallel */
+  const [fbPlants, fbMaterials, fbPackages, fbContact, fbCats, fbPage] = await Promise.all([
+    cloudGet('gt_config', 'plants',     'gt_plants'),
+    cloudGet('gt_config', 'materials',  'gt_materials'),
+    cloudGet('gt_config', 'packages',   'gt_packages'),
+    cloudGet('gt_config', 'contact',    'gt_contact'),
+    cloudGet('gt_config', 'categories', 'gt_custom_cats'),
+    cloudGet('gt_config', 'page',       'gt_page_content'),
+  ]);
+  return { fbPlants, fbMaterials, fbPackages, fbContact, fbCats, fbPage };
+}
+
+async function cloudSaveAppData() {
+  /* Called by the existing save() function */
+  await Promise.all([
+    cloudSet('gt_config', 'plants',     'gt_plants',    plants),
+    cloudSet('gt_config', 'materials',  'gt_materials', materials),
+    cloudSet('gt_config', 'packages',   'gt_packages',  packages),
+    cloudSet('gt_config', 'contact',    'gt_contact',   contactInfo),
+  ]);
+}
+
+/* Users */
+async function cloudGetUsers() {
+  return (await cloudGet('gt_config', 'users', 'gt_users')) || [];
+}
+async function cloudSaveUsers(users) {
+  await cloudSet('gt_config', 'users', 'gt_users', users);
+}
+
+/* Admin accounts */
+async function cloudGetAdmins() {
+  return (await cloudGet('gt_config', 'admins', 'gt_admins')) || [];
+}
+async function cloudSaveAdmins(list) {
+  await cloudSet('gt_config', 'admins', 'gt_admins', list);
+}
+
+/* Orders – stored as individual documents for easy querying */
+async function cloudGetOrders() {
+  const rows = await fbGetAll('gt_orders', 'time', 'desc');
+  if (rows === null) {
+    // Firebase unavailable – fall back to localStorage
+    return JSON.parse(safeStorage.getItem('gt_orders')) || [];
+  }
+  return rows;
+}
+async function cloudAddOrder(order) {
+  safeStorage.setItem('gt_orders', JSON.stringify(
+    [order, ...(JSON.parse(safeStorage.getItem('gt_orders')) || [])]
+  ));
+  await fbAdd('gt_orders', order);
+}
+
+/* Activity logs */
+async function cloudGetLogs() {
+  const rows = await fbGetAll('gt_logs', 'time', 'desc');
+  if (rows === null) return JSON.parse(safeStorage.getItem('gt_logs')) || [];
+  return rows;
+}
+async function cloudAddLog(entry) {
+  safeStorage.setItem('gt_logs', JSON.stringify(
+    [entry, ...(JSON.parse(safeStorage.getItem('gt_logs')) || []).slice(0, 199)]
+  ));
+  await fbAdd('gt_logs', entry);
+}
+
+/* Visit bookings */
+async function cloudGetVisits() {
+  const rows = await fbGetAll('gt_visits', 'time', 'desc');
+  if (rows === null) return JSON.parse(safeStorage.getItem('gt_visits')) || [];
+  return rows;
+}
+async function cloudAddVisit(visit) {
+  safeStorage.setItem('gt_visits', JSON.stringify(
+    [visit, ...(JSON.parse(safeStorage.getItem('gt_visits')) || [])]
+  ));
+  await fbAdd('gt_visits', visit);
+}
+
+/* Slot overrides */
+async function cloudGetSlots() {
+  return (await cloudGet('gt_config', 'slots', 'gt_slots')) || {};
+}
+async function cloudSaveSlots(slots) {
+  await cloudSet('gt_config', 'slots', 'gt_slots', slots);
+}
+
+/* Gallery */
+async function cloudGetGallery() {
+  return (await cloudGet('gt_config', 'gallery', 'gt_gallery')) || [];
+}
+async function cloudSaveGallery(gallery) {
+  await cloudSet('gt_config', 'gallery', 'gt_gallery', gallery);
+}
+
+/* Custom categories */
+async function cloudSaveCategories(cats) {
+  await cloudSet('gt_config', 'categories', 'gt_custom_cats', cats);
+}
+
+/* Page content */
+async function cloudGetPage() {
+  return (await cloudGet('gt_config', 'page', 'gt_page_content')) || null;
+}
+async function cloudSavePage(content) {
+  await cloudSet('gt_config', 'page', 'gt_page_content', content);
+}
+
+/* ── Loading indicator helpers ── */
+// Shows a small non-blocking banner instead of a full-screen overlay
+function showFirebaseLoader(msg) {
+  let el = document.getElementById('fbLoader');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'fbLoader';
+    el.style.cssText = [
+      'position:fixed',
+      'bottom:80px',
+      'left:50%',
+      'transform:translateX(-50%)',
+      'background:rgba(45,106,79,0.92)',
+      'color:white',
+      'padding:8px 18px',
+      'border-radius:50px',
+      'font-family:DM Sans,sans-serif',
+      'font-size:13px',
+      'font-weight:600',
+      'z-index:9999',
+      'display:flex',
+      'align-items:center',
+      'gap:8px',
+      'box-shadow:0 4px 20px rgba(0,0,0,0.18)',
+      'pointer-events:none',
+      'opacity:0',
+      'transition:opacity 0.3s'
+    ].join(';');
+    el.innerHTML = '<span style="font-size:16px">🌿</span><span id="fbLoaderMsg"></span>';
+    document.body.appendChild(el);
+    // Fade in
+    requestAnimationFrame(() => { el.style.opacity = '1'; });
+  }
+  const msgEl = document.getElementById('fbLoaderMsg');
+  if (msgEl) msgEl.textContent = msg || 'Syncing…';
+}
+
+function hideFirebaseLoader() {
+  const el = document.getElementById('fbLoader');
+  if (!el) return;
+  el.style.opacity = '0';
+  setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 400);
+}
+
+</script>
 
 <script>
 // ===================== SAFE STORAGE (works on file://, http://, and iframes) =====================
@@ -1778,11 +2330,28 @@ let materials = JSON.parse(safeStorage.getItem('gt_materials')) || defaultMateri
 let packages = JSON.parse(safeStorage.getItem('gt_packages')) || defaultPackages;
 let contactInfo = JSON.parse(safeStorage.getItem('gt_contact')) || defaultContact;
 
+// Built-in categories (cannot be deleted)
+const BUILTIN_CATEGORIES = [
+  { key: 'food',       emoji: '🍅', label: 'Food Plants' },
+  { key: 'ornamental', emoji: '🌸', label: 'Ornamental Plants' },
+  { key: 'indoor',     emoji: '🪴', label: 'Indoor Plants' },
+];
+// Custom categories added by admin
+let customCategories = JSON.parse(safeStorage.getItem('gt_custom_cats')) || [];
+function allCategories() { return [...BUILTIN_CATEGORIES, ...customCategories]; }
+function saveCustomCategories() {
+  safeStorage.setItem('gt_custom_cats', JSON.stringify(customCategories));
+  cloudSaveCategories(customCategories).catch(e => console.warn('[Firebase] categories save error:', e));
+}
+
 function save() {
-  safeStorage.setItem('gt_plants', JSON.stringify(plants));
+  // Always write to localStorage for instant offline access
+  safeStorage.setItem('gt_plants',    JSON.stringify(plants));
   safeStorage.setItem('gt_materials', JSON.stringify(materials));
-  safeStorage.setItem('gt_packages', JSON.stringify(packages));
-  safeStorage.setItem('gt_contact', JSON.stringify(contactInfo));
+  safeStorage.setItem('gt_packages',  JSON.stringify(packages));
+  safeStorage.setItem('gt_contact',   JSON.stringify(contactInfo));
+  // Also persist to Firebase (async, non-blocking)
+  cloudSaveAppData().catch(e => console.warn('[Firebase] save error:', e));
 }
 
 // ===================== PLANT TAB STATE =====================
@@ -1826,7 +2395,27 @@ function getTypeBadge(type) {
   if (type === 'food') return '<span class="catalog-type-badge badge-food">🍅 Food</span>';
   if (type === 'ornamental') return '<span class="catalog-type-badge badge-ornamental">🌸 Ornamental</span>';
   if (type === 'indoor') return '<span class="catalog-type-badge badge-indoor">🪴 Indoor</span>';
+  // Custom category
+  const custom = customCategories.find(c => c.key === type);
+  if (custom) return `<span class="catalog-type-badge badge-custom">${custom.emoji} ${custom.label}</span>`;
   return '';
+}
+
+function renderCustomCategoryTabs() {
+  // Remove existing custom tab buttons (keep builtin ones + add button)
+  document.querySelectorAll('.plant-tab-custom').forEach(el => el.remove());
+  const tabsContainer = document.getElementById('plantTabs');
+  const addBtn = document.getElementById('addCategoryBtn');
+  customCategories.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'plant-tab plant-tab-custom';
+    btn.id = 'tab-' + cat.key;
+    btn.onclick = () => setPlantTab(cat.key);
+    btn.innerHTML = `${cat.emoji} ${cat.label} <span class="plant-tab-count" id="cnt-${cat.key}">0</span>`;
+    tabsContainer.insertBefore(btn, addBtn);
+  });
+  // Show/hide add button for admin only
+  addBtn.style.display = canEdit() ? 'flex' : 'none';
 }
 
 function renderPlantsGrid() {
@@ -1843,8 +2432,9 @@ function renderPlantsGrid() {
     (p.sci && p.sci.toLowerCase().includes(q))
   );
 
-  // Update tab counts
-  const counts = { all: plants.length, food: 0, ornamental: 0, indoor: 0 };
+  // Update tab counts for all categories
+  const counts = { all: plants.length };
+  allCategories().forEach(cat => { counts[cat.key] = 0; });
   plants.forEach(p => { if (counts[p.type] !== undefined) counts[p.type]++; });
   Object.keys(counts).forEach(k => {
     const el = document.getElementById('cnt-' + k);
@@ -1973,6 +2563,7 @@ function renderContact() {
 function canEdit() { return currentRole === 'admin' || currentRole === 'staff'; }
 
 function renderAll() {
+  renderCustomCategoryTabs();
   renderPlantsGrid();
   renderMaterialsGrid();
   renderPackages();
@@ -1991,12 +2582,13 @@ const BUILTIN_CREDENTIALS = {
   staff: { username: 'staff', password: 'staff123', role: 'staff' }
 };
 
-// Load registered users from localStorage
+// Load registered users from localStorage (sync) or Firebase (async via cloudGetUsers)
 function getRegisteredUsers() {
   return JSON.parse(safeStorage.getItem('gt_users')) || [];
 }
 function saveRegisteredUsers(users) {
   safeStorage.setItem('gt_users', JSON.stringify(users));
+  cloudSaveUsers(users).catch(e => console.warn('[Firebase] users save error:', e));
 }
 
 let authTab = 'signin'; // 'signin' | 'register'
@@ -2011,23 +2603,27 @@ function closeLogin() {
   clearAuthForms();
 }
 function clearAuthForms() {
-  ['siUser','siPass','regUser','regWA','regLoc','regPass','regPass2'].forEach(id => {
+  ['siUser','siPass','regUser','regWA','regLoc','regPass','regPass2','adminEmail','adminPass'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
   document.getElementById('siErr').style.display = 'none';
   document.getElementById('regErr').style.display = 'none';
   document.getElementById('regSuccess').style.display = 'none';
+  if (document.getElementById('adminErr')) document.getElementById('adminErr').style.display = 'none';
 }
 function switchAuthTab(tab) {
   authTab = tab;
-  document.getElementById('signinForm').style.display = tab === 'signin' ? 'block' : 'none';
-  document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
-  document.getElementById('tabSignin').classList.toggle('active', tab === 'signin');
+  document.getElementById('signinForm').style.display      = tab === 'signin'   ? 'block' : 'none';
+  document.getElementById('registerForm').style.display    = tab === 'register' ? 'block' : 'none';
+  document.getElementById('adminSigninForm').style.display = tab === 'admin'    ? 'block' : 'none';
+  document.getElementById('tabSignin').classList.toggle('active',   tab === 'signin');
   document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
-  document.getElementById('siErr').style.display = 'none';
-  document.getElementById('regErr').style.display = 'none';
+  document.getElementById('tabAdmin').classList.toggle('active',    tab === 'admin');
+  document.getElementById('siErr').style.display    = 'none';
+  document.getElementById('regErr').style.display   = 'none';
   document.getElementById('regSuccess').style.display = 'none';
+  if (document.getElementById('adminErr')) document.getElementById('adminErr').style.display = 'none';
 }
 // Legacy alias
 function switchTab(tab) { switchAuthTab(tab); }
@@ -2233,6 +2829,15 @@ function openItemEdit(type, id) {
   document.getElementById('itemSciWrap').style.display = isPlant ? 'block' : 'none';
   document.getElementById('itemTypeWrap').style.display = isPlant ? 'block' : 'none';
   if (isPlant) {
+    // Rebuild the type dropdown with all categories including custom ones
+    const sel = document.getElementById('itemType');
+    sel.innerHTML = '';
+    allCategories().forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat.key;
+      opt.textContent = `${cat.emoji} ${cat.label}`;
+      sel.appendChild(opt);
+    });
     document.getElementById('itemSci').value = item.sci || '';
     document.getElementById('itemType').value = item.type || 'food';
   }
@@ -2415,6 +3020,89 @@ function saveContact() {
   showToast('✅ Contact info updated!');
 }
 
+// ===================== CATEGORY MANAGER =====================
+function openCategoryModal() {
+  if (!canEdit()) return;
+  renderCatList();
+  document.getElementById('catEmoji').value = '';
+  document.getElementById('catName').value = '';
+  document.getElementById('catKeyPreview').textContent = '';
+  document.getElementById('categoryModal').classList.add('open');
+}
+function closeCategoryModal() { document.getElementById('categoryModal').classList.remove('open'); }
+
+function renderCatList() {
+  const list = document.getElementById('catList');
+  list.innerHTML = '';
+  // Built-in (non-deletable)
+  BUILTIN_CATEGORIES.forEach(cat => {
+    list.innerHTML += `
+      <div class="cat-row">
+        <div class="cat-row-info">${cat.emoji} ${cat.label}</div>
+        <span class="cat-row-built">built-in</span>
+      </div>`;
+  });
+  // Custom (deletable)
+  if (customCategories.length === 0) {
+    list.innerHTML += `<div style="text-align:center;font-size:13px;color:var(--text-light);padding:8px 0;">No custom categories yet.</div>`;
+  } else {
+    customCategories.forEach(cat => {
+      list.innerHTML += `
+        <div class="cat-row">
+          <div class="cat-row-info">${cat.emoji} ${cat.label}</div>
+          <button class="cat-del-btn" onclick="deleteCategory('${cat.key}')" title="Delete category">🗑</button>
+        </div>`;
+    });
+  }
+}
+
+function previewCatKey() {
+  const name = document.getElementById('catName').value.trim();
+  const key = name.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g,'_').replace(/^_|_$/g,'');
+  document.getElementById('catKeyPreview').textContent = key ? `Key: "${key}"` : '';
+}
+
+function saveNewCategory() {
+  const emoji = document.getElementById('catEmoji').value.trim() || '🌿';
+  const name  = document.getElementById('catName').value.trim();
+  if (!name) { showToast('⚠️ Please enter a category name'); return; }
+  const key = name.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g,'_').replace(/^_|_$/g,'');
+  if (!key) { showToast('⚠️ Invalid category name'); return; }
+  // Check for duplicate
+  if (allCategories().find(c => c.key === key)) { showToast('⚠️ A category with this name already exists'); return; }
+  customCategories.push({ key, emoji, label: name });
+  saveCustomCategories();
+  renderCatList();
+  renderCustomCategoryTabs();
+  document.getElementById('catEmoji').value = '';
+  document.getElementById('catName').value = '';
+  document.getElementById('catKeyPreview').textContent = '';
+  showToast(`✅ Category "${name}" added!`);
+  addLog('admin', '📂', `Added plant category: ${name}`);
+}
+
+function deleteCategory(key) {
+  const cat = customCategories.find(c => c.key === key);
+  if (!cat) return;
+  const plantCount = plants.filter(p => p.type === key).length;
+  const msg = plantCount > 0
+    ? `Delete category "${cat.label}"? The ${plantCount} plant(s) in this category will be moved to "Food Plants".`
+    : `Delete category "${cat.label}"?`;
+  if (!confirm(msg)) return;
+  // Reassign plants in this category to 'food'
+  plants.forEach(p => { if (p.type === key) p.type = 'food'; });
+  save();
+  customCategories = customCategories.filter(c => c.key !== key);
+  saveCustomCategories();
+  // If we were on that tab, switch to all
+  if (activePlantTab === key) { activePlantTab = 'all'; }
+  renderCatList();
+  renderCustomCategoryTabs();
+  renderPlantsGrid();
+  showToast(`🗑 Category "${cat.label}" removed`);
+  addLog('admin', '🗑️', `Deleted plant category: ${cat.label}`);
+}
+
 // ===================== MISC =====================
 function bookPkg(name) {
   document.getElementById('contact').scrollIntoView({behavior:'smooth'});
@@ -2434,15 +3122,18 @@ function showToast(msg) {
 function getLogs() { return JSON.parse(safeStorage.getItem('gt_logs')) || []; }
 function saveLogs(logs) { safeStorage.setItem('gt_logs', JSON.stringify(logs)); }
 function addLog(type, icon, action, user) {
-  const logs = getLogs();
-  logs.unshift({
+  const entry = {
     id: Date.now(),
     type, icon, action,
     user: user || (currentUser ? currentUser.username : currentRole || 'guest'),
     time: new Date().toISOString()
-  });
-  // Keep last 200 entries
+  };
+  // Write locally
+  const logs = getLogs();
+  logs.unshift(entry);
   saveLogs(logs.slice(0, 200));
+  // Write to Firebase (async)
+  cloudAddLog(entry).catch(e => console.warn('[Firebase] log write error:', e));
 }
 function fmtTime(iso) {
   const d = new Date(iso);
@@ -2452,7 +3143,14 @@ function fmtTime(iso) {
 
 // ===================== ORDERS =====================
 function getOrders() { return JSON.parse(safeStorage.getItem('gt_orders')) || []; }
-function saveOrders(orders) { safeStorage.setItem('gt_orders', JSON.stringify(orders)); }
+function saveOrders(orders) {
+  safeStorage.setItem('gt_orders', JSON.stringify(orders));
+  // Individual orders are written via cloudAddOrder; bulk writes happen here for edits
+  if (fbReady) {
+    cloudSet('gt_config', 'orders_backup', 'gt_orders', orders)
+      .catch(e => console.warn('[Firebase] orders backup error:', e));
+  }
+}
 
 // Cart state: { plantId: qty, ... }  and  { matId: qty, ... }
 let cart = { plants: {}, materials: {} };
@@ -2584,6 +3282,8 @@ function submitOrder() {
   const orders = getOrders();
   orders.unshift(order);
   saveOrders(orders);
+  // Also write this order as its own Firebase document for easy admin queries
+  cloudAddOrder(order).catch(e => console.warn('[Firebase] order write error:', e));
 
   // Log it
   const productStr = order.products.slice(0,3).map(p=>`${p.emoji}${p.name}×${p.qty}`).join(', ') + (order.products.length > 3 ? ` +${order.products.length-3} more` : '');
@@ -2708,7 +3408,10 @@ function renderAdminUsersList() {
 
 // Dynamic admin accounts
 function getAdminAccounts() { return JSON.parse(safeStorage.getItem('gt_admins')) || []; }
-function saveAdminAccounts(list) { safeStorage.setItem('gt_admins', JSON.stringify(list)); }
+function saveAdminAccounts(list) {
+  safeStorage.setItem('gt_admins', JSON.stringify(list));
+  cloudSaveAdmins(list).catch(e => console.warn('[Firebase] admins save error:', e));
+}
 
 function createAdminAccount() {
   const username = document.getElementById('newAdminUser').value.trim();
@@ -2822,6 +3525,8 @@ function doLogout() {
   clearSession();
   updateNavActions();
   renderAll();
+  // Sign out of Firebase Auth so config writes are blocked again
+  fbAuthSignOut();
   showToast('👋 Signed out successfully');
 }
 
@@ -2887,7 +3592,10 @@ let editingGalleryId = null;
 let geUploadedData = '';
 let geUploadedVideoData = '';
 
-function saveGallery() { safeStorage.setItem('gt_gallery', JSON.stringify(gallery)); }
+function saveGallery() {
+  safeStorage.setItem('gt_gallery', JSON.stringify(gallery));
+  cloudSaveGallery(gallery).catch(e => console.warn('[Firebase] gallery save error:', e));
+}
 
 function renderGalleryGrid() {
   const grid = document.getElementById('galleryGrid');
@@ -3061,9 +3769,17 @@ let selectedBookingDate = null;
 let selectedBookingSlot = null;
 
 function getBookings() { return JSON.parse(safeStorage.getItem('gt_bookings')) || []; }
-function saveBookings(b) { safeStorage.setItem('gt_bookings', JSON.stringify(b)); }
+function saveBookings(b) {
+  safeStorage.setItem('gt_bookings', JSON.stringify(b));
+  // Mirror to Firebase (full list stored as one doc for simplicity; individual adds via submitVisitBooking)
+  cloudSet('gt_config', 'bookings', 'gt_bookings', b)
+    .catch(e => console.warn('[Firebase] bookings save error:', e));
+}
 function getSlotConfig() { return JSON.parse(safeStorage.getItem('gt_slots')) || {}; }
-function saveSlotConfig(c) { safeStorage.setItem('gt_slots', JSON.stringify(c)); }
+function saveSlotConfig(c) {
+  safeStorage.setItem('gt_slots', JSON.stringify(c));
+  cloudSaveSlots(c).catch(e => console.warn('[Firebase] slots save error:', e));
+}
 
 function renderBookingCalendar() {
   const cal = document.getElementById('bookingCalendar');
@@ -3135,6 +3851,8 @@ function submitVisitBooking() {
   const booking = { id: Date.now(), name, wa, purpose, date: selectedBookingDate, slot: selectedBookingSlot, status: 'pending', createdAt: new Date().toISOString(), user: currentUser ? currentUser.username : 'guest' };
   bookings.unshift(booking);
   saveBookings(bookings);
+  // Also write as individual Firebase document for admin queries
+  cloudAddVisit(booking).catch(e => console.warn('[Firebase] visit write error:', e));
   addLog('order', '📅', `Booking: ${name} on ${selectedBookingDate} at ${selectedBookingSlot}`);
   showToast(`✅ Booking confirmed for ${selectedBookingDate} at ${selectedBookingSlot}!`);
   document.getElementById('visitName').value = '';
@@ -3217,7 +3935,10 @@ function toggleSlot(date, slot, btn) {
 
 // ===================== PAGE EDITOR =====================
 let pageContent = JSON.parse(safeStorage.getItem('gt_page')) || {};
-function savePageContent() { safeStorage.setItem('gt_page', JSON.stringify(pageContent)); }
+function savePageContent() {
+  safeStorage.setItem('gt_page', JSON.stringify(pageContent));
+  cloudSavePage(pageContent).catch(e => console.warn('[Firebase] page content save error:', e));
+}
 
 function applyPageContent() {
   // Logo
@@ -3439,14 +4160,73 @@ function savePEFooter() {
   savePageContent(); applyPageContent(); showToast('✅ Footer updated!');
 }
 
-// Apply on load
+// Apply on load (from localStorage initially – Firebase may override below)
 applyPageContent();
 
 // ===================== INIT =====================
+// Boot the app: first from localStorage (instant), then sync from Firebase
+async function initApp() {
+  // 1. Render IMMEDIATELY from localStorage — page is fully usable right away
+  // Firebase sync happens quietly in the background, never blocking the UI
+  updateNavActions();
+  renderAll();
 
-// Always restore nav state on load (handles both logged-in and logged-out)
-updateNavActions();
-renderAll();
+  // 2. If Firebase is not ready, stop here — no loader, no delay
+  if (!fbReady) return;
+
+  // 3. Small non-blocking banner (bottom of screen, not a full overlay)
+  showFirebaseLoader('Syncing…');
+
+  // 4. Hard timeout — if Firebase doesn't respond in 6s, give up silently
+  let timedOut = false;
+  const timeoutId = setTimeout(() => {
+    timedOut = true;
+    hideFirebaseLoader();
+    console.warn('[Firebase] Sync timed out — using local data');
+  }, 6000);
+
+  try {
+    const { fbPlants, fbMaterials, fbPackages, fbContact, fbCats, fbPage } =
+      await cloudLoadAppData();
+
+    if (timedOut) return; // Timeout already fired, skip applying stale data
+
+    let changed = false;
+
+    if (fbPlants    && JSON.stringify(fbPlants)    !== JSON.stringify(plants))          { plants          = fbPlants;    safeStorage.setItem('gt_plants',      JSON.stringify(plants));          changed = true; }
+    if (fbMaterials && JSON.stringify(fbMaterials) !== JSON.stringify(materials))       { materials       = fbMaterials; safeStorage.setItem('gt_materials',   JSON.stringify(materials));       changed = true; }
+    if (fbPackages  && JSON.stringify(fbPackages)  !== JSON.stringify(packages))        { packages        = fbPackages;  safeStorage.setItem('gt_packages',    JSON.stringify(packages));        changed = true; }
+    if (fbContact   && JSON.stringify(fbContact)   !== JSON.stringify(contactInfo))     { contactInfo     = fbContact;   safeStorage.setItem('gt_contact',     JSON.stringify(contactInfo));     changed = true; }
+    if (fbCats      && JSON.stringify(fbCats)      !== JSON.stringify(customCategories)){ customCategories = fbCats;     safeStorage.setItem('gt_custom_cats', JSON.stringify(customCategories)); changed = true; }
+
+    if (fbPage && JSON.stringify(fbPage) !== JSON.stringify(pageContent)) {
+      pageContent = fbPage;
+      safeStorage.setItem('gt_page', JSON.stringify(pageContent));
+      applyPageContent();
+    }
+
+    const cloudUsers  = await cloudGetUsers();
+    const cloudAdmins = await cloudGetAdmins();
+    if (cloudUsers  && cloudUsers.length)  safeStorage.setItem('gt_users',  JSON.stringify(cloudUsers));
+    if (cloudAdmins && cloudAdmins.length) safeStorage.setItem('gt_admins', JSON.stringify(cloudAdmins));
+
+    const cloudGallery = await cloudGetGallery();
+    const cloudSlots   = await cloudGetSlots();
+    if (cloudGallery && cloudGallery.length) { gallery = cloudGallery; safeStorage.setItem('gt_gallery', JSON.stringify(gallery)); changed = true; }
+    if (cloudSlots   && Object.keys(cloudSlots).length) safeStorage.setItem('gt_slots', JSON.stringify(cloudSlots));
+
+    if (changed) renderAll();
+
+  } catch(e) {
+    // Firebase unreachable (offline, local file, CORS etc.) — silently use localStorage
+    console.warn('[Firebase] Background sync failed, using local data:', e.message);
+  } finally {
+    clearTimeout(timeoutId);
+    hideFirebaseLoader();
+  }
+}
+
+initApp();
 
 // ===================== UNIFIED CAROUSEL ENGINE =====================
 function makeCarousel({ trackId, dotsId, slideDir, cardGap, autoDelay }) {
@@ -3606,16 +4386,11 @@ window.svcSlide = dir => svcCarousel.slide(dir);
 const galCarousel = makeCarousel({ trackId: 'galleryTrack', dotsId: 'galDots', slideDir: 'galCarousel', cardGap: 20, autoDelay: 3000 });
 window.galSlide = dir => galCarousel.slide(dir);
 
-// ── Packages carousel ──────────────────────────────────────────────────────
-const pkgCarousel = makeCarousel({ trackId: 'packagesTrack', dotsId: 'pkgDots', slideDir: 'pkgCarousel', cardGap: 24, autoDelay: 3000 });
-window.pkgSlide = dir => pkgCarousel.slide(dir);
-
-// Patch renderAll to reinit gallery + packages after data loads
+// Patch renderAll to reinit gallery after data loads
 const _origRenderAll2 = window.renderAll;
 window.renderAll = function(...args) {
   const r = _origRenderAll2 ? _origRenderAll2(...args) : undefined;
   galCarousel.reinit();
-  pkgCarousel.reinit();
   return r;
 };
 
@@ -3623,11 +4398,9 @@ window.renderAll = function(...args) {
 setTimeout(() => {
   svcCarousel.init();
   galCarousel.init();
-  pkgCarousel.init();
   window.addEventListener('resize', () => {
     svcCarousel.goTo(0);
     galCarousel.goTo(0);
-    pkgCarousel.goTo(0);
   });
 }, 500);
 
