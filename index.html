@@ -1972,15 +1972,13 @@ async function fbAuthSignOut() {
   configured or is unreachable (graceful degradation).
 
   Collections used:
-    gt_config      – plants, materials, packages, contact, categories
-    gt_users       – registered user accounts
-    gt_admins      – dynamically created admin/staff accounts
-    gt_orders      – customer order enquiries
-    gt_logs        – activity log entries
-    gt_visits      – visit bookings
-    gt_slots       – blocked slot overrides
-    gt_gallery     – gallery items
-    gt_page        – page content (hero text, footer, etc.)
+    config         – plants, materials, packages, contact, categories, slots, page
+    users          – registered user accounts + admin/staff accounts
+    orders         – customer orders (one doc per order)
+    logs           – activity log entries (one doc per event)
+    enquiry        – visit bookings + contact enquiries
+    gallery        – gallery items blob
+    images         – (reserved for future image uploads)
   ================================================================ */
 
 /* ── Low-level Firestore helpers ── */
@@ -2008,7 +2006,7 @@ async function fbGet(collection, docId) {
 async function fbSet(collection, docId, data) {
   if (!fbReady) return;
   // Config collection requires admin auth — skip silently if not authenticated
-  if (collection === 'gt_config' && !fbAdminReady) {
+  if ((collection === 'config' || collection === 'users' || collection === 'gallery') && !fbAdminReady) {
     console.warn('[Firebase] Skipping config write — admin not authenticated in Firebase Auth.');
     return;
   }
@@ -2098,12 +2096,12 @@ async function cloudSet(fbCollection, fbDoc, lsKey, value) {
 async function cloudLoadAppData() {
   /* Load the five main config blobs in parallel */
   const [fbPlants, fbMaterials, fbPackages, fbContact, fbCats, fbPage] = await Promise.all([
-    cloudGet('gt_config', 'plants',     'gt_plants'),
-    cloudGet('gt_config', 'materials',  'gt_materials'),
-    cloudGet('gt_config', 'packages',   'gt_packages'),
-    cloudGet('gt_config', 'contact',    'gt_contact'),
-    cloudGet('gt_config', 'categories', 'gt_custom_cats'),
-    cloudGet('gt_config', 'page',       'gt_page_content'),
+    cloudGet('config', 'plants',     'gt_plants'),
+    cloudGet('config', 'materials',  'gt_materials'),
+    cloudGet('config', 'packages',   'gt_packages'),
+    cloudGet('config', 'contact',    'gt_contact'),
+    cloudGet('config', 'categories', 'gt_custom_cats'),
+    cloudGet('config', 'page',       'gt_page_content'),
   ]);
   return { fbPlants, fbMaterials, fbPackages, fbContact, fbCats, fbPage };
 }
@@ -2111,32 +2109,32 @@ async function cloudLoadAppData() {
 async function cloudSaveAppData() {
   /* Called by the existing save() function */
   await Promise.all([
-    cloudSet('gt_config', 'plants',     'gt_plants',    plants),
-    cloudSet('gt_config', 'materials',  'gt_materials', materials),
-    cloudSet('gt_config', 'packages',   'gt_packages',  packages),
-    cloudSet('gt_config', 'contact',    'gt_contact',   contactInfo),
+    cloudSet('config', 'plants',     'gt_plants',    plants),
+    cloudSet('config', 'materials',  'gt_materials', materials),
+    cloudSet('config', 'packages',   'gt_packages',  packages),
+    cloudSet('config', 'contact',    'gt_contact',   contactInfo),
   ]);
 }
 
 /* Users */
 async function cloudGetUsers() {
-  return (await cloudGet('gt_config', 'users', 'gt_users')) || [];
+  return (await cloudGet('users', 'accounts', 'gt_users')) || [];
 }
 async function cloudSaveUsers(users) {
-  await cloudSet('gt_config', 'users', 'gt_users', users);
+  await cloudSet('users', 'accounts', 'gt_users', users);
 }
 
 /* Admin accounts */
 async function cloudGetAdmins() {
-  return (await cloudGet('gt_config', 'admins', 'gt_admins')) || [];
+  return (await cloudGet('users', 'admins', 'gt_admins')) || [];
 }
 async function cloudSaveAdmins(list) {
-  await cloudSet('gt_config', 'admins', 'gt_admins', list);
+  await cloudSet('users', 'admins', 'gt_admins', list);
 }
 
 /* Orders – stored as individual documents for easy querying */
 async function cloudGetOrders() {
-  const rows = await fbGetAll('gt_orders', 'time', 'desc');
+  const rows = await fbGetAll('orders', 'time', 'desc');
   if (rows === null) {
     // Firebase unavailable – fall back to localStorage
     return JSON.parse(safeStorage.getItem('gt_orders')) || [];
@@ -2144,15 +2142,28 @@ async function cloudGetOrders() {
   return rows;
 }
 async function cloudAddOrder(order) {
-  safeStorage.setItem('gt_orders', JSON.stringify(
-    [order, ...(JSON.parse(safeStorage.getItem('gt_orders')) || [])]
-  ));
-  await fbAdd('gt_orders', order);
+  // Write to localStorage first — guard against duplicate IDs on retry
+  const existing = JSON.parse(safeStorage.getItem('gt_orders')) || [];
+  if (!existing.find(o => String(o.id) === String(order.id))) {
+    existing.unshift(order);
+    safeStorage.setItem('gt_orders', JSON.stringify(existing));
+  }
+  // Write to Firestore 'orders' collection (clean top-level path)
+  if (fbReady) {
+    try {
+      const fbId = await fbAdd('orders', order);
+      if (fbId) {
+        const local = JSON.parse(safeStorage.getItem('gt_orders')) || [];
+        const idx = local.findIndex(o => String(o.id) === String(order.id));
+        if (idx > -1) { local[idx]._fbId = fbId; safeStorage.setItem('gt_orders', JSON.stringify(local)); }
+      }
+    } catch(e) { console.warn('[Firebase] cloudAddOrder fbAdd error:', e); }
+  }
 }
 
 /* Activity logs */
 async function cloudGetLogs() {
-  const rows = await fbGetAll('gt_logs', 'time', 'desc');
+  const rows = await fbGetAll('logs', 'time', 'desc');
   if (rows === null) return JSON.parse(safeStorage.getItem('gt_logs')) || [];
   return rows;
 }
@@ -2160,12 +2171,12 @@ async function cloudAddLog(entry) {
   safeStorage.setItem('gt_logs', JSON.stringify(
     [entry, ...(JSON.parse(safeStorage.getItem('gt_logs')) || []).slice(0, 199)]
   ));
-  await fbAdd('gt_logs', entry);
+  await fbAdd('logs', entry);
 }
 
 /* Visit bookings */
 async function cloudGetVisits() {
-  const rows = await fbGetAll('gt_visits', 'time', 'desc');
+  const rows = await fbGetAll('enquiry', 'time', 'desc');
   if (rows === null) return JSON.parse(safeStorage.getItem('gt_visits')) || [];
   return rows;
 }
@@ -2173,36 +2184,36 @@ async function cloudAddVisit(visit) {
   safeStorage.setItem('gt_visits', JSON.stringify(
     [visit, ...(JSON.parse(safeStorage.getItem('gt_visits')) || [])]
   ));
-  await fbAdd('gt_visits', visit);
+  await fbAdd('enquiry', visit);
 }
 
 /* Slot overrides */
 async function cloudGetSlots() {
-  return (await cloudGet('gt_config', 'slots', 'gt_slots')) || {};
+  return (await cloudGet('config', 'slots', 'gt_slots')) || {};
 }
 async function cloudSaveSlots(slots) {
-  await cloudSet('gt_config', 'slots', 'gt_slots', slots);
+  await cloudSet('config', 'slots', 'gt_slots', slots);
 }
 
 /* Gallery */
 async function cloudGetGallery() {
-  return (await cloudGet('gt_config', 'gallery', 'gt_gallery')) || [];
+  return (await cloudGet('gallery', 'items', 'gt_gallery')) || [];
 }
 async function cloudSaveGallery(gallery) {
-  await cloudSet('gt_config', 'gallery', 'gt_gallery', gallery);
+  await cloudSet('gallery', 'items', 'gt_gallery', gallery);
 }
 
 /* Custom categories */
 async function cloudSaveCategories(cats) {
-  await cloudSet('gt_config', 'categories', 'gt_custom_cats', cats);
+  await cloudSet('config', 'categories', 'gt_custom_cats', cats);
 }
 
 /* Page content */
 async function cloudGetPage() {
-  return (await cloudGet('gt_config', 'page', 'gt_page_content')) || null;
+  return (await cloudGet('config', 'page', 'gt_page_content')) || null;
 }
 async function cloudSavePage(content) {
-  await cloudSet('gt_config', 'page', 'gt_page_content', content);
+  await cloudSet('config', 'page', 'gt_page_content', content);
 }
 
 /* ── Loading indicator helpers ── */
@@ -3291,7 +3302,7 @@ function saveOrders(orders) {
   safeStorage.setItem('gt_orders', JSON.stringify(orders));
   // Individual orders are written via cloudAddOrder; bulk writes happen here for edits
   if (fbReady) {
-    cloudSet('gt_config', 'orders_backup', 'gt_orders', orders)
+    // orders are saved per-doc via cloudAddOrder; no bulk backup needed
       .catch(e => console.warn('[Firebase] orders backup error:', e));
   }
 }
@@ -3455,13 +3466,16 @@ async function confirmAndPlaceOrder() {
     status: 'pending'
   };
 
-  // Save to localStorage and Firebase
-  const orders = getOrders();
-  orders.unshift(order);
-  saveOrders(orders);
+  // Save to localStorage and Firebase (cloudAddOrder handles localStorage too — avoid duplicate)
   try {
     await cloudAddOrder(order);
-  } catch(e) { console.warn('[Firebase] order write error:', e); }
+  } catch(e) {
+    // Firebase failed — write to localStorage directly as fallback
+    console.warn('[Firebase] order write error:', e);
+    const orders = getOrders();
+    orders.unshift(order);
+    saveOrders(orders);
+  }
 
   // Log it
   const productStr = order.products.slice(0,3).map(p=>`${p.emoji}${p.name}×${p.qty}`).join(', ') + (order.products.length > 3 ? ` +${order.products.length-3} more` : '');
@@ -3526,7 +3540,7 @@ async function renderMyOrders() {
   try {
     if (fbReady) {
       // Query Firestore directly filtered by userId — other users' orders never leave the DB
-      const snap = await db.collection('gt_orders')
+      const snap = await db.collection('orders')
         .where('userId', '==', currentUser.username)
         .orderBy('time', 'desc')
         .get();
@@ -3552,6 +3566,9 @@ async function renderMyOrders() {
     );
   }
 
+  // Deduplicate by order id
+  const _seen = new Set();
+  myOrders = myOrders.filter(o => { const k=String(o.id); if(_seen.has(k)) return false; _seen.add(k); return true; });
   if (myOrders.length === 0) {
     el.innerHTML = `
       <div style="text-align:center;padding:40px 20px;">
@@ -3576,6 +3593,8 @@ async function renderMyOrders() {
         ${o.products.map(p=>`${p.emoji} <strong>${p.name}</strong> × ${p.qty}`).join('&nbsp;&nbsp;·&nbsp;&nbsp;')}
       </div>
       ${o.notes ? `<div class="my-order-notes">📝 ${o.notes}</div>` : ''}
+      ${o.adminNote ? `<div style="margin:6px 0;padding:8px 12px;background:#fffbeb;border-radius:8px;border-left:3px solid #f59e0b;font-size:12px;color:#92400e;">📋 <strong>Update from GreenTop:</strong> ${o.adminNote}</div>` : ''}
+      ${o.updatedAt ? `<div style="font-size:11px;color:var(--text-light);margin-bottom:4px;">🕐 Last updated: ${fmtTime(o.updatedAt)}</div>` : ''}
       ${trackBar(o.status || 'pending')}
     </div>`).join('');
 }
@@ -3590,29 +3609,65 @@ function setOrderFilter(filter, btn) {
   renderOrdersTable();
 }
 
-async function updateOrderStatus(orderId, newStatus) {
-  // Update in localStorage
+async function updateOrderStatus(orderId, newStatus, adminNote) {
+  // Update in localStorage — update ALL matching orders (prevents ghost duplicates)
   const orders = getOrders();
-  const idx = orders.findIndex(o => String(o.id) === String(orderId));
-  if (idx > -1) {
-    orders[idx].status = newStatus;
-    saveOrders(orders);
-  }
+  let updated = false;
+  orders.forEach(o => {
+    if (String(o.id) === String(orderId)) {
+      if (newStatus !== null) o.status = newStatus;
+      o.updatedAt = new Date().toISOString();
+      if (adminNote !== undefined) o.adminNote = adminNote;
+      updated = true;
+    }
+  });
+  if (updated) saveOrders(orders);
 
-  // Update the specific Firestore document (find by id field)
+  // Update Firestore — prefer _fbId (doc reference) for exact match; fallback to query
   if (fbReady) {
     try {
-      const snap = await db.collection('gt_orders').where('id', '==', Number(orderId)).get();
-      if (!snap.empty) {
-        await snap.docs[0].ref.update({ status: newStatus, updatedAt: new Date().toISOString() });
+      const local = orders.find(o => String(o.id) === String(orderId));
+      const updatePayload = { updatedAt: new Date().toISOString() };
+      if (newStatus !== null) updatePayload.status = newStatus;
+      if (adminNote !== undefined) updatePayload.adminNote = adminNote;
+
+      if (local && local._fbId) {
+        // Fast path: direct document reference
+        await db.collection('orders').doc(local._fbId).update(updatePayload);
+      } else {
+        // Fallback: query — update ALL matching docs to handle any duplicates
+        const snap = await db.collection('orders').where('id', '==', Number(orderId)).get();
+        if (!snap.empty) {
+          const batch = db.batch();
+          snap.docs.forEach(doc => batch.update(doc.ref, updatePayload));
+          await batch.commit();
+        }
+        // Also try old collection name for backwards compatibility
+        const snapOld = await db.collection('gt_orders').where('id', '==', Number(orderId)).get();
+        if (!snapOld.empty) {
+          const batch = db.batch();
+          snapOld.docs.forEach(doc => batch.update(doc.ref, updatePayload));
+          await batch.commit();
+        }
       }
     } catch(e) { console.warn('[Firebase] status update error:', e); }
   }
 
-  showToast(`✅ Order marked as ${newStatus}`);
-  addLog('admin', '📦', `Order #${String(orderId).slice(-6)} status → ${newStatus}`);
+  if (newStatus !== null) {
+    showToast(`✅ Order marked as ${newStatus}`);
+    addLog('admin', '📦', `Order #${String(orderId).slice(-6)} status → ${newStatus}${adminNote !== undefined ? ' | Note: ' + adminNote : ''}`);
+  }
   renderOrdersTable();
 }
+
+async function saveAdminNote(orderId) {
+  const el = document.getElementById('adminNote-' + orderId);
+  if (!el) return;
+  const note = el.value.trim();
+  await updateOrderStatus(orderId, null, note);  // pass null status to only update note
+  showToast('📋 Note saved and visible to customer');
+}
+
 
 // ===================== ADMIN DASHBOARD =====================
 let adminActiveTab = 'log';
@@ -3676,7 +3731,7 @@ async function renderOrdersTable() {
   let orders = [];
   try {
     if (fbReady) {
-      const rows = await fbGetAll('gt_orders', 'time', 'desc');
+      const rows = await fbGetAll('orders', 'time', 'desc');
       if (rows) { orders = rows; safeStorage.setItem('gt_orders', JSON.stringify(orders)); }
       else orders = getOrders();
     } else {
@@ -3684,6 +3739,14 @@ async function renderOrdersTable() {
     }
   } catch(e) { orders = getOrders(); }
 
+  // Deduplicate orders by id (keeps the most recently updated version)
+  const seen = new Set();
+  orders = orders.filter(o => {
+    const key = String(o.id);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
   const filtered = adminOrderFilter === 'all' ? orders : orders.filter(o => (o.status || 'pending') === adminOrderFilter);
 
   if (filtered.length === 0) {
@@ -3708,17 +3771,29 @@ async function renderOrdersTable() {
         ${o.products.map(p=>`${p.emoji} <strong>${p.name}</strong> ×${p.qty}`).join(' &nbsp;·&nbsp; ')}
       </div>
       ${o.notes ? `<div style="font-size:12px;color:var(--text-light);font-style:italic;margin-bottom:4px;">📝 ${o.notes}</div>` : ''}
-      <div class="admin-order-card-footer">
-        ${statusBadge(status)}
-        <select class="admin-order-status-select" onchange="updateOrderStatus('${o.id}', this.value)">
-          <option value="">— Update Status —</option>
-          <option value="pending"    ${status==='pending'    ?'selected':''}>⏳ Pending</option>
-          <option value="confirmed"  ${status==='confirmed'  ?'selected':''}>✅ Confirmed</option>
-          <option value="processing" ${status==='processing' ?'selected':''}>🔄 Processing</option>
-          <option value="dispatched" ${status==='dispatched' ?'selected':''}>🚚 Dispatched</option>
-          <option value="delivered"  ${status==='delivered'  ?'selected':''}>🎉 Delivered</option>
-          <option value="cancelled"  ${status==='cancelled'  ?'selected':''}>❌ Cancelled</option>
-        </select>
+      ${o.adminNote ? `<div style="margin:6px 0 2px;padding:8px 12px;background:#fffbeb;border-radius:8px;border-left:3px solid #f59e0b;font-size:12px;color:#92400e;">📋 <strong>Admin Note:</strong> ${o.adminNote}</div>` : ''}
+      <div class="admin-order-card-footer" style="flex-direction:column;align-items:stretch;gap:8px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+          ${statusBadge(status)}
+          <select class="admin-order-status-select" onchange="updateOrderStatus('${o.id}', this.value)">
+            <option value="">— Update Status —</option>
+            <option value="pending"    ${status==='pending'    ?'selected':''}>⏳ Pending</option>
+            <option value="confirmed"  ${status==='confirmed'  ?'selected':''}>✅ Confirmed</option>
+            <option value="processing" ${status==='processing' ?'selected':''}>🔄 Processing</option>
+            <option value="dispatched" ${status==='dispatched' ?'selected':''}>🚚 Dispatched</option>
+            <option value="delivered"  ${status==='delivered'  ?'selected':''}>🎉 Delivered</option>
+            <option value="cancelled"  ${status==='cancelled'  ?'selected':''}>❌ Cancelled</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <input type="text" id="adminNote-${o.id}" placeholder="📋 Add note visible to customer…" value="${(o.adminNote||'').replace(/"/g,'&quot;')}"
+            style="flex:1;padding:7px 12px;border-radius:8px;border:1.5px solid var(--green-pale);font-size:12px;font-family:'DM Sans',sans-serif;background:var(--green-mist);"
+            onkeydown="if(event.key==='Enter')saveAdminNote('${o.id}')">
+          <button onclick="saveAdminNote('${o.id}')"
+            style="padding:7px 14px;border-radius:8px;border:none;background:var(--green-mid);color:white;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;">
+            💾 Save Note
+          </button>
+        </div>
       </div>
     </div>`;
   }).join('');
@@ -4125,7 +4200,7 @@ function getBookings() { return JSON.parse(safeStorage.getItem('gt_bookings')) |
 function saveBookings(b) {
   safeStorage.setItem('gt_bookings', JSON.stringify(b));
   // Mirror to Firebase (full list stored as one doc for simplicity; individual adds via submitVisitBooking)
-  cloudSet('gt_config', 'bookings', 'gt_bookings', b)
+  cloudSet('enquiry', 'bookings_list', 'gt_bookings', b)
     .catch(e => console.warn('[Firebase] bookings save error:', e));
 }
 function getSlotConfig() { return JSON.parse(safeStorage.getItem('gt_slots')) || {}; }
