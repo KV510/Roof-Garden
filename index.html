@@ -1509,6 +1509,7 @@
     <div class="tab-switch" style="margin-bottom:20px;">
       <button class="tab-btn active" id="tabSignin" onclick="switchAuthTab('signin')">Sign In</button>
       <button class="tab-btn" id="tabRegister" onclick="switchAuthTab('register')">Register</button>
+      <button class="tab-btn" id="tabAdmin" onclick="switchAuthTab('admin')" style="background:transparent;border:1.5px solid #7c3aed;color:#7c3aed;font-size:12px;">⚙️ Admin</button>
     </div>
 
     <!-- CUSTOMER SIGN IN FORM -->
@@ -1527,6 +1528,34 @@
       <button class="btn-submit" onclick="doSignIn()">Sign In</button>
       <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-light);">
         Don't have an account? <a href="#" onclick="switchAuthTab('register');return false;" style="color:var(--green-mid);font-weight:600;">Register here</a>
+      </p>
+    </div>
+
+    <!-- ADMIN LOGIN FORM -->
+    <div id="adminForm" style="display:none;">
+      <h2 style="margin-bottom:4px;">⚙️ Admin Sign In</h2>
+      <p style="margin-bottom:24px;font-size:13px;color:var(--text-light);">Sign in with your admin email and password</p>
+      <div class="input-wrap">
+        <label>Email Address</label>
+        <input type="email" id="adminEmail" placeholder="admin@example.com" autocomplete="email">
+      </div>
+      <div class="input-wrap">
+        <label>Password</label>
+        <div style="position:relative;">
+          <input type="password" id="adminPass" placeholder="Enter your password"
+            style="width:100%;padding-right:40px;"
+            onkeydown="if(event.key==='Enter')doAdminSignIn()">
+          <span onclick="togglePwd('adminPass',this)"
+            style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;color:var(--text-light);">👁</span>
+        </div>
+      </div>
+      <div class="error-msg" id="adminErr" style="display:none;"></div>
+      <button class="btn-submit" id="adminSigninBtn" onclick="doAdminSignIn()"
+        style="background:linear-gradient(135deg,#7c3aed,#5b21b6);">
+        🔐 Sign In Securely
+      </button>
+      <p style="text-align:center;margin-top:16px;font-size:12px;color:var(--text-light);">
+        🔒 Admin access is verified by Firebase Authentication
       </p>
     </div>
 
@@ -1947,6 +1976,8 @@ async function doAdminSignIn() {
     showToast('✅ Signed in as Admin');
 
   } catch(e) {
+    btn.textContent = '🔐 Sign In Securely';
+    btn.disabled = false;
     // Firebase Auth error codes are user-safe to surface
     const msg = e.code === 'auth/user-not-found'    ? '❌ No account found with this email.'
               : e.code === 'auth/wrong-password'     ? '❌ Incorrect password.'
@@ -2934,13 +2965,20 @@ function switchAuthTab(tab) {
   authTab = tab;
   document.getElementById('signinForm').style.display   = tab === 'signin'   ? 'block' : 'none';
   document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
-  const adminForm = document.getElementById('adminSigninForm');
-  if (adminForm) adminForm.style.display = tab === 'admin' ? 'block' : 'none';
+  // Support both old (adminSigninForm) and new (adminForm) id
+  const adminFormEl = document.getElementById('adminForm') || document.getElementById('adminSigninForm');
+  if (adminFormEl) adminFormEl.style.display = tab === 'admin' ? 'block' : 'none';
   document.getElementById('tabSignin').classList.toggle('active',   tab === 'signin');
   document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
-  document.getElementById('siErr').style.display    = 'none';
-  document.getElementById('regErr').style.display   = 'none';
-  document.getElementById('regSuccess').style.display = 'none';
+  const tabAdmin = document.getElementById('tabAdmin');
+  if (tabAdmin) tabAdmin.classList.toggle('active', tab === 'admin');
+  // Clear all errors
+  ['siErr','regErr','adminErr'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  const rs = document.getElementById('regSuccess');
+  if (rs) rs.style.display = 'none';
 }
 // Legacy alias
 function switchTab(tab) { switchAuthTab(tab); }
@@ -2981,13 +3019,52 @@ function togglePwd(id, icon) {
   else { inp.type = 'password'; icon.textContent = '👁'; }
 }
 
-function doSignIn() {
+async function doSignIn() {
   const u = document.getElementById('siUser').value.trim();
   const p = document.getElementById('siPass').value.trim();
   const errEl = document.getElementById('siErr');
   if (!u || !p) { errEl.textContent = '⚠️ Please enter username and password'; errEl.style.display = 'block'; return; }
 
-  // Check built-in admin/staff
+  // ── If input looks like an email, try Firebase Auth (admin/staff login) ──
+  if (u.includes('@') && auth) {
+    const btn = document.querySelector('#signinForm .btn-submit');
+    if (btn) { btn.textContent = '⏳ Signing in…'; btn.disabled = true; }
+    try {
+      const result = await auth.signInWithEmailAndPassword(u, p);
+      const user   = result.user;
+      if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
+      if (ADMIN_EMAILS.includes(user.email)) {
+        fbAdminReady = true;
+        currentRole  = 'admin';
+        currentUser  = null;
+        saveSession(currentRole, null);
+        startSessionTimer();
+        closeLogin();
+        updateNavActions();
+        renderAll();
+        addLog('auth', '🔑', 'Admin signed in: ' + user.email);
+        showToast('✅ Signed in as Admin');
+        return;
+      } else {
+        // Firebase auth succeeded but not an admin — check if staff
+        await auth.signOut();
+        errEl.textContent = '❌ This email is not authorised as admin or staff.';
+        errEl.style.display = 'block';
+        return;
+      }
+    } catch(e) {
+      if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
+      const msg = e.code === 'auth/wrong-password' || e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential'
+        ? '❌ Incorrect email or password'
+        : '❌ ' + (e.message || 'Sign in failed');
+      errEl.textContent = msg;
+      errEl.style.display = 'block';
+      setTimeout(() => errEl.style.display = 'none', 4000);
+      return;
+    }
+  }
+
+  // ── Built-in admin/staff (username + password) ────────────────────────
   for (const key of Object.keys(BUILTIN_CREDENTIALS)) {
     const cred = BUILTIN_CREDENTIALS[key];
     if (u === cred.username && p === cred.password) {
@@ -2997,11 +3074,12 @@ function doSignIn() {
       closeLogin();
       updateNavActions();
       renderAll();
-      showToast(`✅ Signed in as ${cred.role === 'admin' ? 'Admin' : 'Staff'}`);
+      showToast('✅ Signed in as ' + (cred.role === 'admin' ? 'Admin' : 'Staff'));
       return;
     }
   }
-  // Check registered users
+
+  // ── Registered customers ──────────────────────────────────────────────
   const users = getRegisteredUsers();
   const found = users.find(usr => usr.username === u && usr.password === p);
   if (found) {
@@ -3012,7 +3090,7 @@ function doSignIn() {
     closeLogin();
     updateNavActions();
     renderAll();
-    showToast(`✅ Welcome back, ${found.username}!`);
+    showToast('✅ Welcome back, ' + found.username + '!');
   } else {
     errEl.textContent = '❌ Invalid username or password';
     errEl.style.display = 'block';
