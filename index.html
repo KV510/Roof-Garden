@@ -1509,7 +1509,6 @@
     <div class="tab-switch" style="margin-bottom:20px;">
       <button class="tab-btn active" id="tabSignin" onclick="switchAuthTab('signin')">Sign In</button>
       <button class="tab-btn" id="tabRegister" onclick="switchAuthTab('register')">Register</button>
-      <button class="tab-btn" id="tabAdmin" onclick="switchAuthTab('admin')" style="background:transparent;border:1.5px solid #7c3aed;color:#7c3aed;font-size:12px;">⚙️ Admin</button>
     </div>
 
     <!-- CUSTOMER SIGN IN FORM -->
@@ -1517,8 +1516,8 @@
       <h2 style="margin-bottom:4px;">🌿 Welcome Back</h2>
       <p style="margin-bottom:24px;">Sign in to your GreenTop account</p>
       <div class="input-wrap">
-        <label>Username</label>
-        <input type="text" id="siUser" placeholder="Enter your username">
+        <label>Username or Email</label>
+        <input type="text" id="siUser" placeholder="Username or admin email" autocomplete="username">
       </div>
       <div class="input-wrap">
         <label>Password</label>
@@ -1528,34 +1527,6 @@
       <button class="btn-submit" onclick="doSignIn()">Sign In</button>
       <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-light);">
         Don't have an account? <a href="#" onclick="switchAuthTab('register');return false;" style="color:var(--green-mid);font-weight:600;">Register here</a>
-      </p>
-    </div>
-
-    <!-- ADMIN LOGIN FORM -->
-    <div id="adminForm" style="display:none;">
-      <h2 style="margin-bottom:4px;">⚙️ Admin Sign In</h2>
-      <p style="margin-bottom:24px;font-size:13px;color:var(--text-light);">Sign in with your admin email and password</p>
-      <div class="input-wrap">
-        <label>Email Address</label>
-        <input type="email" id="adminEmail" placeholder="admin@example.com" autocomplete="email">
-      </div>
-      <div class="input-wrap">
-        <label>Password</label>
-        <div style="position:relative;">
-          <input type="password" id="adminPass" placeholder="Enter your password"
-            style="width:100%;padding-right:40px;"
-            onkeydown="if(event.key==='Enter')doAdminSignIn()">
-          <span onclick="togglePwd('adminPass',this)"
-            style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;color:var(--text-light);">👁</span>
-        </div>
-      </div>
-      <div class="error-msg" id="adminErr" style="display:none;"></div>
-      <button class="btn-submit" id="adminSigninBtn" onclick="doAdminSignIn()"
-        style="background:linear-gradient(135deg,#7c3aed,#5b21b6);">
-        🔐 Sign In Securely
-      </button>
-      <p style="text-align:center;margin-top:16px;font-size:12px;color:var(--text-light);">
-        🔒 Admin access is verified by Firebase Authentication
       </p>
     </div>
 
@@ -2965,15 +2936,10 @@ function switchAuthTab(tab) {
   authTab = tab;
   document.getElementById('signinForm').style.display   = tab === 'signin'   ? 'block' : 'none';
   document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
-  // Support both old (adminSigninForm) and new (adminForm) id
-  const adminFormEl = document.getElementById('adminForm') || document.getElementById('adminSigninForm');
-  if (adminFormEl) adminFormEl.style.display = tab === 'admin' ? 'block' : 'none';
   document.getElementById('tabSignin').classList.toggle('active',   tab === 'signin');
   document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
-  const tabAdmin = document.getElementById('tabAdmin');
-  if (tabAdmin) tabAdmin.classList.toggle('active', tab === 'admin');
-  // Clear all errors
-  ['siErr','regErr','adminErr'].forEach(id => {
+  // Clear errors
+  ['siErr','regErr'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
@@ -2983,35 +2949,7 @@ function switchAuthTab(tab) {
 // Legacy alias
 function switchTab(tab) { switchAuthTab(tab); }
 
-// Hidden admin login: triple-click the logo to open admin form
-let _logoTaps = 0, _logoTimer = null;
-function _handleLogoTap() {
-  _logoTaps++;
-  clearTimeout(_logoTimer);
-  _logoTimer = setTimeout(() => { _logoTaps = 0; }, 800);
-  if (_logoTaps >= 3) {
-    _logoTaps = 0;
-    // Re-inject admin form if removed
-    let adminForm = document.getElementById('adminSigninForm');
-    if (!adminForm) {
-      adminForm = document.createElement('div');
-      adminForm.id = 'adminSigninForm';
-      adminForm.style.display = 'none';
-      adminForm.innerHTML = `
-        <h2 style="margin-bottom:4px;">⚙️ Admin Login</h2>
-        <div class="input-wrap"><label>Email</label><input type="email" id="adminEmail" placeholder="admin@yourdomain.com" onkeydown="if(event.key==='Enter')doAdminSignIn()"></div>
-        <div class="input-wrap"><label>Password</label><div style="position:relative;"><input type="password" id="adminPass" placeholder="Password" style="width:100%;padding-right:40px;" onkeydown="if(event.key==='Enter')doAdminSignIn()"><span onclick="togglePwd('adminPass',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;color:var(--text-light);">👁</span></div></div>
-        <div class="error-msg" id="adminErr"></div>
-        <button class="btn-submit" id="adminSigninBtn" onclick="doAdminSignIn()">🔐 Sign In</button>`;
-      document.getElementById('signinForm').parentNode.appendChild(adminForm);
-    }
-    openAuthModal('admin');
-  }
-}
-document.addEventListener('DOMContentLoaded', () => {
-  const logoEl = document.querySelector('.logo');
-  if (logoEl) { logoEl.addEventListener('click', _handleLogoTap); logoEl.style.cursor = 'pointer'; }
-});
+// Logo click handler removed
 
 function togglePwd(id, icon) {
   const inp = document.getElementById(id);
@@ -3074,9 +3012,26 @@ async function doSignIn() {
       closeLogin();
       updateNavActions();
       renderAll();
+      addLog('auth', '🔑', 'Signed in as ' + cred.role);
       showToast('✅ Signed in as ' + (cred.role === 'admin' ? 'Admin' : 'Staff'));
       return;
     }
+  }
+
+  // ── Dynamic admin/staff accounts (created from admin panel) ──────────
+  const admins = getAdminAccounts();
+  const foundAdmin = admins.find(a => a.username === u && a.password === p);
+  if (foundAdmin) {
+    currentRole = foundAdmin.role;
+    currentUser = null;
+    saveSession(currentRole, null);
+    startSessionTimer();
+    closeLogin();
+    updateNavActions();
+    renderAll();
+    addLog('auth', '🔑', 'Signed in as ' + foundAdmin.role, foundAdmin.username);
+    showToast('✅ Signed in as ' + (foundAdmin.role === 'admin' ? 'Admin' : 'Staff'));
+    return;
   }
 
   // ── Registered customers ──────────────────────────────────────────────
@@ -3090,6 +3045,7 @@ async function doSignIn() {
     closeLogin();
     updateNavActions();
     renderAll();
+    addLog('auth', '🔑', 'Signed in', found.username);
     showToast('✅ Welcome back, ' + found.username + '!');
   } else {
     errEl.textContent = '❌ Invalid username or password';
@@ -4160,63 +4116,7 @@ function deleteAccount(username, role) {
 
 // ===================== PATCH SIGN-IN to support dynamic admins =====================
 const _origSignIn = doSignIn;
-function doSignIn() {
-  const u = document.getElementById('siUser').value.trim();
-  const p = document.getElementById('siPass').value.trim();
-  const errEl = document.getElementById('siErr');
-  if (!u || !p) { errEl.textContent = '⚠️ Please enter username and password'; errEl.style.display = 'block'; return; }
-
-  // Built-in
-  for (const key of Object.keys(BUILTIN_CREDENTIALS)) {
-    const cred = BUILTIN_CREDENTIALS[key];
-    if (u === cred.username && p === cred.password) {
-      currentRole = cred.role;
-      currentUser = null;
-      saveSession(currentRole, null);
-      startSessionTimer();
-      closeLogin();
-      updateNavActions();
-      renderAll();
-      addLog('auth', '🔑', `Signed in as ${cred.role}`);
-      showToast(`✅ Signed in as ${cred.role === 'admin' ? 'Admin' : 'Staff'}`);
-      return;
-    }
-  }
-  // Dynamic admin/staff accounts
-  const admins = getAdminAccounts();
-  const foundAdmin = admins.find(a => a.username === u && a.password === p);
-  if (foundAdmin) {
-    currentRole = foundAdmin.role;
-    currentUser = null;
-    saveSession(currentRole, null);
-    startSessionTimer();
-    closeLogin();
-    updateNavActions();
-    renderAll();
-    addLog('auth', '🔑', `Signed in as ${foundAdmin.role}`, foundAdmin.username);
-    showToast(`✅ Signed in as ${foundAdmin.role === 'admin' ? 'Admin' : 'Staff'}`);
-    return;
-  }
-  // Registered users
-  const users = getRegisteredUsers();
-  const found = users.find(usr => usr.username === u && usr.password === p);
-  if (found) {
-    currentRole = 'user';
-    currentUser = found;
-    saveSession(currentRole, currentUser);
-    startSessionTimer();
-    closeLogin();
-    updateNavActions();
-    renderAll();
-    renderMyBookings();
-    addLog('auth', '🔑', `Signed in`, found.username);
-    showToast(`✅ Welcome back, ${found.username}!`);
-  } else {
-    errEl.textContent = '❌ Invalid username or password';
-    errEl.style.display = 'block';
-    setTimeout(() => errEl.style.display = 'none', 3000);
-  }
-}
+// doSignIn defined above (async version supports email for admin)
 
 // Patch logout to log activity
 const _origLogout = doLogout;
