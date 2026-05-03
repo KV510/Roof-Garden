@@ -1898,15 +1898,21 @@ let fbAdminReady = false;  // true once an admin is signed into Firebase Auth
  * AND must be listed in ADMIN_EMAILS above.
  */
 async function doAdminSignIn() {
+  // Admin now signs in via the main Sign In form using their email.
+  // This function handles sign-in when called from any remaining references.
   if (!auth) {
-    showToast('⚠️ Firebase not initialised. Check your config.');
+    showToast('⚠️ Firebase not ready. Please refresh the page.');
     return;
   }
-  const email = (document.getElementById('adminEmail').value || '').trim();
-  const pass  = (document.getElementById('adminPass').value  || '');
-  const errEl = document.getElementById('adminErr');
-  const btn   = document.getElementById('adminSigninBtn');
-  errEl.style.display = 'none';
+  // Read from either the old admin form fields or the main sign in form
+  const emailEl = document.getElementById('adminEmail') || document.getElementById('siUser');
+  const passEl  = document.getElementById('adminPass')  || document.getElementById('siPass');
+  const errEl   = document.getElementById('adminErr')   || document.getElementById('siErr');
+  const btn     = document.getElementById('adminSigninBtn') || document.querySelector('#signinForm .btn-submit');
+
+  const email = (emailEl ? emailEl.value : '').trim();
+  const pass  = (passEl  ? passEl.value  : '').trim();
+  if (errEl) errEl.style.display = 'none';
 
   if (!email || !pass) {
     errEl.textContent = '⚠️ Please enter your email and password';
@@ -2958,20 +2964,47 @@ function togglePwd(id, icon) {
 }
 
 async function doSignIn() {
-  const u = document.getElementById('siUser').value.trim();
-  const p = document.getElementById('siPass').value.trim();
+  const u     = (document.getElementById('siUser').value || '').trim();
+  const p     = (document.getElementById('siPass').value || '').trim();
   const errEl = document.getElementById('siErr');
-  if (!u || !p) { errEl.textContent = '⚠️ Please enter username and password'; errEl.style.display = 'block'; return; }
+  const btn   = document.querySelector('#signinForm .btn-submit');
 
-  // ── If input looks like an email, try Firebase Auth (admin/staff login) ──
-  if (u.includes('@') && auth) {
-    const btn = document.querySelector('#signinForm .btn-submit');
+  // Clear previous error
+  if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+  if (!u || !p) {
+    if (errEl) { errEl.textContent = '⚠️ Please enter your username/email and password'; errEl.style.display = 'block'; }
+    return;
+  }
+
+  // ── EMAIL → Firebase Auth (admin login) ──────────────────────────────
+  if (u.includes('@')) {
+    // Show what's happening at every step
+    const _dbg = (msg) => { if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; errEl.style.color = '#b45309'; } };
+
+    _dbg('🔄 Step 1: Detected email input…');
+
+    if (!auth) {
+      // Try waiting up to 4s for Firebase to init
+      _dbg('⏳ Waiting for Firebase to initialise…');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      if (!auth) {
+        if (errEl) { errEl.textContent = '❌ Firebase failed to load. Check internet connection and refresh.'; errEl.style.display = 'block'; errEl.style.color = '#dc2626'; }
+        return;
+      }
+    }
+
+    _dbg('🔄 Step 2: Firebase ready. Contacting server…');
     if (btn) { btn.textContent = '⏳ Signing in…'; btn.disabled = true; }
+
     try {
+      _dbg('🔄 Step 3: Sending credentials to Firebase…');
       const result = await auth.signInWithEmailAndPassword(u, p);
-      const user   = result.user;
+      const fbUser = result.user;
       if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
-      if (ADMIN_EMAILS.includes(user.email)) {
+
+      _dbg('🔄 Step 4: Firebase accepted. Checking admin list… (' + fbUser.email + ')');
+
+      if (ADMIN_EMAILS.map(e => e.toLowerCase()).includes(fbUser.email.toLowerCase())) {
         fbAdminReady = true;
         currentRole  = 'admin';
         currentUser  = null;
@@ -2980,33 +3013,33 @@ async function doSignIn() {
         closeLogin();
         updateNavActions();
         renderAll();
-        addLog('auth', '🔑', 'Admin signed in: ' + user.email);
-        showToast('✅ Signed in as Admin');
-        return;
+        addLog('auth', '🔑', 'Admin signed in: ' + fbUser.email);
+        showToast('✅ Welcome Admin!');
       } else {
-        // Firebase auth succeeded but not an admin — check if staff
         await auth.signOut();
-        errEl.textContent = '❌ This email is not authorised as admin or staff.';
-        errEl.style.display = 'block';
-        return;
+        if (errEl) { errEl.textContent = '❌ Signed in to Firebase but email not in ADMIN_EMAILS list: ' + fbUser.email; errEl.style.display = 'block'; errEl.style.color = '#dc2626'; }
       }
     } catch(e) {
       if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
-      const msg = e.code === 'auth/wrong-password' || e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential'
-        ? '❌ Incorrect email or password'
-        : '❌ ' + (e.message || 'Sign in failed');
-      errEl.textContent = msg;
-      errEl.style.display = 'block';
-      setTimeout(() => errEl.style.display = 'none', 4000);
-      return;
+      const msg =
+        e.code === 'auth/invalid-credential'     ? '❌ Incorrect email or password.' :
+        e.code === 'auth/wrong-password'          ? '❌ Incorrect password.' :
+        e.code === 'auth/user-not-found'          ? '❌ No account found with this email.' :
+        e.code === 'auth/invalid-email'           ? '❌ Invalid email address.' :
+        e.code === 'auth/too-many-requests'       ? '⚠️ Too many attempts. Try again later.' :
+        e.code === 'auth/network-request-failed'  ? '❌ Network error. Check your connection.' :
+        '❌ Firebase error [' + (e.code || 'unknown') + ']: ' + (e.message || 'no message');
+      if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; errEl.style.color = '#dc2626'; }
     }
+    return;
   }
 
-  // ── Built-in admin/staff (username + password) ────────────────────────
+  // ── USERNAME → Built-in credentials ──────────────────────────────────
   for (const key of Object.keys(BUILTIN_CREDENTIALS)) {
     const cred = BUILTIN_CREDENTIALS[key];
     if (u === cred.username && p === cred.password) {
       currentRole = cred.role;
+      currentUser = null;
       saveSession(currentRole, null);
       startSessionTimer();
       closeLogin();
@@ -3018,7 +3051,7 @@ async function doSignIn() {
     }
   }
 
-  // ── Dynamic admin/staff accounts (created from admin panel) ──────────
+  // ── USERNAME → Dynamic admin/staff accounts ───────────────────────────
   const admins = getAdminAccounts();
   const foundAdmin = admins.find(a => a.username === u && a.password === p);
   if (foundAdmin) {
@@ -3034,7 +3067,7 @@ async function doSignIn() {
     return;
   }
 
-  // ── Registered customers ──────────────────────────────────────────────
+  // ── USERNAME → Registered customers ──────────────────────────────────
   const users = getRegisteredUsers();
   const found = users.find(usr => usr.username === u && usr.password === p);
   if (found) {
@@ -3048,9 +3081,7 @@ async function doSignIn() {
     addLog('auth', '🔑', 'Signed in', found.username);
     showToast('✅ Welcome back, ' + found.username + '!');
   } else {
-    errEl.textContent = '❌ Invalid username or password';
-    errEl.style.display = 'block';
-    setTimeout(() => errEl.style.display = 'none', 3000);
+    if (errEl) { errEl.textContent = '❌ Invalid username or password'; errEl.style.display = 'block'; }
   }
 }
 
