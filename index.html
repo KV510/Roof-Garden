@@ -1787,7 +1787,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+<!-- Supabase JS SDK — used for Storage (image/video uploads) only -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- Auth is used to identify admin users so Firestore rules can allow admin writes -->
 
 <script>
@@ -1843,7 +1844,7 @@ const FIREBASE_CONFIGS = {
 /* ── initialise Firebase ── */
 let db      = null;   // Firestore instance
 let auth    = null;   // Firebase Auth instance
-let storage = null;   // Firebase Storage instance
+let storage = null;   // (unused — Supabase handles storage now)
 let fbReady      = false;  // true once Firestore is reachable
 let fbAdminReady = false;  // true once an admin is signed into Firebase Auth
 
@@ -1861,7 +1862,7 @@ let fbAdminReady = false;  // true once an admin is signed into Firebase Auth
     if (!firebase.apps.length) firebase.initializeApp(cfg);
     db      = firebase.firestore();
     auth    = firebase.auth();
-    storage = firebase.storage();
+    // storage = firebase.storage(); // replaced by Supabase
     fbReady = true;
     console.info('[GreenTop] Firebase connected (' + FIREBASE_ENV + '):', cfg.projectId);
 
@@ -1991,17 +1992,8 @@ async function fbAuthSignOut() {
     images/videos/   – gallery videos
     images/logo/     – site logo image
 
-  Recommended Storage Security Rules:
-    rules_version = '2';
-    service firebase.storage {
-      match /b/{bucket}/o {
-        // Anyone can read (serve images publicly)
-        match /images/{allPaths=**} {
-          allow read: if true;
-          allow write: if request.auth != null;  // must be signed-in (admin)
-        }
-      }
-    }
+  Images are stored in Supabase Storage (free, no card needed).
+  See the SUPABASE CONFIGURATION block below for setup instructions.
   ================================================================ */
 
 /* ── Low-level Firestore helpers ── */
@@ -2134,9 +2126,9 @@ async function cloudSaveAppData() {
   function sanitiseImgList(list) {
     return list.map(item => ({
       ...item,
-      img: item.img && item.img.startsWith('http') ? item.img
-         : item.img && item.img.startsWith('blob:') ? ''
-         : item.img && item.img.startsWith('data:') ? '[pending-upload]'
+      img: item.img && item.img.startsWith('http') ? item.img   // ✅ supabase/http URL — keep
+         : item.img && item.img.startsWith('blob:') ? ''         // ⏳ still uploading — skip
+         : item.img && item.img.startsWith('data:') ? ''         // ❌ base64 — never store in DB
          : (item.img || '')
     }));
   }
@@ -2292,106 +2284,170 @@ function hideFirebaseLoader() {
   setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 400);
 }
 /* ================================================================
-  FIREBASE STORAGE — IMAGE / VIDEO UPLOAD HELPERS
+  🟢 SUPABASE STORAGE — IMAGE / VIDEO UPLOAD HELPERS
   ================================================================
-  All user-uploaded files go to Firebase Storage.
-  Firestore/localStorage only ever store the resulting https:// URL.
+  Images and videos are uploaded to Supabase Storage.
+  Only the resulting public https:// URL is saved in Firestore.
 
-  Storage folder layout:
-    images/plants/       – plant & material catalog photos
-    images/gallery/      – gallery images
-    images/videos/       – gallery videos
-    images/logo/         – site logo image
+  Bucket layout (all inside the "images" bucket):
+    plants/    – plant & material catalog photos
+    gallery/   – gallery photos
+    videos/    – gallery videos
+    logo/      – site logo
   ================================================================ */
 
 /**
- * Upload a File object to Firebase Storage and return the public download URL.
- * Shows an inline progress bar inside `progressContainerId` (optional).
- * Falls back to base64 data-URL if Storage is unavailable (offline / unconfigured).
+ * Upload a File to Supabase Storage and return the public URL.
+ * Shows a progress bar inside the element with id = progressId.
+ * Falls back to base64 if Supabase is not configured.
  *
- * @param {File}   file               – the File from an <input type="file">
- * @param {string} folder             – storage folder, e.g. 'images/gallery'
- * @param {string} [progressId]       – id of a <div> to show upload progress in
- * @returns {Promise<string>}          – resolves with the download URL or base64 fallback
+ * @param {File}   file        – file from <input type="file">
+ * @param {string} folder      – subfolder inside the bucket e.g. 'plants'
+ * @param {string} [progressId]– DOM id of a <div> to show progress in
+ * @returns {Promise<string>}  – public URL or base64 fallback
  */
 async function uploadToStorage(file, folder, progressId) {
-  // If Storage is not ready, fall back to base64 in-memory (works offline)
-  if (!storage) {
+  const progressEl = progressId ? document.getElementById(progressId) : null;
+
+  // ── Fallback: Supabase not configured ─────────────────────────────────
+  if (!supabase) {
+    if (progressEl) progressEl.innerHTML =
+      '<div style="font-size:12px;color:#f59e0b;margin-top:6px;">⚠️ Supabase not configured — using local preview only</div>';
     return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = e => resolve(e.target.result);
-      reader.onerror = () => reject(new Error('FileReader failed'));
-      reader.readAsDataURL(file);
+      const r = new FileReader();
+      r.onload = e => resolve(e.target.result);
+      r.onerror = () => reject(new Error('FileReader failed'));
+      r.readAsDataURL(file);
     });
   }
 
-  // Show progress UI
-  const progressEl = progressId ? document.getElementById(progressId) : null;
+  // ── Show progress UI ───────────────────────────────────────────────────
   if (progressEl) {
     progressEl.innerHTML = `
       <div style="margin-top:8px;font-size:12px;color:var(--text-light);font-weight:600;">
-        ⬆️ Uploading… <span id="${progressId}-pct">0%</span>
+        ⬆️ Uploading to Supabase… <span id="${progressId}-pct">0%</span>
       </div>
       <div style="height:4px;background:var(--green-pale);border-radius:4px;margin-top:4px;overflow:hidden;">
-        <div id="${progressId}-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--green-deep),var(--green-mid));border-radius:4px;transition:width 0.3s;"></div>
+        <div id="${progressId}-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#3ecf8e,#1a7f5a);border-radius:4px;transition:width 0.2s;"></div>
       </div>`;
   }
 
-  const ext      = file.name.split('.').pop().toLowerCase();
-  const filename = Date.now() + '_' + Math.random().toString(36).slice(2, 8) + '.' + ext;
-  const ref      = storage.ref(folder + '/' + filename);
+  try {
+    const ext      = file.name.split('.').pop().toLowerCase();
+    const filename = folder + '/' + Date.now() + '_' + Math.random().toString(36).slice(2,8) + '.' + ext;
 
-  return new Promise((resolve, reject) => {
-    const task = ref.put(file, { contentType: file.type });
-
-    task.on('state_changed',
-      snapshot => {
-        const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-        if (progressId) {
-          const pctEl = document.getElementById(progressId + '-pct');
-          const barEl = document.getElementById(progressId + '-bar');
-          if (pctEl) pctEl.textContent = pct + '%';
-          if (barEl) barEl.style.width  = pct + '%';
-        }
-      },
-      err => {
-        console.warn('[Storage] Upload error:', err);
-        // Clear progress UI on error
-        if (progressEl) progressEl.innerHTML = `<div style="font-size:12px;color:#dc2626;margin-top:6px;">⚠️ Upload failed — using local preview</div>`;
-        // Graceful fallback: base64
-        const reader = new FileReader();
-        reader.onload = e => resolve(e.target.result);
-        reader.onerror = () => reject(err);
-        reader.readAsDataURL(file);
-      },
-      async () => {
-        // Clear progress UI on success
-        if (progressEl) progressEl.innerHTML = `<div style="font-size:12px;color:var(--green-mid);font-weight:600;margin-top:6px;">✅ Uploaded to cloud</div>`;
-        try {
-          const url = await task.snapshot.ref.getDownloadURL();
-          resolve(url);
-        } catch(e) {
-          reject(e);
+    // Supabase JS v2 upload — fake progress (Supabase doesn't expose XHR progress natively)
+    const fakeProgress = progressId ? setInterval(() => {
+      const bar = document.getElementById(progressId + '-bar');
+      const pct = document.getElementById(progressId + '-pct');
+      if (bar) {
+        const cur = parseFloat(bar.style.width) || 0;
+        if (cur < 85) {
+          bar.style.width = (cur + 15) + '%';
+          if (pct) pct.textContent = Math.round(cur + 15) + '%';
         }
       }
-    );
-  });
-}
+    }, 300) : null;
 
-/**
- * Delete a file from Firebase Storage by its public download URL.
- * Safe to call even if Storage is not configured (no-op).
- */
-async function deleteFromStorage(url) {
-  if (!storage || !url || url.startsWith('data:') || !url.includes('firebasestorage')) return;
-  try {
-    await storage.refFromURL(url).delete();
-  } catch(e) {
-    // File may already be gone — not an error
-    console.warn('[Storage] Delete skipped:', e.message);
+    const { data, error } = await supabase.storage
+      .from(SUPABASE_BUCKET)
+      .upload(filename, file, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: file.type
+      });
+
+    if (fakeProgress) clearInterval(fakeProgress);
+
+    if (error) throw error;
+
+    // Get the public URL
+    const { data: urlData } = supabase.storage
+      .from(SUPABASE_BUCKET)
+      .getPublicUrl(filename);
+
+    const publicUrl = urlData.publicUrl;
+
+    if (progressEl) progressEl.innerHTML =
+      '<div style="font-size:12px;color:#1a7f5a;font-weight:600;margin-top:6px;">✅ Uploaded to Supabase</div>';
+
+    return publicUrl;
+
+  } catch(err) {
+    console.warn('[Supabase Storage] Upload error:', err.message || err);
+    if (progressEl) progressEl.innerHTML =
+      '<div style="font-size:12px;color:#dc2626;margin-top:6px;">⚠️ Upload failed — ' + (err.message || 'unknown error') + '</div>';
+    // Graceful fallback to base64
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = e => resolve(e.target.result);
+      r.onerror = () => reject(err);
+      r.readAsDataURL(file);
+    });
   }
 }
 
+/**
+ * Delete a file from Supabase Storage by its public URL.
+ * Safe to call even if Supabase is not configured (no-op).
+ */
+async function deleteFromStorage(url) {
+  if (!supabase || !url || url.startsWith('data:') || !url.includes('supabase')) return;
+  try {
+    // Extract the file path from the public URL
+    // Public URL format: https://xxx.supabase.co/storage/v1/object/public/BUCKET/PATH
+    const marker = '/object/public/' + SUPABASE_BUCKET + '/';
+    const idx = url.indexOf(marker);
+    if (idx === -1) return;
+    const filePath = decodeURIComponent(url.slice(idx + marker.length));
+    const { error } = await supabase.storage.from(SUPABASE_BUCKET).remove([filePath]);
+    if (error) console.warn('[Supabase Storage] Delete error:', error.message);
+  } catch(e) {
+    console.warn('[Supabase Storage] Delete skipped:', e.message);
+  }
+}
+
+
+
+/* ================================================================
+  🟢 SUPABASE CONFIGURATION — Storage only
+  ================================================================
+  Supabase is used ONLY for storing images and videos.
+  All data (orders, plants, gallery, etc.) stays in Firestore.
+
+  HOW TO SET UP (free, no card needed):
+  1. Go to https://supabase.com → New Project (free)
+  2. Go to Project Settings → API
+  3. Copy your Project URL and anon/public key below
+  4. Go to Storage → Create a bucket called "images"
+  5. In bucket settings → set to PUBLIC
+  6. Done!
+
+  Storage bucket layout:
+    images/plants/    – plant & material catalog photos
+    images/gallery/   – gallery photos
+    images/videos/    – gallery videos
+    images/logo/      – site logo
+  ================================================================ */
+
+const SUPABASE_URL  = 'https://ogyqemocmfjuysniymyg.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_IDgfX26y_RmxPwBW07RtWw_fsUHksC_';
+const SUPABASE_BUCKET = 'images';                    // 👈 your bucket name
+
+let supabase = null;
+
+(function initSupabase() {
+  if (SUPABASE_URL.startsWith('YOUR_') || SUPABASE_ANON.startsWith('YOUR_')) {
+    console.warn('[GreenTop] Supabase config not set — image uploads will use base64 fallback.');
+    return;
+  }
+  try {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    console.info('[GreenTop] Supabase Storage connected:', SUPABASE_URL);
+  } catch(e) {
+    console.warn('[GreenTop] Supabase init failed:', e.message);
+  }
+})();
 
 </script>
 
@@ -4165,11 +4221,10 @@ function saveGallery() {
   // Strip base64 data: URLs before writing to Firestore — only https:// URLs allowed
   const galleryForCloud = gallery.map(item => ({
     ...item,
-    src: (item.src && (item.src.startsWith('http') || item.src.startsWith('blob:')))
-      ? item.src.startsWith('blob:') ? '' : item.src   // blob: means upload pending
-      : item.src && item.src.startsWith('data:')
-        ? '[pending-upload]'   // base64 — too large for Firestore, skip
-        : (item.src || '')
+    src: item.src && item.src.startsWith('http')  ? item.src   // ✅ supabase/http URL — keep
+       : item.src && item.src.startsWith('blob:') ? ''          // ⏳ still uploading — skip
+       : item.src && item.src.startsWith('data:') ? ''          // ❌ base64 — never store in DB
+       : (item.src || '')
   }));
   cloudSaveGallery(galleryForCloud).catch(e => console.warn('[Firebase] gallery save error:', e));
 }
