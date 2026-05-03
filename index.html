@@ -2336,30 +2336,31 @@ async function uploadToStorage(file, folder, progressId) {
     const ext      = file.name.split('.').pop().toLowerCase();
     const filename = folder + '/' + Date.now() + '_' + Math.random().toString(36).slice(2,8) + '.' + ext;
 
-    // Supabase JS v2 upload — fake progress (Supabase doesn't expose XHR progress natively)
-    const fakeProgress = progressId ? setInterval(() => {
+    // Show connecting status
+    if (progressEl) {
       const bar = document.getElementById(progressId + '-bar');
       const pct = document.getElementById(progressId + '-pct');
-      if (bar) {
-        const cur = parseFloat(bar.style.width) || 0;
-        if (cur < 85) {
-          bar.style.width = (cur + 15) + '%';
-          if (pct) pct.textContent = Math.round(cur + 15) + '%';
-        }
-      }
-    }, 300) : null;
+      if (bar) bar.style.width = '30%';
+      if (pct) pct.textContent = 'Connecting…';
+    }
 
     const { data, error } = await supabase.storage
       .from(SUPABASE_BUCKET)
       .upload(filename, file, {
         cacheControl: '3600',
-        upsert: false,
+        upsert: true,
         contentType: file.type
       });
 
-    if (fakeProgress) clearInterval(fakeProgress);
-
-    if (error) throw error;
+    if (error) {
+      // Show full error details on screen for easy debugging
+      if (progressEl) progressEl.innerHTML =
+        '<div style="font-size:11px;color:#dc2626;margin-top:6px;padding:8px;background:#fef2f2;border-radius:6px;word-break:break-all;">' +
+        '❌ <strong>Supabase error:</strong><br>' + (error.message || JSON.stringify(error)) +
+        '<br><strong>Status:</strong> ' + (error.statusCode || error.status || '?') +
+        '</div>';
+      throw error;
+    }
 
     // Get the public URL
     const { data: urlData } = supabase.storage
@@ -2375,8 +2376,12 @@ async function uploadToStorage(file, folder, progressId) {
 
   } catch(err) {
     console.warn('[Supabase Storage] Upload error:', err.message || err);
-    if (progressEl) progressEl.innerHTML =
-      '<div style="font-size:12px;color:#dc2626;margin-top:6px;">⚠️ Upload failed — ' + (err.message || 'unknown error') + '</div>';
+    // Show full error on screen — no more hidden errors
+    if (progressEl && !progressEl.innerHTML.includes('Supabase error')) {
+      progressEl.innerHTML =
+        '<div style="font-size:11px;color:#dc2626;margin-top:6px;padding:8px;background:#fef2f2;border-radius:6px;word-break:break-all;">' +
+        '❌ <strong>Error:</strong> ' + (err.message || JSON.stringify(err)) + '</div>';
+    }
     // Graceful fallback to base64
     return new Promise((resolve, reject) => {
       const r = new FileReader();
