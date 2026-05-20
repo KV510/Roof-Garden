@@ -551,7 +551,7 @@
     <div id="signinForm">
       <h2 style="margin-bottom:4px;">🌿 Welcome Back</h2>
       <p style="margin-bottom:24px;">Sign in to your GreenTop account</p>
-      <div class="input-wrap"><label>Username</label><input type="text" id="siUser" placeholder="Enter your username" autocomplete="username"></div>
+      <div class="input-wrap"><label>Email</label><input type="email" id="siUser" placeholder="you@example.com" autocomplete="email"></div>
       <div class="input-wrap"><label>Password</label><input type="password" id="siPass" placeholder="Enter your password" onkeydown="if(event.key==='Enter')doSignIn()"></div>
       <div class="error-msg" id="siErr">❌ Invalid username or password</div>
       <button class="btn-submit" onclick="doSignIn()">Sign In</button>
@@ -560,7 +560,8 @@
     <div id="registerForm" style="display:none;">
       <h2 style="margin-bottom:4px;">🌱 Create Account</h2>
       <p style="margin-bottom:24px;">Join GreenTop Gardens today</p>
-      <div class="input-wrap"><label>Username *</label><input type="text" id="regUser" placeholder="Choose a username"></div>
+      <div class="input-wrap"><label>Your Name *</label><input type="text" id="regUser" placeholder="e.g. Kavi"></div>
+      <div class="input-wrap"><label>Email *</label><input type="email" id="regEmail" placeholder="you@example.com" autocomplete="email"></div>
       <div class="input-wrap"><label>WhatsApp Number *</label><input type="tel" id="regWA" placeholder="+91 XXXXX XXXXX"></div>
       <div class="input-wrap"><label>Location *</label><input type="text" id="regLoc" placeholder="e.g. Peelamedu, Coimbatore"></div>
       <div class="input-wrap"><label>Password *</label>
@@ -646,7 +647,7 @@
 
 <!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 
@@ -661,7 +662,7 @@ const FIREBASE_CONFIG = {
   storageBucket:     "roof-gardening-test.firebasestorage.app",
   messagingSenderId: "1071376132925",
   appId:             "1:1071376132925:web:369e69a0ad84c7d5d97354",
-  databaseURL:       "https://roof-gardening-test-default-rtdb.asia-southeast1.firebasedatabase.app"  // 👈 RTDB URL
+  // databaseURL not needed — using Firestore
 };
 
 // Admin emails — must match Firebase Auth accounts
@@ -673,7 +674,7 @@ let db = null, auth = null, storage = null, fbReady = false, fbAdminReady = fals
 (function() {
   try {
     if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-    db      = firebase.database();
+    db      = firebase.firestore();
     auth    = firebase.auth();
     storage = firebase.storage();
     fbReady = true;
@@ -702,43 +703,42 @@ const ls = {
 // ================================================================
 // FIREBASE HELPERS
 // ================================================================
-// ── RTDB low-level helpers ───────────────────────────────────────────────
-async function fbGet(path, key) {
+// ── Firestore low-level helpers ──────────────────────────────────────────
+async function fbGet(col, docId) {
   if (!fbReady) return null;
   try {
-    const snap = await db.ref(path + '/' + key).get();
-    return snap.exists() ? snap.val() : null;
-  } catch(e) { console.warn('[RTDB] get error', path, key, e.message); return null; }
+    const snap = await db.collection(col).doc(docId).get();
+    return snap.exists ? snap.data() : null;
+  } catch(e) { console.warn('[FS] get error', col, docId, e.message); return null; }
 }
-async function fbAdd(path, data) {
+async function fbAdd(col, data) {
   if (!fbReady) return null;
-  try { const ref = await db.ref(path).push(data); return ref.key; }
-  catch(e) { console.warn('[RTDB] add error', path, e.message); return null; }
+  try { const ref = await db.collection(col).add(data); return ref.id; }
+  catch(e) { console.warn('[FS] add error', col, e.message); return null; }
 }
-async function fbSet(path, key, data) {
+async function fbSet(col, docId, data) {
   if (!fbReady) return;
-  try { await db.ref(path + '/' + key).set(data); }
-  catch(e) { console.warn('[RTDB] set error', path, key, e.message); }
+  try { await db.collection(col).doc(docId).set(data, { merge: true }); }
+  catch(e) { console.warn('[FS] set error', col, docId, e.message); }
 }
-async function fbUpdate(path, data) {
+async function fbUpdate(col, docId, data) {
   if (!fbReady) return;
-  try { await db.ref(path).update(data); }
-  catch(e) { console.warn('[RTDB] update error', path, e.message); }
+  try { await db.collection(col).doc(docId).update(data); }
+  catch(e) { console.warn('[FS] update error', col, docId, e.message); }
 }
-async function fbGetAll(path) {
+async function fbGetAll(col, orderField, orderDir) {
   if (!fbReady) return null;
   try {
-    const snap = await db.ref(path).get();
-    if (!snap.exists()) return [];
-    const result = [];
-    snap.forEach(child => result.push({ _fbKey: child.key, ...child.val() }));
-    return result;
-  } catch(e) { console.warn('[RTDB] getAll error', path, e.message); return null; }
+    let ref = db.collection(col);
+    if (orderField) ref = ref.orderBy(orderField, orderDir || 'asc');
+    const snap = await ref.get();
+    return snap.docs.map(d => ({ _fbId: d.id, ...d.data() }));
+  } catch(e) { console.warn('[FS] getAll error', col, e.message); return null; }
 }
 
-async function cloudGet(path, key, lsKey) {
+async function cloudGet(col, docId, lsKey) {
   if (fbReady) {
-    const d = await fbGet(path, key);
+    const d = await fbGet(col, docId);
     if (d && d.value !== undefined) { ls.set(lsKey, JSON.stringify(d.value)); return d.value; }
   }
   const r = ls.get(lsKey); return r ? JSON.parse(r) : null;
@@ -1055,7 +1055,7 @@ function renderAll() {
 function getRegisteredUsers() { return JSON.parse(ls.get('gt_users')) || []; }
 function saveRegisteredUsers(users) {
   ls.set('gt_users', JSON.stringify(users));
-  if (fbReady) fbSet('users', 'accounts', { value: users, updatedAt: new Date().toISOString() });
+  // Users now stored as individual Firestore docs under /users/{uid} via doRegister()
 }
 
 function openAuthModal(tab) { switchAuthTab(tab||'signin'); document.getElementById('loginModal').classList.add('open'); }
@@ -1135,60 +1135,145 @@ async function doSignIn() {
     return;
   }
 
-  // ── USERNAME → Registered customer login ────────────────────────
-  let users = [];
-  if (fbReady) {
-    try {
-      const d = await fbGet('users', 'accounts');
-      if (d && d.value) { users = d.value; ls.set('gt_users', JSON.stringify(users)); }
-      else users = getRegisteredUsers();
-    } catch(e) { users = getRegisteredUsers(); }
-  } else { users = getRegisteredUsers(); }
+  // ── All users now use Firebase Auth (email + password) ─────────────
+  if (!auth) {
+    errEl.textContent = '❌ Firebase not ready. Please refresh.';
+    errEl.style.display = 'block'; return;
+  }
+  if (btn) { btn.textContent = '⏳ Signing in…'; btn.disabled = true; }
+  try {
+    const result = await auth.signInWithEmailAndPassword(u, p);
+    const fbUser = result.user;
 
-  const found = users.find(usr => usr.username.toLowerCase() === u.toLowerCase() && usr.password === p);
-  if (found) {
-    currentRole = 'user'; currentUser = found;
-    saveSession(currentRole, currentUser); startSessionTimer();
-    closeLogin(); updateNavActions();
-    addActivityLog('auth', '🔑', 'Customer signed in: ' + found.username);
-    const name = found.username.charAt(0).toUpperCase() + found.username.slice(1);
-    showToast('👋 Welcome ' + name + '! ' + getGreeting() + '!');
-  } else {
-    errEl.textContent = '❌ Invalid username or password';
-    errEl.style.display = 'block';
+    if (ADMIN_EMAILS.map(e => e.toLowerCase()).includes(fbUser.email.toLowerCase())) {
+      // ── Admin ──────────────────────────────────────────────────────
+      fbAdminReady     = true;
+      currentRole      = 'admin';
+      currentUser      = null;
+      const rawName    = fbUser.displayName || fbUser.email.split('@')[0];
+      currentAdminName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+      saveSession(currentRole, null, currentAdminName);
+      startSessionTimer();
+      closeLogin(); updateNavActions(); renderAll();
+      addActivityLog('auth', '🔑', 'Admin signed in: ' + fbUser.email);
+      showToast('✅ ' + getGreeting() + ', ' + currentAdminName + '!');
+
+    } else {
+      // ── Customer ───────────────────────────────────────────────────
+      // Fetch extra profile (whatsapp, location) from Firestore
+      let profile = {};
+      try {
+        const snap = await db.collection('users').doc(fbUser.uid).get();
+        if (snap.exists) profile = snap.data();
+      } catch(e) {}
+
+      currentRole = 'user';
+      currentUser = {
+        uid:      fbUser.uid,
+        username: fbUser.displayName || profile.name || fbUser.email.split('@')[0],
+        email:    fbUser.email,
+        whatsapp: profile.whatsapp || '',
+        location: profile.location || ''
+      };
+      saveSession(currentRole, currentUser);
+      startSessionTimer();
+      closeLogin(); updateNavActions();
+      addActivityLog('auth', '🔑', 'Customer signed in: ' + currentUser.username);
+      const name = currentUser.username.charAt(0).toUpperCase() + currentUser.username.slice(1);
+      showToast('👋 Welcome ' + name + '! ' + getGreeting() + '!');
+    }
+
+  } catch(e) {
+    const msg =
+      e.code === 'auth/invalid-credential'    ? '❌ Incorrect email or password.' :
+      e.code === 'auth/wrong-password'         ? '❌ Incorrect password.' :
+      e.code === 'auth/user-not-found'         ? '❌ No account found with this email.' :
+      e.code === 'auth/invalid-email'          ? '❌ Invalid email address.' :
+      e.code === 'auth/too-many-requests'      ? '⚠️ Too many attempts. Try again later.' :
+      e.code === 'auth/network-request-failed' ? '❌ Network error. Check your connection.' :
+      '❌ Error [' + (e.code||'unknown') + ']: ' + (e.message||'');
+    errEl.textContent = msg; errEl.style.display = 'block';
+  } finally {
+    if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
   }
 }
 
-function doRegister() {
-  const username = document.getElementById('regUser').value.trim();
+async function doRegister() {
+  const name     = document.getElementById('regUser').value.trim();
+  const email    = document.getElementById('regEmail').value.trim();
   const whatsapp = document.getElementById('regWA').value.trim();
   const location = document.getElementById('regLoc').value.trim();
-  const pass = document.getElementById('regPass').value;
-  const pass2 = document.getElementById('regPass2').value;
-  const errEl = document.getElementById('regErr');
-  errEl.style.display = 'none'; document.getElementById('regSuccess').style.display = 'none';
+  const pass     = document.getElementById('regPass').value;
+  const pass2    = document.getElementById('regPass2').value;
+  const errEl    = document.getElementById('regErr');
+  const btn      = document.querySelector('#registerForm .btn-submit');
+  errEl.style.display = 'none';
+  document.getElementById('regSuccess').style.display = 'none';
 
-  if (!username||!whatsapp||!location||!pass||!pass2) { errEl.textContent='⚠️ All fields are required'; errEl.style.display='block'; return; }
-  if (username.length < 3) { errEl.textContent='⚠️ Username must be at least 3 characters'; errEl.style.display='block'; return; }
-  if (!/^[\+]?[\d\s\-]{8,15}$/.test(whatsapp)) { errEl.textContent='⚠️ Enter a valid WhatsApp number'; errEl.style.display='block'; return; }
-  if (pass.length < 6) { errEl.textContent='⚠️ Password must be at least 6 characters'; errEl.style.display='block'; return; }
-  if (pass !== pass2) { errEl.textContent='❌ Passwords do not match'; errEl.style.display='block'; return; }
+  // Validate
+  if (!name||!email||!whatsapp||!location||!pass||!pass2) {
+    errEl.textContent = '⚠️ All fields are required'; errEl.style.display = 'block'; return;
+  }
+  if (name.length < 2) {
+    errEl.textContent = '⚠️ Name must be at least 2 characters'; errEl.style.display = 'block'; return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errEl.textContent = '⚠️ Enter a valid email address'; errEl.style.display = 'block'; return;
+  }
+  if (!/^[\+]?[\d\s\-]{8,15}$/.test(whatsapp)) {
+    errEl.textContent = '⚠️ Enter a valid WhatsApp number'; errEl.style.display = 'block'; return;
+  }
+  if (pass.length < 6) {
+    errEl.textContent = '⚠️ Password must be at least 6 characters'; errEl.style.display = 'block'; return;
+  }
+  if (pass !== pass2) {
+    errEl.textContent = '❌ Passwords do not match'; errEl.style.display = 'block'; return;
+  }
 
-  const users = getRegisteredUsers();
-  if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) { errEl.textContent='❌ Username already taken'; errEl.style.display='block'; return; }
+  btn.textContent = '⏳ Creating account…'; btn.disabled = true;
 
-  const newUser = { username, whatsapp, location, password: pass, registeredAt: new Date().toISOString() };
-  users.push(newUser); saveRegisteredUsers(users);
-  addActivityLog('auth', '✅', `New customer registered: ${username}`);
-  document.getElementById('regSuccess').style.display = 'block';
-  setTimeout(() => { switchAuthTab('signin'); document.getElementById('siUser').value = username; showToast('🎉 Account created! Please sign in.'); }, 1500);
+  try {
+    // Create Firebase Auth account
+    const result = await auth.createUserWithEmailAndPassword(email, pass);
+    const uid    = result.user.uid;
+
+    // Set display name in Firebase Auth
+    await result.user.updateProfile({ displayName: name });
+
+    // Store extra profile in Firestore (uid as document ID)
+    await db.collection('users').doc(uid).set({
+      uid, name, email, whatsapp, location,
+      createdAt: new Date().toISOString()
+    });
+
+    addActivityLog('auth', '✅', `New customer registered: ${name} (${email})`);
+    document.getElementById('regSuccess').style.display = 'block';
+
+    setTimeout(() => {
+      switchAuthTab('signin');
+      document.getElementById('siUser').value = email;
+      showToast('🎉 Account created! Please sign in.');
+    }, 1500);
+
+  } catch(e) {
+    const msg =
+      e.code === 'auth/email-already-in-use' ? '❌ This email is already registered.' :
+      e.code === 'auth/invalid-email'         ? '❌ Invalid email address.' :
+      e.code === 'auth/weak-password'         ? '❌ Password too weak. Use at least 6 characters.' :
+      '❌ Registration failed: ' + (e.message || e.code);
+    errEl.textContent = msg; errEl.style.display = 'block';
+  } finally {
+    btn.textContent = 'Create Account'; btn.disabled = false;
+  }
 }
 
 function doLogout() {
   addActivityLog('auth', '👋', `Signed out: ${currentUser?.username || currentRole || 'user'}`);
-  // Sign out of Firebase Auth if admin was signed in
-  if (auth && fbAdminReady) { auth.signOut().catch(()=>{}); fbAdminReady = false; }
-  currentRole = null; currentUser = null; clearSession();
+  // Sign out of Firebase Auth for BOTH admin and customers
+  if (auth) { auth.signOut().catch(()=>{}); }
+  fbAdminReady = false;
+  currentRole = null; currentUser = null; currentAdminName = null;
+  clearSession();
   cart = { plants: {}, materials: {} }; updateCartBadge();
   updateNavActions(); renderAll(); showToast('👋 Signed out successfully');
 }
@@ -1342,8 +1427,11 @@ async function confirmAndPlaceOrder() {
   const { selectedPlants, selectedMats, notes } = window._pendingOrder || {};
   if (!selectedPlants) return;
   const order = {
-    id: Date.now(), userId: currentUser.username, user: currentUser.username,
-    whatsapp: currentUser.whatsapp||'', location: currentUser.location||'',
+    id: Date.now(),
+    userId:   auth.currentUser ? auth.currentUser.uid : currentUser.username,
+    user:     currentUser.username,
+    whatsapp: currentUser.whatsapp||'',
+    location: currentUser.location||'',
     products: [...selectedPlants,...selectedMats], notes, time: new Date().toISOString(), status: 'pending'
   };
   // Save directly to Firestore only (no localStorage)
@@ -1382,13 +1470,13 @@ async function renderMyOrders() {
     return;
   }
 
-  // RTDB real-time listener — fires on load + every status change
-  const myOrdersRef = db.ref('orders').orderByChild('userId').equalTo(currentUser.username);
-  myOrdersListener = () => myOrdersRef.off('value');   // detach fn stored here
-  myOrdersRef.on('value', snap => {
-      let myOrders = [];
-      snap.forEach(child => myOrders.push({ _fbKey: child.key, ...child.val() }));
-      myOrders.sort((a, b) => new Date(b.time) - new Date(a.time));
+  // Firestore real-time listener — fires on load + every status change
+  const uid = auth.currentUser ? auth.currentUser.uid : currentUser.username;
+  const myOrdersRef = db.collection('orders')
+    .where('userId', '==', uid)
+    .orderBy('time', 'desc');
+  myOrdersListener = myOrdersRef.onSnapshot(snap => {
+      let myOrders = snap.docs.map(d => ({ _fbId: d.id, ...d.data() }));
 
       if (myOrders.length === 0) {
         el.innerHTML = `<div style="text-align:center;padding:40px;">
@@ -1434,7 +1522,7 @@ async function renderMyOrders() {
         </div>`).join('');
 
   }, err => {
-    el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-light);">❌ Failed to load orders: ${err.message}</div>`;
+    el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-light);">❌ ${err.message}</div>`;
   });
 }
 
@@ -1550,12 +1638,9 @@ function startAdminOrdersListener(containerEl) {
 
   containerEl.innerHTML = '<p style="text-align:center;padding:30px;color:var(--text-light);">⏳ Loading orders…</p>';
 
-  const allOrdersRef = db.ref('orders').orderByChild('time');
-  adminOrdersListener = () => allOrdersRef.off('value');
-  allOrdersRef.on('value', snap => {
-      const orders = [];
-      snap.forEach(child => orders.push({ _fbKey: child.key, ...child.val() }));
-      orders.reverse(); // newest first
+  const allOrdersRef = db.collection('orders').orderBy('time', 'desc');
+  adminOrdersListener = allOrdersRef.onSnapshot(snap => {
+      const orders = snap.docs.map(d => ({ _fbId: d.id, ...d.data() }));
       if (orders.length === 0) {
         containerEl.innerHTML = '<p style="text-align:center;padding:30px;color:var(--text-light);">No orders yet.</p>';
         return;
@@ -1588,19 +1673,19 @@ function startAdminOrdersListener(containerEl) {
             📋 <strong>Admin Note:</strong> ${o.adminNote}</div>` : ''}
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--green-pale);">
             ${statusBadge()}
-            <select class="admin-order-status-select" onchange="updateOrderStatus('${o._fbKey}', this.value)">
+            <select class="admin-order-status-select" onchange="updateOrderStatus('${o._fbId}', this.value)">
               <option value="">— Update Status —</option>
               ${ORDER_STATUSES.map(s => `<option value="${s.key}" ${st===s.key?'selected':''}>${s.icon} ${s.label}</option>`).join('')}
               <option value="cancelled" ${st==='cancelled'?'selected':''}>❌ Cancelled</option>
             </select>
           </div>
           <div style="display:flex;gap:6px;align-items:center;margin-top:8px;">
-            <input type="text" id="adminNote-${o._fbKey}"
+            <input type="text" id="adminNote-${o._fbId}"
               placeholder="📋 Add note visible to customer…"
               value="${(o.adminNote||'').replace(/"/g,'&quot;')}"
               style="flex:1;padding:7px 12px;border-radius:8px;border:1.5px solid var(--green-pale);font-size:12px;font-family:'DM Sans',sans-serif;background:var(--green-mist);"
-              onkeydown="if(event.key==='Enter') saveAdminNote('${o._fbKey}')">
-            <button onclick="saveAdminNote('${o._fbKey}')"
+              onkeydown="if(event.key==='Enter') saveAdminNote('${o._fbId}')">
+            <button onclick="saveAdminNote('${o._fbId}')"
               style="padding:7px 14px;border-radius:8px;border:none;background:var(--green-mid);color:white;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">
               💾 Save Note
             </button>
@@ -1616,10 +1701,10 @@ function stopAdminOrdersListener() {
   if (adminOrdersListener) { adminOrdersListener(); adminOrdersListener = null; }
 }
 
-async function updateOrderStatus(fbKey, newStatus) {
+async function updateOrderStatus(fbId, newStatus) {
   if (!newStatus || !fbReady) return;
   try {
-    await db.ref('orders/' + fbKey).update({
+    await db.collection('orders').doc(fbId).update({
       status: newStatus,
       updatedAt: new Date().toISOString()
     });
@@ -1630,11 +1715,11 @@ async function updateOrderStatus(fbKey, newStatus) {
   }
 }
 
-async function saveAdminNote(fbKey) {
-  const el = document.getElementById('adminNote-' + fbKey);
+async function saveAdminNote(fbId) {
+  const el = document.getElementById('adminNote-' + fbId);
   if (!el || !fbReady) return;
   try {
-    await db.ref('orders/' + fbKey).update({
+    await db.collection('orders').doc(fbId).update({
       adminNote: el.value.trim(),
       updatedAt: new Date().toISOString()
     });
@@ -1880,8 +1965,8 @@ async function saveItem() {
     }));
     if (fbReady) {
       await Promise.all([
-        fbSet('config', 'plants',    { value: sanitise(plants),    updatedAt: new Date().toISOString() }),
-        fbSet('config', 'materials', { value: sanitise(materials), updatedAt: new Date().toISOString() }),
+        db.collection('config').doc('plants').set({ value: sanitise(plants), updatedAt: new Date().toISOString() }, { merge: true }),
+        db.collection('config').doc('materials').set({ value: sanitise(materials), updatedAt: new Date().toISOString() }, { merge: true }),
       ]);
     }
   } catch(e) { console.warn('[Firebase] save error:', e.message); }
@@ -1900,8 +1985,8 @@ function deleteItem(type, id) {
   ls.set('gt_materials', JSON.stringify(materials));
   if (fbReady) {
     const sanitise = list => list.map(i => ({ ...i, img: i.img && i.img.startsWith('http') ? i.img : (i.img||'') }));
-    fbSet('config', 'plants',    { value: sanitise(plants) }).catch(e => console.warn(e));
-    fbSet('config', 'materials', { value: sanitise(materials) }).catch(e => console.warn(e));
+    db.collection('config').doc('plants').set({ value: sanitise(plants) }, { merge: true }).catch(e => console.warn(e));
+    db.collection('config').doc('materials').set({ value: sanitise(materials) }, { merge: true }).catch(e => console.warn(e));
   }
   renderPlantsGrid();
   renderMaterialsGrid();
