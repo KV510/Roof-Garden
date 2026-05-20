@@ -1085,67 +1085,22 @@ async function doSignIn() {
   errEl.style.display = 'none';
 
   if (!u || !p) {
-    errEl.textContent = '⚠️ Please enter your username/email and password';
+    errEl.textContent = '⚠️ Please enter your email and password';
     errEl.style.display = 'block'; return;
   }
-
-  // ── EMAIL → Firebase Auth (admin login) ─────────────────────────
-  if (u.includes('@')) {
-    if (!auth) {
-      errEl.textContent = '❌ Firebase not ready. Please refresh the page.';
-      errEl.style.display = 'block'; return;
-    }
-    if (btn) { btn.textContent = '⏳ Signing in…'; btn.disabled = true; }
-    try {
-      const result = await auth.signInWithEmailAndPassword(u, p);
-      const fbUser = result.user;
-
-      if (ADMIN_EMAILS.map(e => e.toLowerCase()).includes(fbUser.email.toLowerCase())) {
-        fbAdminReady     = true;
-        currentRole      = 'admin';
-        currentUser      = null;
-        // Extract display name: use part before @ e.g. "at2026" → "At2026"
-        const rawName    = fbUser.displayName || fbUser.email.split('@')[0];
-        currentAdminName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
-        saveSession(currentRole, null, currentAdminName);
-        startSessionTimer();
-        closeLogin();
-        updateNavActions();
-        renderAll();
-        addActivityLog('auth', '🔑', 'Admin signed in: ' + fbUser.email);
-        showToast('✅ ' + getGreeting() + ', ' + currentAdminName + '!');
-      } else {
-        await auth.signOut();
-        errEl.textContent = '❌ Email not authorised as admin.';
-        errEl.style.display = 'block';
-      }
-    } catch(e) {
-      const msg =
-        e.code === 'auth/invalid-credential'    ? '❌ Incorrect email or password.' :
-        e.code === 'auth/wrong-password'         ? '❌ Incorrect password.' :
-        e.code === 'auth/user-not-found'         ? '❌ No account found with this email.' :
-        e.code === 'auth/invalid-email'          ? '❌ Invalid email address.' :
-        e.code === 'auth/too-many-requests'      ? '⚠️ Too many attempts. Try again later.' :
-        e.code === 'auth/network-request-failed' ? '❌ Network error. Check your connection.' :
-        '❌ Error [' + (e.code||'unknown') + ']: ' + (e.message||'');
-      errEl.textContent = msg; errEl.style.display = 'block';
-    } finally {
-      if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
-    }
-    return;
-  }
-
-  // ── All users now use Firebase Auth (email + password) ─────────────
   if (!auth) {
     errEl.textContent = '❌ Firebase not ready. Please refresh.';
     errEl.style.display = 'block'; return;
   }
+
   if (btn) { btn.textContent = '⏳ Signing in…'; btn.disabled = true; }
+
   try {
     const result = await auth.signInWithEmailAndPassword(u, p);
     const fbUser = result.user;
+    const isAdmin = ADMIN_EMAILS.map(e => e.toLowerCase()).includes(fbUser.email.toLowerCase());
 
-    if (ADMIN_EMAILS.map(e => e.toLowerCase()).includes(fbUser.email.toLowerCase())) {
+    if (isAdmin) {
       // ── Admin ──────────────────────────────────────────────────────
       fbAdminReady     = true;
       currentRole      = 'admin';
@@ -1160,7 +1115,6 @@ async function doSignIn() {
 
     } else {
       // ── Customer ───────────────────────────────────────────────────
-      // Fetch extra profile (whatsapp, location) from Firestore
       let profile = {};
       try {
         const snap = await db.collection('users').doc(fbUser.uid).get();
