@@ -52,6 +52,7 @@
   .btn-secondary:hover { background: var(--green-pale); }
   .role-badge { padding: 6px 14px; border-radius: 50px; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
   .role-staff { background: var(--green-pale); color: var(--green-deep); }
+  .role-admin { background: #fff3cd; color: #856404; }
   .btn-logout { padding: 7px 16px; border-radius: 50px; border: none; background: #fee2e2; color: #991b1b; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
   .btn-logout:hover { background: #fecaca; }
 
@@ -620,7 +621,7 @@
 <!-- MY ORDERS MODAL -->
 <div class="modal-overlay" id="myOrdersModal">
   <div class="modal" style="max-width:600px;max-height:min(82vh,680px);display:flex;flex-direction:column;overflow:hidden;">
-    <button class="modal-close" onclick="document.getElementById('myOrdersModal').classList.remove('open')">✕</button>
+    <button class="modal-close" onclick="closeMyOrdersModal()">✕</button>
     <h2 style="margin-bottom:4px;">📦 My Orders</h2>
     <p style="font-size:13px;color:var(--text-light);margin-bottom:16px;">Track your order history and status.</p>
     <div id="myOrdersList" style="overflow-y:auto;flex:1;padding-right:4px;"><div style="text-align:center;padding:40px 20px;color:var(--text-light);">Loading orders…</div></div>
@@ -645,7 +646,7 @@
 
 <!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 
@@ -659,17 +660,32 @@ const FIREBASE_CONFIG = {
   projectId:         "roof-gardening-test",
   storageBucket:     "roof-gardening-test.firebasestorage.app",
   messagingSenderId: "1071376132925",
-  appId:             "1:1071376132925:web:369e69a0ad84c7d5d97354"
+  appId:             "1:1071376132925:web:369e69a0ad84c7d5d97354",
+  databaseURL:       "https://roof-gardening-test-default-rtdb.asia-southeast1.firebasedatabase.app"  // 👈 RTDB URL
 };
 
-let db = null, auth = null, storage = null, fbReady = false;
+// Admin emails — must match Firebase Auth accounts
+const ADMIN_EMAILS = [
+  'at2026@gmail.com',   // 👈 your admin email
+];
+
+let db = null, auth = null, storage = null, fbReady = false, fbAdminReady = false;
 (function() {
   try {
     if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-    db = firebase.firestore();
-    auth = firebase.auth();
+    db      = firebase.database();
+    auth    = firebase.auth();
     storage = firebase.storage();
     fbReady = true;
+
+    // Restore admin session if Firebase Auth still has a signed-in user
+    auth.onAuthStateChanged(user => {
+      if (user && ADMIN_EMAILS.map(e => e.toLowerCase()).includes(user.email.toLowerCase())) {
+        fbAdminReady = true;
+      } else {
+        fbAdminReady = false;
+      }
+    });
   } catch(e) { console.warn('[FB] init failed:', e.message); }
 })();
 
@@ -686,29 +702,43 @@ const ls = {
 // ================================================================
 // FIREBASE HELPERS
 // ================================================================
-async function fbGet(col, doc) {
-  if (!fbReady) return null;
-  try { const s = await db.collection(col).doc(doc).get(); return s.exists ? s.data() : null; }
-  catch(e) { return null; }
-}
-async function fbAdd(col, data) {
-  if (!fbReady) return null;
-  try { const r = await db.collection(col).add(data); return r.id; }
-  catch(e) { console.warn('[FB] add error', e.message); return null; }
-}
-async function fbGetAll(col, orderF, orderD) {
+// ── RTDB low-level helpers ───────────────────────────────────────────────
+async function fbGet(path, key) {
   if (!fbReady) return null;
   try {
-    let ref = db.collection(col);
-    if (orderF) ref = ref.orderBy(orderF, orderD||'asc');
-    const s = await ref.get();
-    return s.docs.map(d => ({ _fbId: d.id, ...d.data() }));
-  } catch(e) { return null; }
+    const snap = await db.ref(path + '/' + key).get();
+    return snap.exists() ? snap.val() : null;
+  } catch(e) { console.warn('[RTDB] get error', path, key, e.message); return null; }
+}
+async function fbAdd(path, data) {
+  if (!fbReady) return null;
+  try { const ref = await db.ref(path).push(data); return ref.key; }
+  catch(e) { console.warn('[RTDB] add error', path, e.message); return null; }
+}
+async function fbSet(path, key, data) {
+  if (!fbReady) return;
+  try { await db.ref(path + '/' + key).set(data); }
+  catch(e) { console.warn('[RTDB] set error', path, key, e.message); }
+}
+async function fbUpdate(path, data) {
+  if (!fbReady) return;
+  try { await db.ref(path).update(data); }
+  catch(e) { console.warn('[RTDB] update error', path, e.message); }
+}
+async function fbGetAll(path) {
+  if (!fbReady) return null;
+  try {
+    const snap = await db.ref(path).get();
+    if (!snap.exists()) return [];
+    const result = [];
+    snap.forEach(child => result.push({ _fbKey: child.key, ...child.val() }));
+    return result;
+  } catch(e) { console.warn('[RTDB] getAll error', path, e.message); return null; }
 }
 
-async function cloudGet(col, doc, lsKey) {
+async function cloudGet(path, key, lsKey) {
   if (fbReady) {
-    const d = await fbGet(col, doc);
+    const d = await fbGet(path, key);
     if (d && d.value !== undefined) { ls.set(lsKey, JSON.stringify(d.value)); return d.value; }
   }
   const r = ls.get(lsKey); return r ? JSON.parse(r) : null;
@@ -719,7 +749,7 @@ async function cloudGet(col, doc, lsKey) {
 // ================================================================
 const INACTIVITY = 10 * 60 * 1000;
 let sessionTimer = null;
-function saveSession(role, user) { ls.set('gt_session', JSON.stringify({ role, user, lastActivity: Date.now() })); }
+function saveSession(role, user, adminName) { ls.set('gt_session', JSON.stringify({ role, user, adminName: adminName||null, lastActivity: Date.now() })); }
 function clearSession() { ls.del('gt_session'); if (sessionTimer) clearTimeout(sessionTimer); }
 function loadSession() {
   try {
@@ -742,8 +772,10 @@ function startSessionTimer() {
 });
 
 const _sess = loadSession();
-let currentRole = _sess?.role || null;
-let currentUser = _sess?.user || null;
+let currentRole      = _sess?.role       || null;
+let currentUser      = _sess?.user       || null;
+let currentAdminName = _sess?.adminName  || null;
+if (_sess?.adminName) currentAdminName = _sess.adminName;
 if (currentRole) startSessionTimer();
 
 // ================================================================
@@ -1004,7 +1036,7 @@ function applyPageContent(pg) {
   }
 }
 
-function canEdit() { return currentRole === 'admin' || currentRole === 'staff'; }
+function canEdit() { return currentRole === 'admin'; }
 
 function renderAll() {
   renderCustomTabs();
@@ -1023,7 +1055,7 @@ function renderAll() {
 function getRegisteredUsers() { return JSON.parse(ls.get('gt_users')) || []; }
 function saveRegisteredUsers(users) {
   ls.set('gt_users', JSON.stringify(users));
-  if (fbReady) db.collection('users').doc('accounts').set({ value: users, updatedAt: new Date().toISOString() }, { merge: true }).catch(()=>{});
+  if (fbReady) fbSet('users', 'accounts', { value: users, updatedAt: new Date().toISOString() });
 }
 
 function openAuthModal(tab) { switchAuthTab(tab||'signin'); document.getElementById('loginModal').classList.add('open'); }
@@ -1046,13 +1078,64 @@ function switchAuthTab(tab) {
 function togglePwd(id, icon) { const i=document.getElementById(id); i.type = i.type==='password'?'text':'password'; icon.textContent = i.type==='password'?'👁':'🙈'; }
 
 async function doSignIn() {
-  const u = (document.getElementById('siUser').value||'').trim();
-  const p = (document.getElementById('siPass').value||'').trim();
+  const u     = (document.getElementById('siUser').value||'').trim();
+  const p     = (document.getElementById('siPass').value||'').trim();
   const errEl = document.getElementById('siErr');
+  const btn   = document.querySelector('#signinForm .btn-submit');
   errEl.style.display = 'none';
-  if (!u || !p) { errEl.textContent='⚠️ Please enter username and password'; errEl.style.display='block'; return; }
 
-  // Load users from Firebase first (latest data)
+  if (!u || !p) {
+    errEl.textContent = '⚠️ Please enter your username/email and password';
+    errEl.style.display = 'block'; return;
+  }
+
+  // ── EMAIL → Firebase Auth (admin login) ─────────────────────────
+  if (u.includes('@')) {
+    if (!auth) {
+      errEl.textContent = '❌ Firebase not ready. Please refresh the page.';
+      errEl.style.display = 'block'; return;
+    }
+    if (btn) { btn.textContent = '⏳ Signing in…'; btn.disabled = true; }
+    try {
+      const result = await auth.signInWithEmailAndPassword(u, p);
+      const fbUser = result.user;
+
+      if (ADMIN_EMAILS.map(e => e.toLowerCase()).includes(fbUser.email.toLowerCase())) {
+        fbAdminReady     = true;
+        currentRole      = 'admin';
+        currentUser      = null;
+        // Extract display name: use part before @ e.g. "at2026" → "At2026"
+        const rawName    = fbUser.displayName || fbUser.email.split('@')[0];
+        currentAdminName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+        saveSession(currentRole, null, currentAdminName);
+        startSessionTimer();
+        closeLogin();
+        updateNavActions();
+        renderAll();
+        addActivityLog('auth', '🔑', 'Admin signed in: ' + fbUser.email);
+        showToast('✅ ' + getGreeting() + ', ' + currentAdminName + '!');
+      } else {
+        await auth.signOut();
+        errEl.textContent = '❌ Email not authorised as admin.';
+        errEl.style.display = 'block';
+      }
+    } catch(e) {
+      const msg =
+        e.code === 'auth/invalid-credential'    ? '❌ Incorrect email or password.' :
+        e.code === 'auth/wrong-password'         ? '❌ Incorrect password.' :
+        e.code === 'auth/user-not-found'         ? '❌ No account found with this email.' :
+        e.code === 'auth/invalid-email'          ? '❌ Invalid email address.' :
+        e.code === 'auth/too-many-requests'      ? '⚠️ Too many attempts. Try again later.' :
+        e.code === 'auth/network-request-failed' ? '❌ Network error. Check your connection.' :
+        '❌ Error [' + (e.code||'unknown') + ']: ' + (e.message||'');
+      errEl.textContent = msg; errEl.style.display = 'block';
+    } finally {
+      if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
+    }
+    return;
+  }
+
+  // ── USERNAME → Registered customer login ────────────────────────
   let users = [];
   if (fbReady) {
     try {
@@ -1067,10 +1150,12 @@ async function doSignIn() {
     currentRole = 'user'; currentUser = found;
     saveSession(currentRole, currentUser); startSessionTimer();
     closeLogin(); updateNavActions();
-    addActivityLog('auth', '🔑', `Customer signed in: ${found.username}`);
-    showToast('✅ Welcome back, ' + found.username + '!');
+    addActivityLog('auth', '🔑', 'Customer signed in: ' + found.username);
+    const name = found.username.charAt(0).toUpperCase() + found.username.slice(1);
+    showToast('👋 Welcome ' + name + '! ' + getGreeting() + '!');
   } else {
-    errEl.textContent = '❌ Invalid username or password'; errEl.style.display = 'block';
+    errEl.textContent = '❌ Invalid username or password';
+    errEl.style.display = 'block';
   }
 }
 
@@ -1100,30 +1185,76 @@ function doRegister() {
 }
 
 function doLogout() {
-  addActivityLog('auth', '👋', `Customer signed out: ${currentUser?.username||'unknown'}`);
+  addActivityLog('auth', '👋', `Signed out: ${currentUser?.username || currentRole || 'user'}`);
+  // Sign out of Firebase Auth if admin was signed in
+  if (auth && fbAdminReady) { auth.signOut().catch(()=>{}); fbAdminReady = false; }
   currentRole = null; currentUser = null; clearSession();
   cart = { plants: {}, materials: {} }; updateCartBadge();
-  updateNavActions(); showToast('👋 Signed out successfully');
+  updateNavActions(); renderAll(); showToast('👋 Signed out successfully');
+}
+
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h >= 5  && h < 12) return 'Good morning';
+  if (h >= 12 && h < 17) return 'Good afternoon';
+  if (h >= 17 && h < 21) return 'Good evening';
+  return 'Good night';
 }
 
 function updateNavActions() {
-  const el = document.getElementById('navActions');
-  const mel = document.getElementById('mobileNavActions');
-  const fab = document.getElementById('cartFab');
+  const el           = document.getElementById('navActions');
+  const mel          = document.getElementById('mobileNavActions');
+  const fab          = document.getElementById('cartFab');
   const visitSection = document.getElementById('visit-booking');
-  const enquiryWrap = document.getElementById('enquiryFormWrap');
+  const enquiryWrap  = document.getElementById('enquiryFormWrap');
+
   if (!currentRole) {
-    el.innerHTML = `<button class="btn-login" onclick="openAuthModal('signin')">Sign In</button><button class="btn-primary" style="padding:9px 22px;font-size:14px;" onclick="openAuthModal('register')">Register</button>`;
-    mel.innerHTML = `<button class="btn-login" onclick="closeMobileNav();openAuthModal('signin')">Sign In</button><button class="btn-primary" style="padding:9px 22px;font-size:14px;" onclick="closeMobileNav();openAuthModal('register')">Register</button>`;
+    // ── Guest ──────────────────────────────────────────────────────
+    el.innerHTML  = `<button class="btn-login" onclick="openAuthModal('signin')">Sign In</button>
+      <button class="btn-primary" style="padding:9px 22px;font-size:14px;" onclick="openAuthModal('register')">Register</button>`;
+    mel.innerHTML = `<button class="btn-login" onclick="closeMobileNav();openAuthModal('signin')">Sign In</button>
+      <button class="btn-primary" style="padding:9px 22px;font-size:14px;" onclick="closeMobileNav();openAuthModal('register')">Register</button>`;
     if (fab) fab.style.display = 'none';
     if (visitSection) visitSection.style.display = 'none';
-    if (enquiryWrap) enquiryWrap.style.display = '';
+    if (enquiryWrap)  enquiryWrap.style.display  = '';
+
+  } else if (currentRole === 'admin') {
+    // ── Admin — show their name ─────────────────────────────────────
+    const name = currentAdminName || 'Admin';
+    el.innerHTML  = `
+      <span class="role-badge role-admin">⚙️ ${name}</span>
+      <button class="btn-primary" style="padding:9px 16px;font-size:13px;" onclick="openAdminModal()">📋 Orders</button>
+      <button class="btn-logout" onclick="doLogout()">Sign Out</button>`;
+    mel.innerHTML = `
+      <span class="role-badge role-admin" style="text-align:center;">⚙️ ${name}</span>
+      <button class="btn-primary" style="padding:9px 16px;font-size:13px;" onclick="closeMobileNav();openAdminModal()">📋 Orders</button>
+      <button class="btn-logout" onclick="doLogout()">Sign Out</button>`;
+    if (fab) fab.style.display = 'none';
+    if (visitSection) visitSection.style.display = '';
+    if (enquiryWrap)  enquiryWrap.style.display  = 'none';
+
   } else {
-    el.innerHTML = `<button class="btn-primary" style="padding:9px 16px;font-size:13px;" onclick="openOrderModal()">🛒 New Order</button><button class="btn-login" style="padding:9px 16px;font-size:13px;" onclick="openMyOrdersModal()">📦 My Orders</button><span class="role-badge role-staff">👤 ${currentUser.username}</span><button class="btn-logout" onclick="doLogout()">Sign Out</button>`;
-    mel.innerHTML = `<button class="btn-primary" style="padding:9px 16px;font-size:13px;" onclick="closeMobileNav();openOrderModal()">🛒 New Order</button><button class="btn-login" style="padding:9px 16px;font-size:13px;" onclick="closeMobileNav();openMyOrdersModal()">📦 My Orders</button><span class="role-badge role-staff" style="text-align:center;">👤 ${currentUser.username}</span><button class="btn-logout" onclick="doLogout()">Sign Out</button>`;
+    // ── Logged-in Customer — show name + greeting ───────────────────
+    const name = currentUser
+      ? currentUser.username.charAt(0).toUpperCase() + currentUser.username.slice(1)
+      : 'Guest';
+    el.innerHTML  = `
+      <span class="role-badge role-staff" style="font-size:12px;">
+        👋 ${getGreeting()}, ${name}!
+      </span>
+      <button class="btn-primary" style="padding:9px 16px;font-size:13px;" onclick="openOrderModal()">🛒 Order</button>
+      <button class="btn-login"   style="padding:9px 16px;font-size:13px;" onclick="openMyOrdersModal()">📦 My Orders</button>
+      <button class="btn-logout" onclick="doLogout()">Sign Out</button>`;
+    mel.innerHTML = `
+      <span class="role-badge role-staff" style="text-align:center;font-size:12px;">
+        👋 ${getGreeting()}, ${name}!
+      </span>
+      <button class="btn-primary" style="padding:9px 16px;font-size:13px;" onclick="closeMobileNav();openOrderModal()">🛒 Order</button>
+      <button class="btn-login"   style="padding:9px 16px;font-size:13px;" onclick="closeMobileNav();openMyOrdersModal()">📦 My Orders</button>
+      <button class="btn-logout" onclick="doLogout()">Sign Out</button>`;
     if (fab) fab.style.display = 'flex';
     if (visitSection) visitSection.style.display = '';
-    if (enquiryWrap) enquiryWrap.style.display = 'none';
+    if (enquiryWrap)  enquiryWrap.style.display  = 'none';
     renderMyBookings();
   }
 }
@@ -1215,11 +1346,9 @@ async function confirmAndPlaceOrder() {
     whatsapp: currentUser.whatsapp||'', location: currentUser.location||'',
     products: [...selectedPlants,...selectedMats], notes, time: new Date().toISOString(), status: 'pending'
   };
-  // Save locally
-  const orders = JSON.parse(ls.get('gt_orders'))||[];
-  orders.unshift(order); ls.set('gt_orders', JSON.stringify(orders));
-  // Save to Firebase
-  await fbAdd('orders', order).catch(()=>{});
+  // Save directly to Firestore only (no localStorage)
+  if (!fbReady) { showToast('❌ No connection. Please try again.'); return; }
+  await fbAdd('orders', order).catch(e => { console.warn('[FB] order save error:', e); });
   addActivityLog('order', '🛒', `Order placed by ${currentUser.username}: ${order.products.slice(0,2).map(p=>`${p.name}×${p.qty}`).join(', ')}`);
   cart = { plants:{}, materials:{} }; updateCartBadge();
   window._pendingOrder = null; closeConfirmModal(); closeOrderModal();
@@ -1232,50 +1361,81 @@ function openMyOrdersModal() {
   document.getElementById('myOrdersModal').classList.add('open');
   renderMyOrders();
 }
+function closeMyOrdersModal() {
+  document.getElementById('myOrdersModal').classList.remove('open');
+  // Detach real-time listener when modal closes
+  if (myOrdersListener) { myOrdersListener(); myOrdersListener = null; }
+}
+
+// Holds the real-time listener for the current user's orders
+let myOrdersListener = null;
 
 async function renderMyOrders() {
   const el = document.getElementById('myOrdersList');
   el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-light);">⏳ Loading…</div>`;
-  let myOrders = [];
-  try {
-    if (fbReady) {
-      const snap = await db.collection('orders').where('userId','==',currentUser.username).orderBy('time','desc').get();
-      if (!snap.empty) myOrders = snap.docs.map(d=>({_fbId:d.id,...d.data()}));
-      else myOrders = (JSON.parse(ls.get('gt_orders'))||[]).filter(o=>o.userId===currentUser.username||o.user===currentUser.username);
-    } else {
-      myOrders = (JSON.parse(ls.get('gt_orders'))||[]).filter(o=>o.userId===currentUser.username||o.user===currentUser.username);
-    }
-  } catch(e) {
-    myOrders = (JSON.parse(ls.get('gt_orders'))||[]).filter(o=>o.userId===currentUser.username||o.user===currentUser.username);
-  }
-  // Deduplicate
-  const seen = new Set();
-  myOrders = myOrders.filter(o => { const k=String(o.id); if(seen.has(k)) return false; seen.add(k); return true; });
 
-  if (myOrders.length === 0) {
-    el.innerHTML = `<div style="text-align:center;padding:40px;"><div style="font-size:48px;margin-bottom:12px;">📦</div><div style="font-size:16px;font-weight:600;color:var(--green-deep);margin-bottom:8px;">No orders yet</div><button class="btn-primary" style="padding:10px 24px;font-size:14px;" onclick="document.getElementById('myOrdersModal').classList.remove('open');openOrderModal()">🛒 Place an Order</button></div>`;
+  // Detach any previous listener
+  if (myOrdersListener) { myOrdersListener(); myOrdersListener = null; }
+
+  if (!fbReady) {
+    el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-light);">❌ No connection to server.</div>`;
     return;
   }
 
-  const statusBadge = st => { const s=ORDER_STATUSES.find(x=>x.key===st)||{icon:'⏳',label:st}; return `<span class="order-status-badge status-${st}">${s.icon} ${s.label}</span>`; };
-  const trackBar = st => {
-    const idx = ORDER_STATUSES.findIndex(x=>x.key===st);
-    return `<div style="display:flex;gap:0;margin-top:14px;padding-top:14px;border-top:1.5px solid var(--green-pale);overflow-x:auto;">` +
-      ORDER_STATUSES.map((s,i) => `<div class="track-step ${i<idx?'done':''} ${i===idx?'active':''}"><div class="track-dot">${i<idx?'✓':s.icon}</div><div class="track-label">${s.label}</div></div>`).join('') +
-      `</div>`;
-  };
+  // RTDB real-time listener — fires on load + every status change
+  const myOrdersRef = db.ref('orders').orderByChild('userId').equalTo(currentUser.username);
+  myOrdersListener = () => myOrdersRef.off('value');   // detach fn stored here
+  myOrdersRef.on('value', snap => {
+      let myOrders = [];
+      snap.forEach(child => myOrders.push({ _fbKey: child.key, ...child.val() }));
+      myOrders.sort((a, b) => new Date(b.time) - new Date(a.time));
 
-  el.innerHTML = myOrders.map(o => `
-    <div class="my-order-card">
-      <div class="my-order-header">
-        <div><div style="font-weight:700;font-size:14px;color:var(--green-deep);">Order #${String(o.id).slice(-6)}</div><div style="font-size:12px;color:var(--text-light);">📅 ${new Date(o.time).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</div></div>
-        ${statusBadge(o.status||'pending')}
-      </div>
-      <div style="font-size:14px;color:var(--text-dark);line-height:1.8;">${o.products.map(p=>`${p.emoji} <strong>${p.name}</strong> × ${p.qty}`).join(' · ')}</div>
-      ${o.notes?`<div style="font-size:13px;color:var(--text-light);font-style:italic;margin-top:6px;">📝 ${o.notes}</div>`:''}
-      ${o.adminNote?`<div style="margin:8px 0;padding:8px 12px;background:#fffbeb;border-radius:8px;border-left:3px solid #f59e0b;font-size:12px;color:#92400e;">📋 <strong>Update from GreenTop:</strong> ${o.adminNote}</div>`:''}
-      ${trackBar(o.status||'pending')}
-    </div>`).join('');
+      if (myOrders.length === 0) {
+        el.innerHTML = `<div style="text-align:center;padding:40px;">
+          <div style="font-size:48px;margin-bottom:12px;">📦</div>
+          <div style="font-size:16px;font-weight:600;color:var(--green-deep);margin-bottom:8px;">No orders yet</div>
+          <button class="btn-primary" style="padding:10px 24px;font-size:14px;"
+            onclick="document.getElementById('myOrdersModal').classList.remove('open');openOrderModal()">
+            🛒 Place an Order
+          </button></div>`;
+        return;
+      }
+
+      const statusBadge = st => {
+        const s = ORDER_STATUSES.find(x => x.key === st) || { icon:'⏳', label: st };
+        return `<span class="order-status-badge status-${st}">${s.icon} ${s.label}</span>`;
+      };
+      const trackBar = st => {
+        const idx = ORDER_STATUSES.findIndex(x => x.key === st);
+        return `<div style="display:flex;gap:0;margin-top:14px;padding-top:14px;border-top:1.5px solid var(--green-pale);overflow-x:auto;">` +
+          ORDER_STATUSES.map((s, i) => `
+            <div class="track-step ${i < idx ? 'done' : ''} ${i === idx ? 'active' : ''}">
+              <div class="track-dot">${i < idx ? '✓' : s.icon}</div>
+              <div class="track-label">${s.label}</div>
+            </div>`).join('') + `</div>`;
+      };
+
+      el.innerHTML = myOrders.map(o => `
+        <div class="my-order-card">
+          <div class="my-order-header">
+            <div>
+              <div style="font-weight:700;font-size:14px;color:var(--green-deep);">Order #${String(o.id).slice(-6)}</div>
+              <div style="font-size:12px;color:var(--text-light);">📅 ${new Date(o.time).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</div>
+            </div>
+            ${statusBadge(o.status || 'pending')}
+          </div>
+          <div style="font-size:14px;color:var(--text-dark);line-height:1.8;">
+            ${o.products.map(p => `${p.emoji} <strong>${p.name}</strong> × ${p.qty}`).join(' · ')}
+          </div>
+          ${o.notes ? `<div style="font-size:13px;color:var(--text-light);font-style:italic;margin-top:6px;">📝 ${o.notes}</div>` : ''}
+          ${o.adminNote ? `<div style="margin:8px 0;padding:8px 12px;background:#fffbeb;border-radius:8px;border-left:3px solid #f59e0b;font-size:12px;color:#92400e;">
+            📋 <strong>Update from GreenTop:</strong> ${o.adminNote}</div>` : ''}
+          ${trackBar(o.status || 'pending')}
+        </div>`).join('');
+
+  }, err => {
+    el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-light);">❌ Failed to load orders: ${err.message}</div>`;
+  });
 }
 
 // ================================================================
@@ -1364,6 +1524,127 @@ function renderMyBookings() {
 // ================================================================
 // ACTIVITY LOG (writes to Firebase, for admin to read)
 // ================================================================
+// ================================================================
+// ADMIN ORDERS — real-time listener
+// ================================================================
+let adminOrdersListener = null;
+
+
+function openAdminModal() {
+  if (currentRole !== 'admin') return;
+  document.getElementById('adminModal').classList.add('open');
+  startAdminOrdersListener(document.getElementById('adminOrdersContainer'));
+}
+function closeAdminModal() {
+  document.getElementById('adminModal').classList.remove('open');
+  stopAdminOrdersListener();
+}
+
+function startAdminOrdersListener(containerEl) {
+  if (!fbReady) {
+    containerEl.innerHTML = '<p style="color:var(--text-light);text-align:center;padding:30px;">❌ No Firebase connection.</p>';
+    return;
+  }
+  // Detach any previous listener
+  if (adminOrdersListener) { adminOrdersListener(); adminOrdersListener = null; }
+
+  containerEl.innerHTML = '<p style="text-align:center;padding:30px;color:var(--text-light);">⏳ Loading orders…</p>';
+
+  const allOrdersRef = db.ref('orders').orderByChild('time');
+  adminOrdersListener = () => allOrdersRef.off('value');
+  allOrdersRef.on('value', snap => {
+      const orders = [];
+      snap.forEach(child => orders.push({ _fbKey: child.key, ...child.val() }));
+      orders.reverse(); // newest first
+      if (orders.length === 0) {
+        containerEl.innerHTML = '<p style="text-align:center;padding:30px;color:var(--text-light);">No orders yet.</p>';
+        return;
+      }
+      containerEl.innerHTML = orders.map(o => {
+        const st = o.status || 'pending';
+        const statusBadge = () => {
+          const s = ORDER_STATUSES.find(x => x.key === st) || { icon:'⏳', label: st };
+          return `<span class="order-status-badge status-${st}">${s.icon} ${s.label}</span>`;
+        };
+        return `<div class="admin-order-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+            <div>
+              <div style="font-weight:700;font-size:14px;color:var(--green-deep);">👤 ${o.user}</div>
+              <div style="font-size:11px;color:var(--text-light);">
+                ${o.whatsapp ? `📱 ${o.whatsapp}` : ''}
+                ${o.location ? ` &nbsp;📍 ${o.location}` : ''}
+              </div>
+            </div>
+            <div style="font-size:11px;color:var(--text-light);text-align:right;">
+              📅 ${new Date(o.time).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}<br>
+              <span style="font-size:10px;opacity:.7;">ID #${String(o.id).slice(-6)}</span>
+            </div>
+          </div>
+          <div style="font-size:13px;color:var(--text-dark);margin-bottom:6px;">
+            ${o.products.map(p => `${p.emoji} <strong>${p.name}</strong> ×${p.qty}`).join(' &nbsp;·&nbsp; ')}
+          </div>
+          ${o.notes ? `<div style="font-size:12px;color:var(--text-light);font-style:italic;margin-bottom:4px;">📝 ${o.notes}</div>` : ''}
+          ${o.adminNote ? `<div style="padding:8px 12px;background:#fffbeb;border-radius:8px;border-left:3px solid #f59e0b;font-size:12px;color:#92400e;margin-bottom:6px;">
+            📋 <strong>Admin Note:</strong> ${o.adminNote}</div>` : ''}
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--green-pale);">
+            ${statusBadge()}
+            <select class="admin-order-status-select" onchange="updateOrderStatus('${o._fbKey}', this.value)">
+              <option value="">— Update Status —</option>
+              ${ORDER_STATUSES.map(s => `<option value="${s.key}" ${st===s.key?'selected':''}>${s.icon} ${s.label}</option>`).join('')}
+              <option value="cancelled" ${st==='cancelled'?'selected':''}>❌ Cancelled</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:8px;">
+            <input type="text" id="adminNote-${o._fbKey}"
+              placeholder="📋 Add note visible to customer…"
+              value="${(o.adminNote||'').replace(/"/g,'&quot;')}"
+              style="flex:1;padding:7px 12px;border-radius:8px;border:1.5px solid var(--green-pale);font-size:12px;font-family:'DM Sans',sans-serif;background:var(--green-mist);"
+              onkeydown="if(event.key==='Enter') saveAdminNote('${o._fbKey}')">
+            <button onclick="saveAdminNote('${o._fbKey}')"
+              style="padding:7px 14px;border-radius:8px;border:none;background:var(--green-mid);color:white;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">
+              💾 Save Note
+            </button>
+          </div>
+        </div>`;
+      }).join('');
+  }, err => {
+    containerEl.innerHTML = `<p style="color:#dc2626;text-align:center;padding:20px;">❌ ${err.message}</p>`;
+  });
+}
+
+function stopAdminOrdersListener() {
+  if (adminOrdersListener) { adminOrdersListener(); adminOrdersListener = null; }
+}
+
+async function updateOrderStatus(fbKey, newStatus) {
+  if (!newStatus || !fbReady) return;
+  try {
+    await db.ref('orders/' + fbKey).update({
+      status: newStatus,
+      updatedAt: new Date().toISOString()
+    });
+    showToast(`✅ Order marked as ${newStatus}`);
+    addActivityLog('admin', '📦', `Order status updated → ${newStatus}`);
+  } catch(e) {
+    showToast('❌ Failed to update: ' + e.message);
+  }
+}
+
+async function saveAdminNote(fbKey) {
+  const el = document.getElementById('adminNote-' + fbKey);
+  if (!el || !fbReady) return;
+  try {
+    await db.ref('orders/' + fbKey).update({
+      adminNote: el.value.trim(),
+      updatedAt: new Date().toISOString()
+    });
+    showToast('📋 Note saved — customer can see it now');
+    addActivityLog('admin', '📝', 'Admin note saved on order');
+  } catch(e) {
+    showToast('❌ Failed to save note: ' + e.message);
+  }
+}
+
 function addActivityLog(type, icon, action) {
   const entry = { id: Date.now(), type, icon, action, user: currentUser?.username||'guest', time: new Date().toISOString() };
   const logs = JSON.parse(ls.get('gt_logs'))||[];
@@ -1444,7 +1725,7 @@ let editingId   = null;
 let currentUploadedImgData = '';
 
 function openItemEdit(type, id) {
-  if (!canEdit()) return;
+  if (currentRole !== 'admin') return;
   editingType = type;
   editingId   = id;
   const isNew = id === null;
@@ -1599,8 +1880,8 @@ async function saveItem() {
     }));
     if (fbReady) {
       await Promise.all([
-        db.collection('config').doc('plants').set({ value: sanitise(plants), updatedAt: new Date().toISOString() }, { merge: true }),
-        db.collection('config').doc('materials').set({ value: sanitise(materials), updatedAt: new Date().toISOString() }, { merge: true }),
+        fbSet('config', 'plants',    { value: sanitise(plants),    updatedAt: new Date().toISOString() }),
+        fbSet('config', 'materials', { value: sanitise(materials), updatedAt: new Date().toISOString() }),
       ]);
     }
   } catch(e) { console.warn('[Firebase] save error:', e.message); }
@@ -1619,8 +1900,8 @@ function deleteItem(type, id) {
   ls.set('gt_materials', JSON.stringify(materials));
   if (fbReady) {
     const sanitise = list => list.map(i => ({ ...i, img: i.img && i.img.startsWith('http') ? i.img : (i.img||'') }));
-    db.collection('config').doc('plants').set({ value: sanitise(plants) }, { merge: true }).catch(e => console.warn(e));
-    db.collection('config').doc('materials').set({ value: sanitise(materials) }, { merge: true }).catch(e => console.warn(e));
+    fbSet('config', 'plants',    { value: sanitise(plants) }).catch(e => console.warn(e));
+    fbSet('config', 'materials', { value: sanitise(materials) }).catch(e => console.warn(e));
   }
   renderPlantsGrid();
   renderMaterialsGrid();
@@ -1769,6 +2050,19 @@ setTimeout(() => {
   window.addEventListener('resize', () => { svcCarousel.goTo(0); galCarousel.goTo(0); });
 }, 500);
 </script>
+
+
+<!-- ADMIN ORDERS MODAL -->
+<div class="modal-overlay" id="adminModal">
+  <div class="modal" style="max-width:720px;max-height:min(85vh,700px);display:flex;flex-direction:column;overflow:hidden;">
+    <button class="modal-close" onclick="closeAdminModal()">✕</button>
+    <h2 style="margin-bottom:4px;">📋 Orders Dashboard</h2>
+    <p style="font-size:13px;color:var(--text-light);margin-bottom:16px;">
+      Live updates — status changes reflect instantly for customers.
+    </p>
+    <div id="adminOrdersContainer" style="overflow-y:auto;flex:1;padding-right:4px;"></div>
+  </div>
+</div>
 
 <!-- ITEM EDIT MODAL (plants / materials) -->
 <div class="modal-overlay" id="itemModal">
