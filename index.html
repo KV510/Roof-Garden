@@ -33,17 +33,22 @@
     background: rgba(255,255,255,0.96); backdrop-filter: blur(12px);
     border-bottom: 1.5px solid var(--green-pale);
     display: flex; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; padding: 0 32px; min-height: 68px;
+    padding: 0 24px; min-height: 64px; gap: 8px;
     box-shadow: 0 2px 20px rgba(45,106,79,0.08);
   }
-  .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-  .logo-icon { font-size: 30px; }
-  .logo-text { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--green-deep); font-weight: 700; line-height: 1.1; }
-  .logo-sub { font-size: 11px; color: var(--text-light); font-weight: 400; letter-spacing: 1.5px; text-transform: uppercase; }
-  .nav { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; flex-shrink: 1; }
-  .nav a { padding: 7px 12px; border-radius: 50px; font-size: 13px; font-weight: 500; color: var(--text-mid); text-decoration: none; transition: all 0.2s; white-space: nowrap; }
+  #navGreeting { font-size:13px;font-weight:600;color:var(--green-deep);padding:5px 12px;background:var(--green-mist);border-radius:50px;white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis;flex-shrink:0; }
+  .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; flex-shrink: 0; }
+  .logo-icon { font-size: 28px; }
+  .logo-text { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--green-deep); font-weight: 700; line-height: 1.1; }
+  .logo-sub { font-size: 10px; color: var(--text-light); font-weight: 400; letter-spacing: 1.5px; text-transform: uppercase; }
+  .nav { display: flex; align-items: center; gap: 2px; flex: 1; justify-content: center; }
+  .nav a { padding: 6px 9px; border-radius: 50px; font-size: 12px; font-weight: 500; color: var(--text-mid); text-decoration: none; transition: all 0.2s; white-space: nowrap; }
   .nav a:hover { background: var(--green-pale); color: var(--green-deep); }
-  .nav-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .nav-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  /* Compact admin buttons in navbar */
+  .nav-actions .btn-primary { padding: 7px 12px !important; font-size: 12px !important; }
+  .nav-actions .btn-logout  { padding: 7px 12px; font-size: 12px; }
+  .nav-actions .role-badge  { padding: 5px 10px; font-size: 11px; }
   .btn-login { padding: 9px 22px; border-radius: 50px; border: 2px solid var(--green-mid); background: transparent; color: var(--green-mid); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
   .btn-login:hover { background: var(--green-mid); color: white; }
   .btn-primary { padding: 16px 36px; border-radius: 50px; border: none; background: linear-gradient(135deg, var(--green-deep), var(--green-mid)); color: white; font-size: 16px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.3s; box-shadow: 0 8px 24px rgba(45,106,79,0.35); }
@@ -57,7 +62,7 @@
   .btn-logout:hover { background: #fecaca; }
 
   /* HERO */
-  .hero { margin-top: 68px; min-height: 92vh; background: linear-gradient(135deg, var(--green-mist) 0%, var(--green-pale) 50%, #c7f0d8 100%); display: flex; align-items: center; justify-content: center; text-align: center; padding: 60px 24px; position: relative; overflow: hidden; }
+  .hero { margin-top: 64px; min-height: 92vh; background: linear-gradient(135deg, var(--green-mist) 0%, var(--green-pale) 50%, #c7f0d8 100%); display: flex; align-items: center; justify-content: center; text-align: center; padding: 60px 24px; position: relative; overflow: hidden; }
   .hero::before { content: ''; position: absolute; inset: 0; background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2340916c' fill-opacity='0.04'%3E%3Cpath d='M0 0h40v40H0zm40 40h40v40H40z'/%3E%3C/g%3E%3C/svg%3E"); }
   .hero-float { position: absolute; font-size: 80px; opacity: 0.12; animation: floatLeaf 6s ease-in-out infinite; pointer-events: none; }
   .hero-float:nth-child(1) { top: 10%; left: 5%; animation-delay: 0s; }
@@ -146,6 +151,26 @@
 
   /* Contact edit button */
   /* Edit Page FAB — fixed button for admin */
+  /* Admin modal tabs */
+  .admin-l1-tab {
+    padding: 8px 20px; border-radius: 50px; border: 2px solid var(--green-pale);
+    background: white; color: var(--text-mid); font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s;
+  }
+  .admin-l1-tab.active-l1 { background: var(--green-deep); color: white; border-color: var(--green-deep); }
+  .admin-l2-tab {
+    padding: 6px 14px; border-radius: 50px; border: 1.5px solid var(--green-pale);
+    background: white; color: var(--text-mid); font-size: 12px; font-weight: 600;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .admin-l2-tab.active-l2 { background: var(--green-mid); color: white; border-color: var(--green-mid); }
+  .admin-l2-tab .tab-count {
+    background: rgba(255,255,255,0.3); border-radius: 50px;
+    padding: 1px 6px; font-size: 10px;
+  }
+  .admin-l2-tab:not(.active-l2) .tab-count { background: var(--green-pale); color: var(--green-mid); }
+
   .edit-page-fab {
     position: fixed; bottom: 90px; right: 24px; z-index: 1500;
     width: 48px; height: 48px; border-radius: 50%; border: none;
@@ -415,10 +440,30 @@
   @keyframes revealAll { to { opacity: 1; transform: translateY(0); } }
 
   @media (max-width: 768px) {
-    .topbar { padding: 0 16px; }
-    .nav { display: none; }
-    .hamburger { display: flex; }
-    .nav-actions { display: none; }
+    /* Mobile: 2-row topbar */
+    .topbar {
+      flex-wrap: wrap; padding: 6px 12px; min-height: auto; gap: 0; align-items: center;
+    }
+    /* Row 1: logo (left) + nav-actions (right) — both order:1 so they sit on same row */
+    .logo       { order: 1; flex: 0 0 auto; }
+    .nav-actions { order: 2; flex: 0 0 auto; margin-left: auto; display: flex; gap: 5px; }
+    /* Row 2: nav links spanning full width */
+    .nav {
+      order: 3; flex: 0 0 100%;
+      display: flex; overflow-x: auto; gap: 0;
+      border-top: 1px solid var(--green-pale);
+      margin: 4px -12px 0; padding: 5px 12px;
+      -webkit-overflow-scrolling: touch; scrollbar-width: none;
+      justify-content: flex-start;
+    }
+    .nav::-webkit-scrollbar { display: none; }
+    .nav a { font-size: 12px; padding: 5px 10px; white-space: nowrap; flex-shrink: 0; }
+    .nav-actions .btn-primary { padding: 6px 10px !important; font-size: 11px !important; }
+    .nav-actions .btn-login   { padding: 6px 10px; font-size: 11px; }
+    .nav-actions .btn-logout  { padding: 6px 10px; font-size: 11px; }
+    .nav-actions .role-badge  { display: none; }
+    .hamburger { display: none; }
+    .mobile-nav-drawer { display: none !important; }
     .catalog-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
   }
 
@@ -430,6 +475,7 @@
 
 <!-- TOPBAR -->
 <header class="topbar">
+  <!-- Logo — always left -->
   <a href="#home" class="logo">
     <span class="logo-icon">🌿</span>
     <div>
@@ -437,6 +483,9 @@
       <div class="logo-sub">Coimbatore</div>
     </div>
   </a>
+  <!-- Greeting — shown when signed in -->
+  <div id="navGreeting" style="display:none;font-size:13px;font-weight:600;color:var(--green-deep);padding:5px 12px;background:var(--green-mist);border-radius:50px;white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis;"></div>
+  <!-- Nav links — center on desktop, row 2 on mobile -->
   <nav class="nav" id="mainNav">
     <a href="#home">Home</a>
     <a href="#gallery">Gallery</a>
@@ -447,11 +496,11 @@
     <a href="#visit-booking">Book Visit</a>
     <a href="#contact">Contact</a>
   </nav>
+  <!-- Action buttons — always right -->
   <div class="nav-actions" id="navActions">
     <button class="btn-login" onclick="try{openAuthModal('signin')}catch(e){var m=document.getElementById('loginModal');if(m){m.style.display='flex';m.classList.add('open');}}">Sign In</button>
     <button class="btn-primary" style="padding:9px 22px;font-size:14px;" onclick="try{openAuthModal('register')}catch(e){var m=document.getElementById('loginModal');if(m){m.style.display='flex';m.classList.add('open');}}">Register</button>
   </div>
-  <button class="hamburger" id="hamburgerBtn" onclick="toggleMobileNav()"><span></span><span></span><span></span></button>
 </header>
 
 <!-- MOBILE DRAWER -->
@@ -1000,12 +1049,17 @@ const defaultGallery = [
   { id: 4, title: 'Full Terrace Setup', desc: 'Singanallur Villa', mediaType: 'image', src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/GardenCenter.jpg/640px-GardenCenter.jpg', price: 149, featured: true },
 ];
 
-let plants = JSON.parse(ls.get('gt_plants')) || defaultPlants;
-let materials = JSON.parse(ls.get('gt_materials')) || defaultMaterials;
-let packages = JSON.parse(ls.get('gt_packages')) || defaultPackages;
-let contactInfo = JSON.parse(ls.get('gt_contact')) || defaultContact;
-let gallery = JSON.parse(ls.get('gt_gallery')) || defaultGallery;
-let customCategories = JSON.parse(ls.get('gt_custom_cats')) || [];
+// localStorage used ONLY as display cache while Firestore loads.
+// Firestore is always the source of truth — it overwrites localStorage on every load.
+// localStorage data is shown briefly on startup for fast rendering, then replaced.
+let plants          = JSON.parse(ls.get('gt_plants'))      || defaultPlants;
+let materials       = JSON.parse(ls.get('gt_materials'))   || defaultMaterials;
+let packages        = JSON.parse(ls.get('gt_packages'))    || defaultPackages;
+let contactInfo     = JSON.parse(ls.get('gt_contact'))     || defaultContact;
+let gallery         = JSON.parse(ls.get('gt_gallery'))     || defaultGallery;
+let customCategories= JSON.parse(ls.get('gt_custom_cats')) || [];
+// Flag: true once Firestore has loaded — prevents localStorage writes overwriting cloud data
+let cloudDataLoaded = false;
 let unlockedGallery = JSON.parse(ls.get('gt_gallery_unlocked')) || [];
 
 // ================================================================
@@ -1212,7 +1266,7 @@ function saveContact() {
   contactInfo.email    = document.getElementById('ceEmail').value.trim();
   contactInfo.hours    = document.getElementById('ceHours').value.trim();
   contactInfo.whatsapp = document.getElementById('ceWhatsapp').value.trim();
-  ls.set('gt_contact', JSON.stringify(contactInfo));
+  if (cloudDataLoaded) ls.set('gt_contact', JSON.stringify(contactInfo));
   if (fbReady) fbSet('config', 'contact', { value: contactInfo, updatedAt: new Date().toISOString() });
   closeContactModal();
   renderContact();
@@ -1347,6 +1401,39 @@ function renderAll() {
   fns.forEach(fn => { try { fn(); } catch(e) { console.warn('[renderAll] ' + fn.name + ' failed:', e.message); } });
   // Add/remove inline edit buttons based on admin status
   renderAdminEditBtns();
+}
+
+
+// ── Logo image upload ─────────────────────────────────────────────────────
+async function peLogoUpload(input) {
+  const file = input.files[0]; if (!file) return;
+  // Show local preview immediately
+  const prev = document.getElementById('pe-logo-preview');
+  if (prev) prev.innerHTML = `<img src="${URL.createObjectURL(file)}" style="width:100%;height:100%;object-fit:contain;">`;
+  // Upload to Supabase
+  const url = await uploadToStorage(file, 'logo', 'pe-logo-progress');
+  if (url && !url.startsWith('data:')) {
+    pageContent.logoImgSrc = url;
+    pageContent.logoEmoji  = ''; // clear emoji when image set
+    const clearBtn = document.getElementById('pe-logo-clear-btn');
+    if (clearBtn) clearBtn.style.display = 'inline-block';
+    showToast('✅ Logo uploaded!');
+  } else if (url) {
+    // base64 fallback
+    pageContent.logoImgSrc = url;
+  }
+  // Apply immediately
+  applyPageContent(pageContent);
+}
+
+function peLogoClear() {
+  pageContent.logoImgSrc = '';
+  const prev = document.getElementById('pe-logo-preview');
+  if (prev) prev.innerHTML = pageContent.logoEmoji || '🌿';
+  const clearBtn = document.getElementById('pe-logo-clear-btn');
+  if (clearBtn) clearBtn.style.display = 'none';
+  applyPageContent(pageContent);
+  showToast('Logo image removed');
 }
 
 function renderAdminEditBtns() {
@@ -1570,57 +1657,54 @@ function updateNavActions() {
   const fab          = document.getElementById('cartFab');
   const visitSection = document.getElementById('visit-booking');
   const enquiryWrap  = document.getElementById('enquiryFormWrap');
+  const greetEl      = document.getElementById('navGreeting');
+
+  // Helper — show/hide greeting bar
+  function setGreeting(name, role) {
+    if (!greetEl) return;
+    if (!name) { greetEl.style.display = 'none'; return; }
+    const emoji = role === 'admin' ? '⚙️' : '👋';
+    greetEl.textContent = `${emoji} ${getGreeting()}, ${name}!`;
+    greetEl.style.display = 'block';
+  }
 
   if (!currentRole) {
-    // ── Guest ──────────────────────────────────────────────────────
-    el.innerHTML  = `<button class="btn-login" onclick="openAuthModal('signin')">Sign In</button>
+    // ── Guest ─────────────────────────────────────────────────────────
+    setGreeting(null);
+    el.innerHTML = `
+      <button class="btn-login" onclick="openAuthModal('signin')">Sign In</button>
       <button class="btn-primary" style="padding:9px 22px;font-size:14px;" onclick="openAuthModal('register')">Register</button>`;
-    mel.innerHTML = `<button class="btn-login" onclick="closeMobileNav();openAuthModal('signin')">Sign In</button>
-      <button class="btn-primary" style="padding:9px 22px;font-size:14px;" onclick="closeMobileNav();openAuthModal('register')">Register</button>`;
     if (fab) fab.style.display = 'none';
     if (visitSection) visitSection.style.display = 'none';
     if (enquiryWrap)  enquiryWrap.style.display  = '';
 
   } else if (currentRole === 'admin') {
-    // ── Admin — show their name ─────────────────────────────────────
+    // ── Admin ─────────────────────────────────────────────────────────
     const name = currentAdminName || 'Admin';
-    el.innerHTML  = `
-      <span class="role-badge role-admin">⚙️ ${name}</span>
-      <button class="btn-primary" style="padding:9px 16px;font-size:13px;position:relative;" onclick="openAdminModal('orders');clearOrdersBadge()">
+    setGreeting(name, 'admin');
+    el.innerHTML = `
+      <button class="btn-primary" style="position:relative;" onclick="openAdminModal('orders');clearOrdersBadge()">
         🛒 Orders
-        <span id="ordersBadge" style="display:none;position:absolute;top:-6px;right:-6px;background:#ef4444;color:white;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:700;align-items:center;justify-content:center;border:2px solid white;"></span>
+        <span id="ordersBadge" style="display:none;position:absolute;top:-5px;right:-5px;background:#ef4444;color:white;border-radius:50%;min-width:16px;height:16px;font-size:9px;font-weight:700;align-items:center;justify-content:center;border:2px solid white;padding:0 3px;"></span>
       </button>
-      <button class="btn-primary" style="padding:9px 16px;font-size:13px;position:relative;background:linear-gradient(135deg,#0369a1,#0284c7);" onclick="openAdminModal('bookings');clearBookingsBadge()">
+      <button class="btn-primary" style="position:relative;" onclick="openAdminModal('bookings');clearBookingsBadge()">
         📅 Bookings
-        <span id="bookingsBadge" style="display:none;position:absolute;top:-6px;right:-6px;background:#ef4444;color:white;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:700;align-items:center;justify-content:center;border:2px solid white;"></span>
+        <span id="bookingsBadge" style="display:none;position:absolute;top:-5px;right:-5px;background:#ef4444;color:white;border-radius:50%;min-width:16px;height:16px;font-size:9px;font-weight:700;align-items:center;justify-content:center;border:2px solid white;padding:0 3px;"></span>
       </button>
-      <button class="btn-logout" onclick="doLogout()">Sign Out</button>`;
-    mel.innerHTML = `
-      <span class="role-badge role-admin" style="text-align:center;">⚙️ ${name}</span>
-      <button class="btn-primary" style="padding:9px 16px;font-size:13px;" onclick="closeMobileNav();openAdminModal()">📋 Orders</button>
-      <button class="btn-logout" onclick="doLogout()">Sign Out</button>`;
+      <button class="btn-logout" onclick="doLogout()" style="font-size:12px;padding:7px 12px;">Sign Out</button>`;
     if (fab) fab.style.display = 'none';
     if (visitSection) visitSection.style.display = '';
     if (enquiryWrap)  enquiryWrap.style.display  = 'none';
 
   } else {
-    // ── Logged-in Customer — show name + greeting ───────────────────
+    // ── Customer ──────────────────────────────────────────────────────
     const name = currentUser
       ? currentUser.username.charAt(0).toUpperCase() + currentUser.username.slice(1)
       : 'Guest';
-    el.innerHTML  = `
-      <span class="role-badge role-staff" style="font-size:12px;">
-        👋 ${getGreeting()}, ${name}!
-      </span>
+    setGreeting(name, 'user');
+    el.innerHTML = `
       <button class="btn-primary" style="padding:9px 16px;font-size:13px;" onclick="openOrderModal()">🛒 Order</button>
       <button class="btn-login"   style="padding:9px 16px;font-size:13px;" onclick="openMyOrdersModal()">📦 My Orders</button>
-      <button class="btn-logout" onclick="doLogout()">Sign Out</button>`;
-    mel.innerHTML = `
-      <span class="role-badge role-staff" style="text-align:center;font-size:12px;">
-        👋 ${getGreeting()}, ${name}!
-      </span>
-      <button class="btn-primary" style="padding:9px 16px;font-size:13px;" onclick="closeMobileNav();openOrderModal()">🛒 Order</button>
-      <button class="btn-login"   style="padding:9px 16px;font-size:13px;" onclick="closeMobileNav();openMyOrdersModal()">📦 My Orders</button>
       <button class="btn-logout" onclick="doLogout()">Sign Out</button>`;
     if (fab) fab.style.display = 'flex';
     if (visitSection) visitSection.style.display = '';
@@ -1950,21 +2034,23 @@ function setupAdminNotifications() {
 
 function updateBookingBadge(count) {
   const badge = document.getElementById('bookingsBadge');
-  if (!badge) return;
-  const cur = parseInt(badge.textContent) || 0;
-  badge.textContent = cur + count;
-  badge.style.display = 'flex';
+  if (badge) { const cur=parseInt(badge.textContent)||0; badge.textContent=cur+count; badge.style.display='flex'; }
+  updateDashBadge();
 }
 
 function updateOrderBadge() {
   const badge = document.getElementById('ordersBadge');
-  if (!badge) return;
-  const cur = parseInt(badge.textContent) || 0;
-  badge.textContent = cur + 1;
-  badge.style.display = 'flex';
+  if (badge) { const cur=parseInt(badge.textContent)||0; badge.textContent=cur+1; badge.style.display='flex'; }
+  updateDashBadge();
 }
 
 async function submitVisitBooking() {
+  // Must be logged in to book a visit
+  if (!currentRole || !currentUser) {
+    showToast('⚠️ Please sign in to book a visit');
+    openAuthModal('signin');
+    return;
+  }
   const name = document.getElementById('visitName').value.trim();
   const wa = document.getElementById('visitWA').value.trim();
   const purpose = document.getElementById('visitPurpose').value;
@@ -1972,7 +2058,7 @@ async function submitVisitBooking() {
   if (!wa) { showToast('⚠️ Please enter your WhatsApp number'); return; }
   if (!selectedBookingDate) { showToast('⚠️ Please select a date'); return; }
   if (!selectedBookingSlot) { showToast('⚠️ Please select a time slot'); return; }
-  const booking = { id: Date.now(), name, wa, purpose, date: selectedBookingDate, slot: selectedBookingSlot, status: 'pending', createdAt: new Date().toISOString(), user: currentUser?.username||'guest' };
+  const booking = { id: Date.now(), name, wa, purpose, date: selectedBookingDate, slot: selectedBookingSlot, status: 'pending', createdAt: new Date().toISOString(), user: currentUser?.username||'guest', userId: currentUser?.uid || null };
   const bookings = getBookings(); bookings.unshift(booking); ls.set('gt_bookings', JSON.stringify(bookings));
   await fbAdd('enquiry', booking).catch(()=>{});
   addActivityLog('order','📅',`Visit booking: ${name} on ${selectedBookingDate} at ${selectedBookingSlot}`);
@@ -2007,58 +2093,109 @@ function clearBookingsBadge() {
 }
 
 let _unsubBookingsList = null;
-async function renderAdminBookings(container) {
+async function renderAdminBookings(container, filterTab) {
   if (!container) return;
   container.innerHTML = '<p style="text-align:center;padding:30px;color:var(--text-light);">⏳ Loading bookings…</p>';
   if (_unsubBookingsList) { _unsubBookingsList(); _unsubBookingsList = null; }
   if (!fbReady) { container.innerHTML='<p style="color:#dc2626;text-align:center;padding:20px;">❌ Not connected to database</p>'; return; }
 
-  // Use live snapshot so list updates when new bookings arrive
   _unsubBookingsList = db.collection('enquiry').onSnapshot(snap => {
-    const bookings = snap.docs.map(d => ({ _id: d.id, ...d.data() }))
+    let bookings = snap.docs.map(d => ({ _id: d.id, ...d.data() }))
       .filter(b => b.date)
       .sort((a, b) => new Date(b.createdAt||b.time||0) - new Date(a.createdAt||a.time||0));
+
+    // Update L1 + L2 counts
+    const countEl = document.getElementById('l1-bookings-count');
+    if (countEl) countEl.textContent = bookings.length;
+    updateL2Counts(bookings, false);
+
+    // Filter by tab
+    const ft = filterTab || currentL2Tab || 'upcoming';
+    if (ft === 'visited')   bookings = bookings.filter(b => b.status === 'visited');
+    else if (ft === 'cancelled') bookings = bookings.filter(b => b.status === 'cancelled');
+    else bookings = bookings.filter(b => !['visited','cancelled'].includes(b.status));
 
     if (!bookings.length) {
       container.innerHTML = '<p style="text-align:center;padding:40px;color:var(--text-light);">No bookings yet.</p>';
       return;
     }
 
-    container.innerHTML = bookings.map(b => {
-      const statusColor = b.status === 'confirmed' ? '#d1fae5' : b.status === 'cancelled' ? '#fee2e2' : '#fef3c7';
-      const statusText  = b.status === 'confirmed' ? '✅ Confirmed' : b.status === 'cancelled' ? '❌ Cancelled' : '⏳ Pending';
-      return `<div style="background:white;border:1.5px solid var(--green-pale);border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 6px rgba(45,106,79,0.07);">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+    // Group by customer
+    const byCust = {};
+    bookings.forEach(b => {
+      const key = b.userId || b.wa || b.name || 'Unknown';
+      if (!byCust[key]) byCust[key] = { name: b.name||'Unknown', wa: b.wa||b.whatsapp||'', bookings: [] };
+      byCust[key].bookings.push(b);
+    });
+
+    container.innerHTML = Object.entries(byCust).map(([key, cust]) => `
+      <div style="background:white;border:1.5px solid var(--green-pale);border-radius:14px;margin-bottom:16px;overflow:hidden;box-shadow:0 2px 10px rgba(45,106,79,0.07);">
+        <div style="background:linear-gradient(135deg,#e0f2fe,#bae6fd);padding:12px 16px;border-bottom:1.5px solid #bae6fd;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
           <div>
-            <div style="font-weight:700;font-size:14px;color:var(--green-deep);">👤 ${b.name||'Unknown'}</div>
-            <div style="font-size:12px;color:var(--text-light);">📱 ${b.wa||b.whatsapp||'—'}</div>
+            <div style="font-weight:700;font-size:15px;color:#0369a1;">👤 ${cust.name}</div>
+            ${cust.wa ? `<div style="font-size:12px;color:#0284c7;">📱 ${cust.wa}</div>` : ''}
           </div>
-          <div style="text-align:right;">
-            <div style="font-weight:700;font-size:13px;color:var(--green-deep);">📅 ${b.date||'—'} &nbsp; ⏰ ${b.slot||'—'}</div>
-            <div style="font-size:11px;color:var(--text-light);">${b.time ? new Date(b.time).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : ''}</div>
-          </div>
-        </div>
-        <div style="font-size:13px;color:var(--text-mid);margin-bottom:8px;">📋 ${b.purpose||'General Enquiry'}</div>
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding-top:10px;border-top:1px solid var(--green-pale);">
-          <span style="padding:4px 12px;border-radius:50px;font-size:12px;font-weight:700;background:${statusColor};">${statusText}</span>
-          <div style="display:flex;gap:6px;">
-            <button onclick="updateBookingStatus('${b._id}','confirmed')" style="padding:5px 12px;border-radius:50px;border:none;background:#d1fae5;color:#065f46;font-size:11px;font-weight:700;cursor:pointer;">✅ Confirm</button>
-            <button onclick="updateBookingStatus('${b._id}','cancelled')" style="padding:5px 12px;border-radius:50px;border:none;background:#fee2e2;color:#991b1b;font-size:11px;font-weight:700;cursor:pointer;">❌ Cancel</button>
-            ${b.wa ? `<a href="https://wa.me/${(b.wa||'').replace(/\D/g,'')}" target="_blank" style="padding:5px 12px;border-radius:50px;border:none;background:#dcfce7;color:#166534;font-size:11px;font-weight:700;cursor:pointer;text-decoration:none;">💬 WhatsApp</a>` : ''}
+          <div style="display:flex;gap:6px;align-items:center;">
+            ${cust.wa ? `<a href="https://wa.me/${cust.wa.replace(/\D/g,'')}" target="_blank" style="padding:5px 12px;border-radius:50px;background:#dcfce7;color:#166534;font-size:11px;font-weight:700;text-decoration:none;">💬 WhatsApp</a>` : ''}
+            <span style="font-size:12px;font-weight:600;color:#0369a1;">${cust.bookings.length} booking${cust.bookings.length>1?'s':''}</span>
           </div>
         </div>
-      </div>`;
-    }).join('');
+        ${cust.bookings.map(b => {
+          const sc = b.status==='confirmed'?'#d1fae5':b.status==='cancelled'?'#fee2e2':'#fef3c7';
+          const st = b.status==='confirmed'?'✅ Confirmed':b.status==='cancelled'?'❌ Cancelled':'⏳ Pending';
+          return `<div style="padding:14px 16px;border-bottom:1px solid var(--green-pale);">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+              <div>
+                <div style="font-weight:700;font-size:13px;color:var(--green-deep);">📅 ${b.date||'—'} &nbsp; ⏰ ${b.slot||'—'}</div>
+                <div style="font-size:12px;color:var(--text-mid);">📋 ${b.purpose||'General Enquiry'}</div>
+              </div>
+              <div style="font-size:11px;color:var(--text-light);text-align:right;">
+                ${b.createdAt ? new Date(b.createdAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short'}) : ''}
+              </div>
+            </div>
+            ${b.adminNote ? `<div style="padding:7px 12px;background:#fffbeb;border-radius:8px;font-size:12px;color:#92400e;margin-bottom:8px;">📋 <strong>Note to customer:</strong> ${b.adminNote}</div>` : ''}
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+              <span style="padding:4px 12px;border-radius:50px;font-size:12px;font-weight:700;background:${sc};">${st}</span>
+              <button onclick="updateBookingStatus('${b._id}','confirmed')" style="padding:5px 12px;border-radius:50px;border:none;background:#d1fae5;color:#065f46;font-size:11px;font-weight:700;cursor:pointer;">✅ Confirm</button>
+              <button onclick="updateBookingStatus('${b._id}','visited')" style="padding:5px 12px;border-radius:50px;border:none;background:#f0fdf4;color:#166534;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid #bbf7d0;">🏡 Visited</button>
+              <button onclick="updateBookingStatus('${b._id}','cancelled')" style="padding:5px 12px;border-radius:50px;border:none;background:#fee2e2;color:#991b1b;font-size:11px;font-weight:700;cursor:pointer;">❌ Cancel</button>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <input type="text" id="bNote-${b._id}" placeholder="✏️ Add note for customer (they will see this)…"
+                value="${(b.adminNote||'').replace(/"/g,'&quot;')}"
+                style="flex:1;padding:7px 12px;border-radius:8px;border:1.5px solid var(--green-pale);font-size:12px;font-family:'DM Sans',sans-serif;background:var(--green-mist);"
+                onkeydown="if(event.key==='Enter')saveBookingNote('${b._id}')">
+              <button onclick="saveBookingNote('${b._id}')" style="padding:7px 14px;border-radius:8px;border:none;background:#0284c7;color:white;font-size:12px;font-weight:600;cursor:pointer;">💾</button>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`).join('');
   }, err => {
     container.innerHTML = `<p style="color:#dc2626;text-align:center;padding:20px;">❌ ${err.message}</p>`;
   });
+}
+
+
+async function saveBookingNote(docId) {
+  if (currentRole !== 'admin' || !fbReady) return;
+  const el = document.getElementById('bNote-' + docId);
+  if (!el) return;
+  const note = el.value.trim();
+  try {
+    await db.collection('enquiry').doc(docId).update({ adminNote: note, adminSeen: true });
+    showToast('✅ Note saved — customer will see this');
+  } catch(e) { showToast('❌ ' + e.message); }
 }
 
 async function updateBookingStatus(docId, status) {
   if (!fbReady) return;
   try {
     await db.collection('enquiry').doc(docId).update({ status, adminSeen: true });
-    showToast('✅ Booking ' + status);
+    const labels = { confirmed:'Confirmed ✅', visited:'Marked as Visited 🏡', cancelled:'Cancelled ❌' };
+    showToast('✅ Booking ' + (labels[status]||status));
+    // Switch to the correct tab to show the moved booking
+    if (status === 'visited')   { currentL2Tab = 'visited';   renderL2Tabs(); renderCurrentTab(); }
+    if (status === 'cancelled') { currentL2Tab = 'cancelled'; renderL2Tabs(); renderCurrentTab(); }
   } catch(e) { showToast('❌ ' + e.message); }
 }
 
@@ -2066,6 +2203,13 @@ function clearOrdersBadge() {
   const badge = document.getElementById('ordersBadge');
   if (badge) { badge.textContent = '0'; badge.style.display = 'none'; }
 }
+
+function clearAllBadges() {
+  clearOrdersBadge();
+  clearBookingsBadge();
+}
+
+function updateDashBadge() { /* no-op — using separate badges */ }
 
 function openAdminModal(tab) {
   if (currentRole !== 'admin') return;
@@ -2079,86 +2223,170 @@ function closeAdminModal() {
   if (_unsubBookingsList) { _unsubBookingsList(); _unsubBookingsList = null; }
 }
 let currentAdminTab = 'orders';
-function renderAdminModalTab(tab) {
-  const title = document.getElementById('adminModalTitle');
-  const container = document.getElementById('adminOrdersContainer');
-  if (tab === 'orders') {
-    if (title) title.textContent = '🛒 Orders Dashboard';
-    startAdminOrdersListener(container);
-  } else if (tab === 'bookings') {
-    if (title) title.textContent = '📅 Visit Bookings';
-    stopAdminOrdersListener();
-    renderAdminBookings(container);
+let currentL1Tab = 'orders';
+let currentL2Tab = 'active';
+
+function switchAdminL1(l1) {
+  currentL1Tab = l1;
+  currentL2Tab = l1 === 'orders' ? 'active' : 'upcoming';
+  // Update L1 button styles
+  document.querySelectorAll('.admin-l1-tab').forEach(b => b.classList.remove('active-l1'));
+  const btn = document.getElementById('l1-' + l1);
+  if (btn) btn.classList.add('active-l1');
+  renderL2Tabs();
+  renderCurrentTab();
+}
+
+function switchAdminL2(l2) {
+  currentL2Tab = l2;
+  renderL2Tabs();
+  renderCurrentTab();
+}
+
+function renderL2Tabs() {
+  const el = document.getElementById('adminL2Tabs');
+  if (!el) return;
+  const tabs = currentL1Tab === 'orders'
+    ? [
+        { key:'active',    icon:'🛒', label:'Active'    },
+        { key:'delivered', icon:'✅', label:'Delivered'  },
+        { key:'cancelled', icon:'❌', label:'Cancelled'  },
+      ]
+    : [
+        { key:'upcoming',  icon:'📅', label:'Upcoming'   },
+        { key:'visited',   icon:'✅', label:'Visited'    },
+        { key:'cancelled', icon:'❌', label:'Cancelled'  },
+      ];
+  el.innerHTML = tabs.map(t =>
+    `<button class="admin-l2-tab${currentL2Tab===t.key?' active-l2':''}"
+      onclick="switchAdminL2('${t.key}')" id="l2-tab-${t.key}">
+      ${t.icon} ${t.label}
+      <span id="l2-count-${t.key}" class="tab-count"></span>
+    </button>`
+  ).join('');
+}
+
+// Update L2 tab counts from snapshot data
+function updateL2Counts(allItems, isOrders) {
+  if (isOrders) {
+    document.getElementById('l2-count-active')?.setAttribute('data-n',    allItems.filter(o=>!['delivered','cancelled'].includes(o.status)).length);
+    document.getElementById('l2-count-delivered')?.setAttribute('data-n', allItems.filter(o=>o.status==='delivered').length);
+    document.getElementById('l2-count-cancelled')?.setAttribute('data-n', allItems.filter(o=>o.status==='cancelled').length);
+    ['active','delivered','cancelled'].forEach(k => {
+      const el = document.getElementById('l2-count-'+k);
+      if (el) el.textContent = el.getAttribute('data-n')||'';
+    });
+  } else {
+    document.getElementById('l2-count-upcoming')?.setAttribute('data-n',  allItems.filter(b=>!['visited','cancelled'].includes(b.status)).length);
+    document.getElementById('l2-count-visited')?.setAttribute('data-n',   allItems.filter(b=>b.status==='visited').length);
+    document.getElementById('l2-count-cancelled')?.setAttribute('data-n', allItems.filter(b=>b.status==='cancelled').length);
+    ['upcoming','visited','cancelled'].forEach(k => {
+      const el = document.getElementById('l2-count-'+k);
+      if (el) el.textContent = el.getAttribute('data-n')||'';
+    });
   }
 }
 
-function startAdminOrdersListener(containerEl) {
-  if (!fbReady) {
-    containerEl.innerHTML = '<p style="color:var(--text-light);text-align:center;padding:30px;">❌ No Firebase connection.</p>';
-    return;
+function renderCurrentTab() {
+  stopAdminOrdersListener();
+  if (_unsubBookingsList) { _unsubBookingsList(); _unsubBookingsList = null; }
+  const container = document.getElementById('adminOrdersContainer');
+  if (!container) return;
+  if (currentL1Tab === 'orders') {
+    startAdminOrdersListener(container, currentL2Tab);
+  } else {
+    renderAdminBookings(container, currentL2Tab);
   }
-  // Detach any previous listener
-  if (adminOrdersListener) { adminOrdersListener(); adminOrdersListener = null; }
+}
 
+function renderAdminModalTab(tab) {
+  if (tab === 'orders')   { currentL1Tab = 'orders';   currentL2Tab = 'active'; }
+  if (tab === 'bookings') { currentL1Tab = 'bookings'; currentL2Tab = 'upcoming'; }
+  // Update modal title
+  const title = document.getElementById('adminModalTitle');
+  if (title) title.textContent = tab === 'orders' ? '🛒 Orders' : '📅 Bookings';
+  renderL2Tabs();
+  renderCurrentTab();
+}
+
+function startAdminOrdersListener(containerEl, filterTab) {
+  if (!fbReady) { containerEl.innerHTML = '<p style="color:var(--text-light);text-align:center;padding:30px;">❌ No Firebase connection.</p>'; return; }
+  if (adminOrdersListener) { adminOrdersListener(); adminOrdersListener = null; }
   containerEl.innerHTML = '<p style="text-align:center;padding:30px;color:var(--text-light);">⏳ Loading orders…</p>';
 
-  const allOrdersRef = db.collection('orders').orderBy('time', 'desc');
-  adminOrdersListener = allOrdersRef.onSnapshot(snap => {
-      const orders = snap.docs.map(d => ({ _fbId: d.id, ...d.data() }));
-      if (orders.length === 0) {
-        containerEl.innerHTML = '<p style="text-align:center;padding:30px;color:var(--text-light);">No orders yet.</p>';
-        return;
-      }
-      containerEl.innerHTML = orders.map(o => {
-        const st = o.status || 'pending';
-        const statusBadge = () => {
+  adminOrdersListener = db.collection('orders').onSnapshot(snap => {
+    let orders = snap.docs.map(d => ({ _fbId: d.id, ...d.data() }))
+      .sort((a,b) => new Date(b.time||0) - new Date(a.time||0));
+
+    // Update L1 + L2 counts
+    const countEl = document.getElementById('l1-orders-count');
+    if (countEl) countEl.textContent = orders.length;
+    updateL2Counts(orders, true);
+
+    // Filter by tab
+    const ft = filterTab || currentL2Tab || 'active';
+    if (ft === 'delivered') orders = orders.filter(o => o.status === 'delivered');
+    else if (ft === 'cancelled') orders = orders.filter(o => o.status === 'cancelled');
+    else orders = orders.filter(o => !['delivered','cancelled'].includes(o.status));
+
+    if (!orders.length) { containerEl.innerHTML = '<p style="text-align:center;padding:30px;color:var(--text-light);">No orders yet.</p>'; return; }
+
+    // Group by customer
+    const byCustomer = {};
+    orders.forEach(o => {
+      const key = o.userId || o.user || 'Unknown';
+      if (!byCustomer[key]) byCustomer[key] = { name: o.user||'Unknown', whatsapp: o.whatsapp||'', location: o.location||'', orders: [] };
+      byCustomer[key].orders.push(o);
+    });
+
+    containerEl.innerHTML = Object.entries(byCustomer).map(([uid, cust]) => `
+      <div style="background:white;border:1.5px solid var(--green-pale);border-radius:14px;margin-bottom:16px;overflow:hidden;box-shadow:0 2px 10px rgba(45,106,79,0.07);">
+        <!-- Customer header -->
+        <div style="background:linear-gradient(135deg,var(--green-mist),#e8f5e9);padding:12px 16px;border-bottom:1.5px solid var(--green-pale);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+          <div>
+            <div style="font-weight:700;font-size:15px;color:var(--green-deep);">👤 ${cust.name}</div>
+            <div style="font-size:12px;color:var(--text-light);">
+              ${cust.whatsapp ? `📱 ${cust.whatsapp}` : ''}
+              ${cust.location ? ` &nbsp;📍 ${cust.location}` : ''}
+            </div>
+          </div>
+          <span style="font-size:12px;font-weight:600;color:var(--green-mid);">${cust.orders.length} order${cust.orders.length>1?'s':''}</span>
+        </div>
+        <!-- Orders list -->
+        ${cust.orders.map(o => {
+          const st = o.status || 'pending';
           const s = ORDER_STATUSES.find(x => x.key === st) || { icon:'⏳', label: st };
-          return `<span class="order-status-badge status-${st}">${s.icon} ${s.label}</span>`;
-        };
-        return `<div class="admin-order-card">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
-            <div>
-              <div style="font-weight:700;font-size:14px;color:var(--green-deep);">👤 ${o.user}</div>
-              <div style="font-size:11px;color:var(--text-light);">
-                ${o.whatsapp ? `📱 ${o.whatsapp}` : ''}
-                ${o.location ? ` &nbsp;📍 ${o.location}` : ''}
+          return `<div style="padding:14px 16px;border-bottom:1px solid var(--green-pale);">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+              <div style="font-size:13px;color:var(--text-dark);">
+                ${(o.products||[]).map(p => `${p.emoji||''} <strong>${p.name}</strong> ×${p.qty}`).join(' · ')}
+              </div>
+              <div style="font-size:11px;color:var(--text-light);text-align:right;flex-shrink:0;">
+                📅 ${o.time ? new Date(o.time).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '—'}<br>
+                <span style="opacity:.6;">ID #${String(o.id||'').slice(-6)}</span>
               </div>
             </div>
-            <div style="font-size:11px;color:var(--text-light);text-align:right;">
-              📅 ${new Date(o.time).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}<br>
-              <span style="font-size:10px;opacity:.7;">ID #${String(o.id).slice(-6)}</span>
+            ${o.notes ? `<div style="font-size:12px;color:var(--text-light);font-style:italic;margin-bottom:8px;">📝 ${o.notes}</div>` : ''}
+            ${o.adminNote ? `<div style="padding:7px 12px;background:#fffbeb;border-radius:8px;font-size:12px;color:#92400e;margin-bottom:8px;">📋 <strong>Note to customer:</strong> ${o.adminNote}</div>` : ''}
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span class="order-status-badge status-${st}" style="font-size:11px;">${s.icon} ${s.label}</span>
+              <select onchange="updateOrderStatus('${o._fbId}',this.value)" style="padding:5px 10px;border-radius:8px;border:1.5px solid var(--green-pale);font-size:12px;font-family:'DM Sans',sans-serif;background:var(--green-mist);outline:none;cursor:pointer;">
+                <option value="">— Change Status —</option>
+                ${ORDER_STATUSES.map(x => `<option value="${x.key}" ${st===x.key?'selected':''}>${x.icon} ${x.label}</option>`).join('')}
+                <option value="cancelled" ${st==='cancelled'?'selected':''}>❌ Cancelled</option>
+              </select>
             </div>
-          </div>
-          <div style="font-size:13px;color:var(--text-dark);margin-bottom:6px;">
-            ${o.products.map(p => `${p.emoji} <strong>${p.name}</strong> ×${p.qty}`).join(' &nbsp;·&nbsp; ')}
-          </div>
-          ${o.notes ? `<div style="font-size:12px;color:var(--text-light);font-style:italic;margin-bottom:4px;">📝 ${o.notes}</div>` : ''}
-          ${o.adminNote ? `<div style="padding:8px 12px;background:#fffbeb;border-radius:8px;border-left:3px solid #f59e0b;font-size:12px;color:#92400e;margin-bottom:6px;">
-            📋 <strong>Admin Note:</strong> ${o.adminNote}</div>` : ''}
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--green-pale);">
-            ${statusBadge()}
-            <select class="admin-order-status-select" onchange="updateOrderStatus('${o._fbId}', this.value)">
-              <option value="">— Update Status —</option>
-              ${ORDER_STATUSES.map(s => `<option value="${s.key}" ${st===s.key?'selected':''}>${s.icon} ${s.label}</option>`).join('')}
-              <option value="cancelled" ${st==='cancelled'?'selected':''}>❌ Cancelled</option>
-            </select>
-          </div>
-          <div style="display:flex;gap:6px;align-items:center;margin-top:8px;">
-            <input type="text" id="adminNote-${o._fbId}"
-              placeholder="📋 Add note visible to customer…"
-              value="${(o.adminNote||'').replace(/"/g,'&quot;')}"
-              style="flex:1;padding:7px 12px;border-radius:8px;border:1.5px solid var(--green-pale);font-size:12px;font-family:'DM Sans',sans-serif;background:var(--green-mist);"
-              onkeydown="if(event.key==='Enter') saveAdminNote('${o._fbId}')">
-            <button onclick="saveAdminNote('${o._fbId}')"
-              style="padding:7px 14px;border-radius:8px;border:none;background:var(--green-mid);color:white;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">
-              💾 Save Note
-            </button>
-          </div>
-        </div>`;
-      }).join('');
-  }, err => {
-    containerEl.innerHTML = `<p style="color:#dc2626;text-align:center;padding:20px;">❌ ${err.message}</p>`;
-  });
+            <div style="display:flex;gap:6px;align-items:center;margin-top:8px;">
+              <input type="text" id="adminNote-${o._fbId}" placeholder="✏️ Add note for customer (they will see this)…"
+                value="${(o.adminNote||'').replace(/"/g,'&quot;')}"
+                style="flex:1;padding:7px 12px;border-radius:8px;border:1.5px solid var(--green-pale);font-size:12px;font-family:'DM Sans',sans-serif;background:var(--green-mist);"
+                onkeydown="if(event.key==='Enter')saveAdminNote('${o._fbId}')">
+              <button onclick="saveAdminNote('${o._fbId}')" style="padding:7px 14px;border-radius:8px;border:none;background:var(--green-mid);color:white;font-size:12px;font-weight:600;cursor:pointer;">💾</button>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`).join('');
+  }, err => { containerEl.innerHTML = `<p style="color:#dc2626;text-align:center;padding:20px;">❌ ${err.message}</p>`; });
 }
 
 function stopAdminOrdersListener() {
@@ -2175,6 +2403,9 @@ async function updateOrderStatus(fbId, newStatus) {
     });
     showToast(`✅ Order marked as ${newStatus}`);
     addActivityLog('admin', '📦', `Order status updated → ${newStatus}`);
+    // Auto-switch to correct tab
+    if (newStatus === 'delivered') { currentL2Tab = 'delivered'; renderL2Tabs(); renderCurrentTab(); }
+    if (newStatus === 'cancelled') { currentL2Tab = 'cancelled'; renderL2Tabs(); renderCurrentTab(); }
   } catch(e) {
     showToast('❌ Failed to update: ' + e.message);
   }
@@ -2668,8 +2899,10 @@ function deleteItem(type, id) {
   if (!confirm('Delete this item?')) return;
   if (type === 'plant')    plants    = plants.filter(x => x.id !== id);
   else                     materials = materials.filter(x => x.id !== id);
-  ls.set('gt_plants',    JSON.stringify(plants));
-  ls.set('gt_materials', JSON.stringify(materials));
+  if (cloudDataLoaded) {
+    ls.set('gt_plants',    JSON.stringify(plants));
+    ls.set('gt_materials', JSON.stringify(materials));
+  }
   if (fbReady) {
     const sanitise = list => list.map(i => ({ ...i, img: i.img && i.img.startsWith('http') ? i.img : (i.img||'') }));
     db.collection('config').doc('plants').set({ value: sanitise(plants) }, { merge: true }).catch(e => console.warn(e));
@@ -2826,7 +3059,7 @@ async function peDeleteGalleryItem(id) {
 }
 
 async function peGallerySave() {
-  ls.set('gt_gallery', JSON.stringify(gallery));
+  if (cloudDataLoaded) ls.set('gt_gallery', JSON.stringify(gallery));
   if (fbReady) {
     const clean = gallery.map(g => ({
       ...g,
@@ -2865,10 +3098,24 @@ function renderPETab(tab) {
   const pc = pageContent;
 
   if (tab === 'logo') {
+    const curImg = pc.logoImgSrc || '';
     el.innerHTML = `
+      <div class="pe-field">
+        <label>Logo Image</label>
+        <div id="pe-logo-preview" style="width:72px;height:72px;border-radius:12px;background:var(--green-mist);display:flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:10px;overflow:hidden;border:1.5px solid var(--green-pale);">
+          ${curImg ? `<img src="${curImg}" style="width:100%;height:100%;object-fit:contain;">` : (pc.logoEmoji||'🌿')}
+        </div>
+        <label for="pe-logo-file" style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;border:2px dashed var(--green-light);background:var(--green-mist);cursor:pointer;font-size:13px;color:var(--green-mid);font-weight:600;margin-bottom:8px;">
+          <span>📁</span> Upload Logo Image
+          <input type="file" id="pe-logo-file" accept="image/*" style="display:none" onchange="peLogoUpload(this)">
+        </label>
+        <div id="pe-logo-progress"></div>
+        <button onclick="peLogoClear()" style="padding:6px 14px;border-radius:50px;border:none;background:#fee2e2;color:#dc2626;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;${curImg?'':'display:none'}" id="pe-logo-clear-btn">✕ Remove Image</button>
+        <div style="text-align:center;font-size:12px;color:var(--text-light);margin:8px 0;">— or use emoji —</div>
+        <input type="text" id="pe-logoEmoji" value="${pc.logoEmoji||'🌿'}" placeholder="🌿" maxlength="4" style="width:70px;padding:8px;border-radius:8px;border:1.5px solid var(--green-pale);font-size:24px;text-align:center;background:var(--green-mist);outline:none;">
+      </div>
       <div class="pe-field"><label>Brand Name</label><input id="pe-logoText" value="${pc.logoText||'GreenTop Gardens'}"></div>
       <div class="pe-field"><label>Tagline (below name)</label><input id="pe-logoSub" value="${pc.logoSub||'Coimbatore'}"></div>
-      <div class="pe-field"><label>Logo Emoji</label><input id="pe-logoEmoji" value="${pc.logoEmoji||'🌿'}" style="width:80px;"></div>
       <button class="pe-save-btn" onclick="savePESection('logo')">💾 Save Logo</button>`;
 
   } else if (tab === 'hero') {
@@ -2996,9 +3243,10 @@ function savePESection(tab) {
   if (currentRole !== 'admin') return;
 
   if (tab === 'logo') {
-    pageContent.logoText  = document.getElementById('pe-logoText').value.trim();
-    pageContent.logoSub   = document.getElementById('pe-logoSub').value.trim();
-    pageContent.logoEmoji = document.getElementById('pe-logoEmoji').value.trim();
+    pageContent.logoText   = document.getElementById('pe-logoText').value.trim();
+    pageContent.logoSub    = document.getElementById('pe-logoSub').value.trim();
+    pageContent.logoEmoji  = document.getElementById('pe-logoEmoji').value.trim();
+    // logoImgSrc already updated by peLogoUpload() — keep existing value
 
   } else if (tab === 'hero') {
     pageContent.heroTag          = document.getElementById('pe-heroTag').value.trim();
@@ -3045,7 +3293,7 @@ function savePESection(tab) {
   }
 
   // Save and apply
-  ls.set('gt_page_content', JSON.stringify(pageContent));
+  if (cloudDataLoaded) ls.set('gt_page_content', JSON.stringify(pageContent));
   if (fbReady) fbSet('config', 'page', { value: pageContent, updatedAt: new Date().toISOString() });
   applyPageContent(pageContent);
   showToast('✅ ' + tab.charAt(0).toUpperCase() + tab.slice(1) + ' updated!');
@@ -3182,7 +3430,7 @@ function deleteCategoryAdmin(key) {
   customCategories = customCategories.filter(c => c.key !== key);
   if (activePlantTab === key) activePlantTab = 'all';
   saveCats();
-  ls.set('gt_plants', JSON.stringify(plants));
+  if (cloudDataLoaded) ls.set('gt_plants', JSON.stringify(plants));
   if (fbReady) db.collection('config').doc('plants').set({ value: plants, updatedAt: new Date().toISOString() }, {merge:true}).catch(()=>{});
   renderCustomTabs();
   renderPlantsGrid();
@@ -3190,7 +3438,7 @@ function deleteCategoryAdmin(key) {
 }
 
 function saveCats() {
-  ls.set('gt_custom_cats', JSON.stringify(customCategories));
+  if (cloudDataLoaded) ls.set('gt_custom_cats', JSON.stringify(customCategories));
   if (fbReady) fbSet('config', 'categories', { value: customCategories, updatedAt: new Date().toISOString() });
 }
 
@@ -3244,7 +3492,7 @@ function savePkg() {
   pkg.period   = document.getElementById('pkgPeriod').value.trim();
   pkg.features = Array.from(document.querySelectorAll('#featureListEdit input'))
                    .map(i => i.value.trim()).filter(Boolean);
-  ls.set('gt_packages', JSON.stringify(packages));
+  if (cloudDataLoaded) ls.set('gt_packages', JSON.stringify(packages));
   if (fbReady) fbSet('config', 'packages', { value: packages, updatedAt: new Date().toISOString() });
   closePkgModal();
   renderPackages();
@@ -3275,7 +3523,7 @@ function saveContact() {
   contactInfo.email    = document.getElementById('ceEmail').value.trim();
   contactInfo.hours    = document.getElementById('ceHours').value.trim();
   contactInfo.whatsapp = document.getElementById('ceWhatsapp').value.trim();
-  ls.set('gt_contact', JSON.stringify(contactInfo));
+  if (cloudDataLoaded) ls.set('gt_contact', JSON.stringify(contactInfo));
   if (fbReady) fbSet('config', 'contact', { value: contactInfo, updatedAt: new Date().toISOString() });
   closeContactModal();
   renderContact();
@@ -3287,8 +3535,13 @@ function saveContact() {
 // Bucket: images (must be Public in Supabase dashboard)
 // ================================================================
 async function uploadToStorage(file, folder, progressId) {
-  const progressEl = progressId ? document.getElementById(progressId) : null;
+  // Hard guard — only admin can upload
+  if (currentRole !== 'admin') {
+    console.warn('[Upload] Blocked — admin only');
+    return null;
+  }
 
+  const progressEl = progressId ? document.getElementById(progressId) : null;
   function showMsg(html) { if (progressEl) progressEl.innerHTML = html; }
 
   // Show progress bar
@@ -3407,14 +3660,16 @@ async function initApp() {
     const fbUsers = await fbGet('users','accounts');
     if (fbUsers && fbUsers.value) ls.set('gt_users', JSON.stringify(fbUsers.value));
 
+    // Firestore is the source of truth — always overwrite localStorage with cloud data
+    cloudDataLoaded = true;
     let changed = false;
-    if (fbPlants) { plants=fbPlants; ls.set('gt_plants',JSON.stringify(plants)); changed=true; }
-    if (fbMats) { materials=fbMats; ls.set('gt_materials',JSON.stringify(materials)); changed=true; }
-    if (fbPkgs) { packages=fbPkgs; ls.set('gt_packages',JSON.stringify(packages)); changed=true; }
-    if (fbContact) { contactInfo=fbContact; ls.set('gt_contact',JSON.stringify(contactInfo)); changed=true; }
-    if (fbCats) { customCategories=fbCats; ls.set('gt_custom_cats',JSON.stringify(customCategories)); changed=true; }
-    if (fbGallery) { gallery=fbGallery; ls.set('gt_gallery',JSON.stringify(gallery)); changed=true; }
-    if (fbPage) applyPageContent(fbPage);
+    if (fbPlants)   { plants=fbPlants;             ls.set('gt_plants',    JSON.stringify(plants));           changed=true; }
+    if (fbMats)     { materials=fbMats;             ls.set('gt_materials', JSON.stringify(materials));        changed=true; }
+    if (fbPkgs)     { packages=fbPkgs;              ls.set('gt_packages',  JSON.stringify(packages));         changed=true; }
+    if (fbContact)  { contactInfo=fbContact;        ls.set('gt_contact',   JSON.stringify(contactInfo));      changed=true; }
+    if (fbCats)     { customCategories=fbCats;      ls.set('gt_custom_cats',JSON.stringify(customCategories));changed=true; }
+    if (fbGallery)  { gallery=fbGallery;            ls.set('gt_gallery',   JSON.stringify(gallery));          changed=true; }
+    if (fbPage)     { ls.set('gt_page_content', JSON.stringify(fbPage.value||fbPage)); applyPageContent(fbPage.value||fbPage); }
     if (changed) renderAll();
   })();
 
@@ -3501,13 +3756,15 @@ window.addEventListener('resize', () => {
 
 <!-- ADMIN ORDERS MODAL -->
 <div class="modal-overlay" id="adminModal">
-  <div class="modal" style="max-width:720px;max-height:min(85vh,700px);display:flex;flex-direction:column;overflow:hidden;">
+  <div class="modal" style="max-width:720px;max-height:min(88vh,720px);display:flex;flex-direction:column;overflow:hidden;">
     <button class="modal-close" onclick="closeAdminModal()">✕</button>
-    <h2 id="adminModalTitle" style="margin-bottom:8px;">🛒 Orders Dashboard</h2>
-    <div style="display:flex;gap:8px;margin-bottom:14px;flex-shrink:0;">
-      <button onclick="currentAdminTab='orders';renderAdminModalTab('orders')" style="padding:7px 18px;border-radius:50px;border:none;background:var(--green-pale);color:var(--green-deep);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">🛒 Orders</button>
-      <button onclick="currentAdminTab='bookings';renderAdminModalTab('bookings');clearBookingsBadge()" style="padding:7px 18px;border-radius:50px;border:none;background:#e0f2fe;color:#0369a1;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">📅 Bookings</button>
+    <!-- L1 tab row hidden — each nav button opens directly to its content -->
+    <div id="adminL1Tabs" style="display:none;">
+      <button id="l1-orders"   onclick="switchAdminL1('orders')"   class="admin-l1-tab active-l1">🛒 Orders <span id="l1-orders-count"></span></button>
+      <button id="l1-bookings" onclick="switchAdminL1('bookings')" class="admin-l1-tab">📅 Bookings <span id="l1-bookings-count"></span></button>
     </div>
+    <!-- Level 2: sub-tabs (Orders: Active|Delivered|Cancelled  /  Bookings: Upcoming|Visited|Cancelled) -->
+    <div style="display:flex;gap:4px;margin-bottom:12px;flex-shrink:0;flex-wrap:wrap;" id="adminL2Tabs"></div>
     <div id="adminOrdersContainer" style="overflow-y:auto;flex:1;padding-right:4px;"></div>
   </div>
 </div>
