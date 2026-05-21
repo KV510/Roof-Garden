@@ -2657,6 +2657,7 @@ async function uploadToStorage(file, folder, progressId) {
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + SUPABASE_ANON,
+        'apikey': SUPABASE_ANON,
         'Content-Type': file.type || 'application/octet-stream',
         'x-upsert': 'true'
       },
@@ -2702,7 +2703,7 @@ async function deleteFromStorage(url) {
     const path = decodeURIComponent(url.slice(i + marker.length));
     await fetch(SUPABASE_URL + '/storage/v1/object/' + SUPABASE_BUCKET + '/' + path, {
       method: 'DELETE',
-      headers: { 'Authorization': 'Bearer ' + SUPABASE_ANON }
+      headers: { 'Authorization': 'Bearer ' + SUPABASE_ANON, 'apikey': SUPABASE_ANON }
     });
   } catch(e) { console.warn('[Supabase] Delete skipped:', e.message); }
 }
