@@ -721,7 +721,12 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" async></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" async
+  onerror="console.warn('[Supabase] jsdelivr failed, trying unpkg...');
+    var s=document.createElement('script');
+    s.src='https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js';
+    document.head.appendChild(s);">
+</script>
 
 
 
@@ -827,35 +832,42 @@ let db = null, auth = null, fbReady = false, fbAdminReady = false;
 
 // Supabase init is lazy — called only when upload is needed
 // This ensures Firebase Auth is never blocked by Supabase loading
-// Waits up to 5 seconds for Supabase SDK to load (it loads async)
+// Waits up to 8 seconds for Supabase SDK to load (it loads async)
 async function initSupabaseLazy() {
   if (supabase) return true;
-  // Try immediately first
-  if (window.supabase) {
+
+  // Try to create client from any known global
+  function tryCreate() {
+    // supabase-js v2 UMD exposes window.supabase = { createClient, ... }
+    const lib = window.supabase || window.supabaseJs;
+    if (!lib || !lib.createClient) return false;
     try {
-      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-      console.info('[Supabase] Connected');
+      supabase = lib.createClient(SUPABASE_URL, SUPABASE_ANON);
+      console.info('[Supabase] Connected ✅');
       return true;
-    } catch(e) { console.warn('[Supabase] Init failed:', e.message); return false; }
+    } catch(e) {
+      console.warn('[Supabase] createClient failed:', e.message);
+      return false;
+    }
   }
-  // SDK not loaded yet — poll every 200ms for up to 5s
+
+  // Try immediately
+  if (tryCreate()) return true;
+
+  // Poll every 300ms for up to 8 seconds
   return new Promise(resolve => {
     let attempts = 0;
     const timer = setInterval(() => {
       attempts++;
-      if (window.supabase) {
+      if (tryCreate()) {
         clearInterval(timer);
-        try {
-          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-          console.info('[Supabase] Connected after', attempts * 200, 'ms');
-          resolve(true);
-        } catch(e) { resolve(false); }
-      } else if (attempts >= 25) { // 5 seconds max
+        resolve(true);
+      } else if (attempts >= 27) {
         clearInterval(timer);
-        console.warn('[Supabase] SDK did not load after 5s');
+        console.warn('[Supabase] SDK did not load after 8s. Check network/CDN.');
         resolve(false);
       }
-    }, 200);
+    }, 300);
   });
 }
 
@@ -2665,7 +2677,11 @@ async function uploadToStorage(file, folder, progressId) {
   const ready = await initSupabaseLazy();
 
   if (!ready || !supabase) {
-    showMsg('<div style="font-size:12px;color:#dc2626;margin-top:6px;">❌ Storage not available. Paste an image URL instead.</div>');
+    showMsg('<div style="font-size:12px;color:#dc2626;margin-top:6px;padding:8px;background:#fef2f2;border-radius:6px;">' +
+      '❌ Supabase SDK failed to load.<br>' +
+      '💡 Check your internet connection or disable any ad-blockers.<br>' +
+      'Alternatively paste an image URL in the field below.' +
+      '</div>');
     return new Promise((res, rej) => {
       const r = new FileReader();
       r.onload = e => res(e.target.result);
