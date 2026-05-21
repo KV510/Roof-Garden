@@ -145,6 +145,16 @@
   .add-card-label { padding: 12px 14px 14px; font-size: 14px; font-weight: 600; color: var(--green-deep); }
 
   /* Contact edit button */
+  /* Edit Page FAB — fixed button for admin */
+  .edit-page-fab {
+    position: fixed; bottom: 90px; right: 24px; z-index: 1500;
+    width: 48px; height: 48px; border-radius: 50%; border: none;
+    background: var(--green-deep); color: white; font-size: 20px;
+    cursor: pointer; box-shadow: 0 4px 16px rgba(45,106,79,0.45);
+    display: none; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .edit-page-fab:hover { transform: scale(1.1); background: var(--green-mid); }
   /* Page editor tabs */
   .pe-tab { flex:1; min-width:60px; padding:9px 6px; border:none; background:transparent; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:600; color:var(--text-light); cursor:pointer; transition:all 0.2s; }
   .pe-tab.active { background:var(--green-deep); color:white; }
@@ -189,6 +199,15 @@
   .plant-tab.active { background: linear-gradient(135deg, var(--green-deep), var(--green-mid)); border-color: transparent; color: white; box-shadow: 0 6px 18px rgba(45,106,79,0.3); }
   .plant-tab-count { background: rgba(255,255,255,0.25); border-radius: 50px; padding: 1px 8px; font-size: 12px; }
   .plant-tab:not(.active) .plant-tab-count { background: var(--green-pale); color: var(--green-mid); }
+  .cat-action-btn { width:20px;height:20px;border-radius:50%;border:none;cursor:pointer;font-size:10px;display:inline-flex;align-items:center;justify-content:center;margin-left:3px;flex-shrink:0;opacity:0.7;transition:opacity 0.2s; }
+  .cat-action-btn:hover { opacity:1; }
+  .cat-edit-btn { background:rgba(255,255,255,0.3);color:white; }
+  .cat-del-btn-sm { background:rgba(255,80,80,0.7);color:white; }
+  .plant-tab:not(.active) .cat-edit-btn { background:var(--green-pale);color:var(--green-mid); }
+  .plant-tab:not(.active) .cat-del-btn-sm { background:#fee2e2;color:#dc2626; }
+  /* Add category button */
+  .cat-add-btn { padding:10px 16px;border-radius:50px;border:2px dashed var(--green-light);background:white;color:var(--green-mid);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.25s;display:none;align-items:center;gap:6px; }
+  .cat-add-btn:hover { border-color:var(--green-mid);background:var(--green-pale); }
 
   /* SEARCH */
   .catalog-search-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; background: white; border: 1.5px solid var(--green-pale); border-radius: 50px; padding: 10px 20px; box-shadow: var(--shadow-soft); max-width: 420px; margin-left: auto; margin-right: auto; transition: border-color 0.2s; }
@@ -230,7 +249,7 @@
   /* GALLERY */
   .gallery-carousel-wrap { position: relative; overflow: hidden; }
   .gallery-track { display: flex; gap: 20px; transition: transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94); will-change: transform; }
-  .gallery-card { border-radius: var(--radius); overflow: hidden; position: relative; box-shadow: var(--shadow-card); border: 1.5px solid var(--green-pale); transition: all 0.3s; cursor: pointer; background: var(--green-mist); flex: 0 0 320px; width: 320px; }
+  .gallery-card { border-radius: var(--radius); overflow: hidden; position: relative; box-shadow: var(--shadow-card); border: 1.5px solid var(--green-pale); transition: all 0.3s; cursor: pointer; background: var(--green-mist); flex: 0 0 100%; box-sizing: border-box; }
   .gallery-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(45,106,79,0.18); }
   .gallery-img-wrap { width: 100%; height: 210px; overflow: hidden; position: relative; background: var(--green-mist); display: flex; align-items: center; justify-content: center; }
   .gallery-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
@@ -510,6 +529,7 @@
       <button class="plant-tab" onclick="setPlantTab('food')" id="tab-food">🍅 Food <span class="plant-tab-count" id="cnt-food">0</span></button>
       <button class="plant-tab" onclick="setPlantTab('ornamental')" id="tab-ornamental">🌸 Ornamental <span class="plant-tab-count" id="cnt-ornamental">0</span></button>
       <button class="plant-tab" onclick="setPlantTab('indoor')" id="tab-indoor">🪴 Indoor <span class="plant-tab-count" id="cnt-indoor">0</span></button>
+      <button class="cat-add-btn" id="addCategoryBtnPlaceholder" onclick="openAddCategoryModal()">＋ Add Category</button>
     </div>
     <div class="catalog-search-wrap">
       <span>🔍</span>
@@ -584,12 +604,35 @@
     <div class="section-head"><div class="section-tag">Reach Us</div><h2>Contact Us</h2><p>Get in touch for a free site visit and quotation</p></div>
     <div class="contact-grid">
       <div class="contact-info ">
-        <h3>GreenTop Gardens, Coimbatore</h3>
-        <div class="contact-item"><span class="contact-item-icon">📍</span><div class="contact-item-text"><strong>Address</strong><span id="ci-address">Coimbatore, Tamil Nadu – 641001</span><button class="contact-edit-btn" id="editContactBtn" onclick="editContact()" style="display:none;">✏️ Edit</button></div></div>
-        <div class="contact-item"><span class="contact-item-icon">📞</span><div class="contact-item-text"><strong>Phone</strong><span id="ci-phone">+91 98765 43210</span></div></div>
-        <div class="contact-item"><span class="contact-item-icon">📧</span><div class="contact-item-text"><strong>Email</strong><span id="ci-email">hello@greentopgardens.in</span></div></div>
-        <div class="contact-item"><span class="contact-item-icon">🕐</span><div class="contact-item-text"><strong>Working Hours</strong><span id="ci-hours">Mon – Sat, 9:00 AM – 6:00 PM</span></div></div>
-        <div class="contact-item"><span class="contact-item-icon">📱</span><div class="contact-item-text"><strong>WhatsApp</strong><span id="ci-whatsapp">+91 98765 43210</span></div></div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:0;">
+          <h3 style="margin-bottom:0;">GreenTop Gardens, Coimbatore</h3>
+          <button id="contactEditModalBtn" onclick="openContactModal()" style="display:none;padding:7px 16px;border-radius:50px;border:none;background:var(--green-pale);color:var(--green-mid);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">✏️ Edit</button>
+        </div>
+        <div class="contact-item" id="ci-row-address" style="position:relative;">
+          <span class="contact-item-icon">📍</span>
+          <div class="contact-item-text">
+            <strong>Address</strong>
+            <span id="ci-address" id="editContactBtn">Coimbatore, Tamil Nadu – 641001</span>
+          </div>
+        </div>
+        <div class="contact-item" id="ci-row-phone" style="position:relative;">
+          <span class="contact-item-icon">📞</span>
+          <div class="contact-item-text"><strong>Phone</strong><span id="ci-phone">+91 98765 43210</span></div>
+        </div>
+        <div class="contact-item" id="ci-row-email" style="position:relative;">
+          <span class="contact-item-icon">📧</span>
+          <div class="contact-item-text"><strong>Email</strong><span id="ci-email">hello@greentopgardens.in</span></div>
+        </div>
+        <div class="contact-item" id="ci-row-hours" style="position:relative;">
+          <span class="contact-item-icon">🕐</span>
+          <div class="contact-item-text"><strong>Working Hours</strong><span id="ci-hours">Mon – Sat, 9:00 AM – 6:00 PM</span></div>
+        </div>
+        <div class="contact-item" id="ci-row-whatsapp" style="position:relative;">
+          <span class="contact-item-icon">📱</span>
+          <div class="contact-item-text"><strong>WhatsApp</strong><span id="ci-whatsapp">+91 98765 43210</span></div>
+        </div>
+        <!-- Admin: click any contact item to edit inline -->
+
       </div>
       <div id="enquiryFormWrap" class="contact-form ">
         <h3>Send an Enquiry</h3>
@@ -796,6 +839,7 @@ let db = null, auth = null, fbReady = false, fbAdminReady = false;
         currentAdminName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
         saveSession(currentRole, null, currentAdminName);
         startSessionTimer();
+        setTimeout(setupAdminNotifications, 1500); // set up on page refresh too
       } else {
         // ── Restore customer session ───────────────────────────────
         fbAdminReady = false;
@@ -886,7 +930,7 @@ async function cloudGet(col, docId, lsKey) {
 // ================================================================
 // SESSION
 // ================================================================
-const INACTIVITY = 10 * 60 * 1000;
+const INACTIVITY = 30 * 60 * 1000; // 30 minutes
 let sessionTimer = null;
 function saveSession(role, user, adminName) { ls.set('gt_session', JSON.stringify({ role, user, adminName: adminName||null, lastActivity: Date.now() })); }
 function clearSession() { ls.del('gt_session'); if (sessionTimer) clearTimeout(sessionTimer); }
@@ -978,17 +1022,54 @@ function getTypeBadge(type) {
 }
 
 function renderCustomTabs() {
-  const tabs = document.getElementById('plantTabs');
+  const tabs    = document.getElementById('plantTabs');
+  const addBtn  = document.getElementById('addCategoryBtnPlaceholder');
+  const isAdmin = currentRole === 'admin';
+
+  // Remove old custom tabs + old action buttons from built-ins
   tabs.querySelectorAll('.custom-tab').forEach(e => e.remove());
-  const addBtn = document.getElementById('addCategoryBtnPlaceholder');
+  tabs.querySelectorAll('.cat-action-btn').forEach(e => e.remove());
+
+  // Add edit buttons to built-in tabs for admin
+  ['food','ornamental','indoor'].forEach(key => {
+    const btn = document.getElementById('tab-' + key);
+    if (!btn || !isAdmin) return;
+    const editBtn = document.createElement('button');
+    editBtn.className = 'cat-action-btn cat-edit-btn';
+    editBtn.title = 'Edit category'; editBtn.innerHTML = '✏';
+    editBtn.onclick = e => { e.stopPropagation(); openEditCategoryModal(key); };
+    btn.appendChild(editBtn);
+  });
+
+  // Render custom categories with edit + delete
   customCategories.forEach(cat => {
     const btn = document.createElement('button');
     btn.className = 'plant-tab custom-tab';
     btn.id = 'tab-' + cat.key;
     btn.onclick = () => setPlantTab(cat.key);
     btn.innerHTML = `${cat.emoji} ${cat.label} <span class="plant-tab-count" id="cnt-${cat.key}">0</span>`;
-    tabs.appendChild(btn);
+    if (isAdmin) {
+      const editBtn = document.createElement('button');
+      editBtn.className = 'cat-action-btn cat-edit-btn';
+      editBtn.title = 'Edit'; editBtn.innerHTML = '✏';
+      editBtn.onclick = e => { e.stopPropagation(); openEditCategoryModal(cat.key); };
+      const delBtn = document.createElement('button');
+      delBtn.className = 'cat-action-btn cat-del-btn-sm';
+      delBtn.title = 'Delete'; delBtn.innerHTML = '✕';
+      delBtn.onclick = e => { e.stopPropagation(); deleteCategoryAdmin(cat.key); };
+      btn.appendChild(editBtn);
+      btn.appendChild(delBtn);
+    }
+    if (addBtn) tabs.insertBefore(btn, addBtn);
+    else tabs.appendChild(btn);
   });
+
+  // Active state
+  document.querySelectorAll('.plant-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + activePlantTab)?.classList.add('active');
+
+  // Show/hide add button
+  if (addBtn) addBtn.style.display = isAdmin ? 'flex' : 'none';
 }
 
 function setPlantTab(tab) {
@@ -1018,11 +1099,18 @@ function renderPlantsGrid() {
     : sorted.map(item => `
       <div class="catalog-card">
         ${getTypeBadge(item.type)}
-        <div class="catalog-img">${item.img ? `<img src="${item.img}" alt="${item.name}" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><span style="display:none;font-size:64px;align-items:center;justify-content:center;">${item.emoji}</span>` : `<span style="font-size:64px;">${item.emoji}</span>`}</div>
-        <div class="catalog-name"><span class="catalog-plant-name">${item.name}</span>${item.sci ? `<span class="catalog-plant-sci">${item.sci}</span>` : ''}</div>
+        <div class="catalog-img" onclick="openItemDetail('plant',${item.id})" style="cursor:pointer;">
+          ${item.img ? `<img src="${item.img}" alt="${item.name}" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><span style="display:none;font-size:64px;align-items:center;justify-content:center;">${item.emoji}</span>` : `<span style="font-size:64px;">${item.emoji}</span>`}
+        </div>
+        <div class="catalog-name" onclick="openItemDetail('plant',${item.id})" style="cursor:pointer;">
+          <span class="catalog-plant-name">${item.name}</span>
+          ${item.sci ? `<span class="catalog-plant-sci">${item.sci}</span>` : ''}
+          ${item.desc ? `<span style="display:block;font-size:11px;color:var(--text-light);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px;">${item.desc.slice(0,40)}${item.desc.length>40?'…':''}</span>` : ''}
+          <span style="display:inline-block;margin-top:6px;font-size:11px;color:var(--green-mid);font-weight:600;">View Details →</span>
+        </div>
         ${canEdit() ? `<div class="catalog-actions">
-          <button class="btn-edit-sm" onclick="openItemEdit('plant',${item.id})">✏️</button>
-          <button class="btn-del-sm" onclick="deleteItem('plant',${item.id})">🗑</button>
+          <button class="btn-edit-sm" onclick="event.stopPropagation();openItemEdit('plant',${item.id})">✏️</button>
+          <button class="btn-del-sm" onclick="event.stopPropagation();deleteItem('plant',${item.id})">🗑</button>
         </div>` : ''}
       </div>`).join('');
 
@@ -1053,11 +1141,17 @@ function renderMaterialsGrid() {
     ? `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-light);">${q ? `No results for "${q}"` : 'No materials.'}</div>`
     : sorted.map(item => `
       <div class="catalog-card">
-        <div class="catalog-img">${item.img ? `<img src="${item.img}" alt="${item.name}" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><span style="display:none;font-size:64px;align-items:center;justify-content:center;">${item.emoji}</span>` : `<span style="font-size:64px;">${item.emoji}</span>`}</div>
-        <div class="catalog-name"><span class="catalog-plant-name">${item.name}</span></div>
+        <div class="catalog-img" onclick="openItemDetail('material',${item.id})" style="cursor:pointer;">
+          ${item.img ? `<img src="${item.img}" alt="${item.name}" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><span style="display:none;font-size:64px;align-items:center;justify-content:center;">${item.emoji}</span>` : `<span style="font-size:64px;">${item.emoji}</span>`}
+        </div>
+        <div class="catalog-name" onclick="openItemDetail('material',${item.id})" style="cursor:pointer;">
+          <span class="catalog-plant-name">${item.name}</span>
+          ${item.desc ? `<span style="display:block;font-size:11px;color:var(--text-light);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px;">${item.desc.slice(0,40)}${item.desc.length>40?'…':''}</span>` : ''}
+          <span style="display:inline-block;margin-top:6px;font-size:11px;color:var(--green-mid);font-weight:600;">View Details →</span>
+        </div>
         ${canEdit() ? `<div class="catalog-actions">
-          <button class="btn-edit-sm" onclick="openItemEdit('material',${item.id})">✏️</button>
-          <button class="btn-del-sm" onclick="deleteItem('material',${item.id})">🗑</button>
+          <button class="btn-edit-sm" onclick="event.stopPropagation();openItemEdit('material',${item.id})">✏️</button>
+          <button class="btn-del-sm" onclick="event.stopPropagation();deleteItem('material',${item.id})">🗑</button>
         </div>` : ''}
       </div>`).join('');
 
@@ -1088,14 +1182,41 @@ function renderPackages() {
 }
 
 function renderContact() {
-  document.getElementById('ci-address').textContent = contactInfo.address;
-  document.getElementById('ci-phone').textContent = contactInfo.phone;
-  document.getElementById('ci-email').textContent = contactInfo.email;
-  document.getElementById('ci-hours').textContent = contactInfo.hours;
-  document.getElementById('ci-whatsapp').textContent = contactInfo.whatsapp;
-  // Show edit button only for admin
-  const editBtn = document.getElementById('editContactBtn');
-  if (editBtn) editBtn.style.display = currentRole === 'admin' ? 'inline-block' : 'none';
+  const safe = t => (t||'').replace(/</g,'&lt;');
+  document.getElementById('ci-address').textContent  = contactInfo.address  || '';
+  document.getElementById('ci-phone').textContent    = contactInfo.phone    || '';
+  document.getElementById('ci-email').textContent    = contactInfo.email    || '';
+  document.getElementById('ci-hours').textContent    = contactInfo.hours    || '';
+  document.getElementById('ci-whatsapp').textContent = contactInfo.whatsapp || '';
+  // Show/hide edit button for admin
+  const editBtn = document.getElementById('contactEditModalBtn');
+  if (editBtn) editBtn.style.display = currentRole === 'admin' ? 'inline-flex' : 'none';
+}
+
+function openContactModal() {
+  if (currentRole !== 'admin') return;
+  document.getElementById('ceAddress').value  = contactInfo.address  || '';
+  document.getElementById('cePhone').value    = contactInfo.phone    || '';
+  document.getElementById('ceEmail').value    = contactInfo.email    || '';
+  document.getElementById('ceHours').value    = contactInfo.hours    || '';
+  document.getElementById('ceWhatsapp').value = contactInfo.whatsapp || '';
+  document.getElementById('contactModal').classList.add('open');
+}
+function closeContactModal() {
+  document.getElementById('contactModal').classList.remove('open');
+}
+function saveContact() {
+  if (currentRole !== 'admin') return;
+  contactInfo.address  = document.getElementById('ceAddress').value.trim();
+  contactInfo.phone    = document.getElementById('cePhone').value.trim();
+  contactInfo.email    = document.getElementById('ceEmail').value.trim();
+  contactInfo.hours    = document.getElementById('ceHours').value.trim();
+  contactInfo.whatsapp = document.getElementById('ceWhatsapp').value.trim();
+  ls.set('gt_contact', JSON.stringify(contactInfo));
+  if (fbReady) fbSet('config', 'contact', { value: contactInfo, updatedAt: new Date().toISOString() });
+  closeContactModal();
+  renderContact();
+  showToast('✅ Contact info updated!');
 }
 
 function renderGallery() {
@@ -1187,17 +1308,21 @@ function applyPageContent(pg) {
     });
   }
   // Services
-  if (pg.services) {
-    const cards = document.querySelectorAll('.service-card');
-    pg.services.forEach((s,i) => {
-      if (!cards[i]) return;
-      const icon = cards[i].querySelector('.service-icon');
-      const h3   = cards[i].querySelector('h3');
-      const p    = cards[i].querySelector('p');
-      if (icon) icon.textContent = s.icon;
-      if (h3)   h3.textContent   = s.title;
-      if (p)    p.textContent    = s.desc;
-    });
+  if (pg.services && pg.services.length) {
+    const track = document.getElementById('servicesTrack');
+    if (track) {
+      // Reset carousel before rebuilding
+      try { svcCarousel.reset(); } catch(e) {}
+      // Rebuild all service cards
+      track.innerHTML = pg.services.map(s => `
+        <div class="service-card">
+          <div class="service-icon">${s.icon}</div>
+          <h3>${s.title}</h3>
+          <p>${s.desc}</p>
+        </div>`).join('');
+      // Reinit carousel with new cards
+      try { svcCarousel.reinit(); } catch(e) {}
+    }
   }
   // Section headings
   if (pg.sectionHeads) {
@@ -1220,7 +1345,18 @@ function renderAll() {
                renderPackages, renderContact, renderGallery,
                renderBookingCalendar, updateNavActions];
   fns.forEach(fn => { try { fn(); } catch(e) { console.warn('[renderAll] ' + fn.name + ' failed:', e.message); } });
+  // Add/remove inline edit buttons based on admin status
+  renderAdminEditBtns();
 }
+
+function renderAdminEditBtns() {
+  const fab = document.getElementById('editPageFab');
+  if (fab) fab.style.display = currentRole === 'admin' ? 'flex' : 'none';
+}
+
+
+
+
 
 // ================================================================
 // AUTH
@@ -1299,6 +1435,7 @@ async function doSignIn() {
       closeLogin(); updateNavActions(); renderAll();
       addActivityLog('auth', '🔑', 'Admin signed in: ' + fbUser.email);
       showToast('✅ ' + getGreeting() + ', ' + currentAdminName + '!');
+      setTimeout(setupAdminNotifications, 1000);
 
     } else {
       // ── Customer ───────────────────────────────────────────────────
@@ -1449,13 +1586,18 @@ function updateNavActions() {
     const name = currentAdminName || 'Admin';
     el.innerHTML  = `
       <span class="role-badge role-admin">⚙️ ${name}</span>
-      <button class="btn-primary" style="padding:9px 16px;font-size:13px;" onclick="openAdminModal()">📋 Orders</button>
-      <button class="btn-primary" style="padding:9px 16px;font-size:13px;background:linear-gradient(135deg,#059669,#10b981);" onclick="openPageEditor()">✏️ Edit Site</button>
+      <button class="btn-primary" style="padding:9px 16px;font-size:13px;position:relative;" onclick="openAdminModal('orders');clearOrdersBadge()">
+        🛒 Orders
+        <span id="ordersBadge" style="display:none;position:absolute;top:-6px;right:-6px;background:#ef4444;color:white;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:700;align-items:center;justify-content:center;border:2px solid white;"></span>
+      </button>
+      <button class="btn-primary" style="padding:9px 16px;font-size:13px;position:relative;background:linear-gradient(135deg,#0369a1,#0284c7);" onclick="openAdminModal('bookings');clearBookingsBadge()">
+        📅 Bookings
+        <span id="bookingsBadge" style="display:none;position:absolute;top:-6px;right:-6px;background:#ef4444;color:white;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:700;align-items:center;justify-content:center;border:2px solid white;"></span>
+      </button>
       <button class="btn-logout" onclick="doLogout()">Sign Out</button>`;
     mel.innerHTML = `
       <span class="role-badge role-admin" style="text-align:center;">⚙️ ${name}</span>
       <button class="btn-primary" style="padding:9px 16px;font-size:13px;" onclick="closeMobileNav();openAdminModal()">📋 Orders</button>
-      <button class="btn-primary" style="padding:9px 16px;font-size:13px;background:linear-gradient(135deg,#059669,#10b981);" onclick="closeMobileNav();openPageEditor()">✏️ Edit Site</button>
       <button class="btn-logout" onclick="doLogout()">Sign Out</button>`;
     if (fab) fab.style.display = 'none';
     if (visitSection) visitSection.style.display = '';
@@ -1726,6 +1868,102 @@ async function selectSlot(slot, el) {
   document.querySelectorAll('#bookingSlotsWrap .time-slot').forEach(s=>s.classList.remove('selected'));
   el.classList.add('selected');
 }
+
+// ================================================================
+// BOOKING NOTIFICATIONS — browser + WhatsApp for admin
+// ================================================================
+function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function sendAdminNotification(title, body) {
+  // 1. Browser push notification (if admin has site open)
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, {
+      body,
+      icon: '🌿',
+      badge: '🌿',
+      tag: 'greentop-booking'
+    });
+  }
+
+  // 2. Update unread badge on Orders button
+  const badge = document.getElementById('ordersBadge');
+  if (badge) {
+    const cur = parseInt(badge.textContent) || 0;
+    badge.textContent = cur + 1;
+    badge.style.display = 'flex';
+  }
+}
+
+// Notification listeners — stored so we can unsubscribe/re-subscribe
+let _unsubBookings = null;
+let _unsubOrders   = null;
+
+function setupAdminNotifications() {
+  if (currentRole !== 'admin' || !fbReady) return;
+
+  // Unsubscribe any existing listeners first
+  if (_unsubBookings) { _unsubBookings(); _unsubBookings = null; }
+  if (_unsubOrders)   { _unsubOrders();   _unsubOrders   = null; }
+
+  requestNotificationPermission();
+
+  let bookingsLoaded = false;
+  let ordersLoaded   = false;
+
+  // ── Bookings listener ──────────────────────────────────────────
+  _unsubBookings = db.collection('enquiry').onSnapshot(snap => {
+    if (!bookingsLoaded) {
+      bookingsLoaded = true;
+      // Show badge for unread bookings
+      const unread = snap.docs.filter(d => !d.data().adminSeen).length;
+      if (unread > 0) updateBookingBadge(unread);
+      return;
+    }
+    snap.docChanges().forEach(change => {
+      if (change.type !== 'added') return;
+      const b = change.doc.data();
+      sendAdminNotification(
+        '📅 New Booking — GreenTop Gardens',
+        (b.name||'Someone') + ' booked for ' + (b.date||'') + ' at ' + (b.slot||'')
+      );
+      showToast('📅 New booking from ' + (b.name||'customer') + '!');
+      updateBookingBadge(1);
+    });
+  }, err => console.warn('[Notify] Bookings error:', err.message));
+
+  // ── Orders listener ────────────────────────────────────────────
+  _unsubOrders = db.collection('orders').onSnapshot(snap => {
+    if (!ordersLoaded) { ordersLoaded = true; return; }
+    snap.docChanges().forEach(change => {
+      if (change.type !== 'added') return;
+      const o = change.doc.data();
+      sendAdminNotification('🛒 New Order', (o.user||'Customer') + ' placed an order');
+      showToast('🛒 New order from ' + (o.user||'customer') + '!');
+      updateOrderBadge();
+    });
+  }, err => {});
+}
+
+function updateBookingBadge(count) {
+  const badge = document.getElementById('bookingsBadge');
+  if (!badge) return;
+  const cur = parseInt(badge.textContent) || 0;
+  badge.textContent = cur + count;
+  badge.style.display = 'flex';
+}
+
+function updateOrderBadge() {
+  const badge = document.getElementById('ordersBadge');
+  if (!badge) return;
+  const cur = parseInt(badge.textContent) || 0;
+  badge.textContent = cur + 1;
+  badge.style.display = 'flex';
+}
+
 async function submitVisitBooking() {
   const name = document.getElementById('visitName').value.trim();
   const wa = document.getElementById('visitWA').value.trim();
@@ -1761,14 +1999,97 @@ function renderMyBookings() {
 let adminOrdersListener = null;
 
 
-function openAdminModal() {
+
+
+function clearBookingsBadge() {
+  const badge = document.getElementById('bookingsBadge');
+  if (badge) { badge.textContent = '0'; badge.style.display = 'none'; }
+}
+
+let _unsubBookingsList = null;
+async function renderAdminBookings(container) {
+  if (!container) return;
+  container.innerHTML = '<p style="text-align:center;padding:30px;color:var(--text-light);">⏳ Loading bookings…</p>';
+  if (_unsubBookingsList) { _unsubBookingsList(); _unsubBookingsList = null; }
+  if (!fbReady) { container.innerHTML='<p style="color:#dc2626;text-align:center;padding:20px;">❌ Not connected to database</p>'; return; }
+
+  // Use live snapshot so list updates when new bookings arrive
+  _unsubBookingsList = db.collection('enquiry').onSnapshot(snap => {
+    const bookings = snap.docs.map(d => ({ _id: d.id, ...d.data() }))
+      .filter(b => b.date)
+      .sort((a, b) => new Date(b.createdAt||b.time||0) - new Date(a.createdAt||a.time||0));
+
+    if (!bookings.length) {
+      container.innerHTML = '<p style="text-align:center;padding:40px;color:var(--text-light);">No bookings yet.</p>';
+      return;
+    }
+
+    container.innerHTML = bookings.map(b => {
+      const statusColor = b.status === 'confirmed' ? '#d1fae5' : b.status === 'cancelled' ? '#fee2e2' : '#fef3c7';
+      const statusText  = b.status === 'confirmed' ? '✅ Confirmed' : b.status === 'cancelled' ? '❌ Cancelled' : '⏳ Pending';
+      return `<div style="background:white;border:1.5px solid var(--green-pale);border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 6px rgba(45,106,79,0.07);">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+          <div>
+            <div style="font-weight:700;font-size:14px;color:var(--green-deep);">👤 ${b.name||'Unknown'}</div>
+            <div style="font-size:12px;color:var(--text-light);">📱 ${b.wa||b.whatsapp||'—'}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-weight:700;font-size:13px;color:var(--green-deep);">📅 ${b.date||'—'} &nbsp; ⏰ ${b.slot||'—'}</div>
+            <div style="font-size:11px;color:var(--text-light);">${b.time ? new Date(b.time).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : ''}</div>
+          </div>
+        </div>
+        <div style="font-size:13px;color:var(--text-mid);margin-bottom:8px;">📋 ${b.purpose||'General Enquiry'}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding-top:10px;border-top:1px solid var(--green-pale);">
+          <span style="padding:4px 12px;border-radius:50px;font-size:12px;font-weight:700;background:${statusColor};">${statusText}</span>
+          <div style="display:flex;gap:6px;">
+            <button onclick="updateBookingStatus('${b._id}','confirmed')" style="padding:5px 12px;border-radius:50px;border:none;background:#d1fae5;color:#065f46;font-size:11px;font-weight:700;cursor:pointer;">✅ Confirm</button>
+            <button onclick="updateBookingStatus('${b._id}','cancelled')" style="padding:5px 12px;border-radius:50px;border:none;background:#fee2e2;color:#991b1b;font-size:11px;font-weight:700;cursor:pointer;">❌ Cancel</button>
+            ${b.wa ? `<a href="https://wa.me/${(b.wa||'').replace(/\D/g,'')}" target="_blank" style="padding:5px 12px;border-radius:50px;border:none;background:#dcfce7;color:#166534;font-size:11px;font-weight:700;cursor:pointer;text-decoration:none;">💬 WhatsApp</a>` : ''}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }, err => {
+    container.innerHTML = `<p style="color:#dc2626;text-align:center;padding:20px;">❌ ${err.message}</p>`;
+  });
+}
+
+async function updateBookingStatus(docId, status) {
+  if (!fbReady) return;
+  try {
+    await db.collection('enquiry').doc(docId).update({ status, adminSeen: true });
+    showToast('✅ Booking ' + status);
+  } catch(e) { showToast('❌ ' + e.message); }
+}
+
+function clearOrdersBadge() {
+  const badge = document.getElementById('ordersBadge');
+  if (badge) { badge.textContent = '0'; badge.style.display = 'none'; }
+}
+
+function openAdminModal(tab) {
   if (currentRole !== 'admin') return;
+  currentAdminTab = tab || 'orders';
   document.getElementById('adminModal').classList.add('open');
-  startAdminOrdersListener(document.getElementById('adminOrdersContainer'));
+  renderAdminModalTab(currentAdminTab);
 }
 function closeAdminModal() {
   document.getElementById('adminModal').classList.remove('open');
   stopAdminOrdersListener();
+  if (_unsubBookingsList) { _unsubBookingsList(); _unsubBookingsList = null; }
+}
+let currentAdminTab = 'orders';
+function renderAdminModalTab(tab) {
+  const title = document.getElementById('adminModalTitle');
+  const container = document.getElementById('adminOrdersContainer');
+  if (tab === 'orders') {
+    if (title) title.textContent = '🛒 Orders Dashboard';
+    startAdminOrdersListener(container);
+  } else if (tab === 'bookings') {
+    if (title) title.textContent = '📅 Visit Bookings';
+    stopAdminOrdersListener();
+    renderAdminBookings(container);
+  }
 }
 
 function startAdminOrdersListener(containerEl) {
@@ -2114,7 +2435,7 @@ function makeCarousel({ trackId, dotsId, cardGap, autoDelay }) {
 }
 
 const svcCarousel = makeCarousel({ trackId:'servicesTrack', dotsId:'svcDots', cardGap:24, autoDelay:4000 });
-const galCarousel = makeCarousel({ trackId:'galleryTrack', dotsId:'galDots', cardGap:20, autoDelay:4000 });
+const galCarousel = makeCarousel({ trackId:'galleryTrack', dotsId:'galDots', cardGap:24, autoDelay:4000 });
 
 
 
@@ -2124,6 +2445,51 @@ const galCarousel = makeCarousel({ trackId:'galleryTrack', dotsId:'galDots', car
 let editingType = null;
 let editingId   = null;
 let currentUploadedImgData = '';
+
+
+// ================================================================
+// ITEM DETAIL POPUP — shows plant/material info on click
+// ================================================================
+function openItemDetail(type, id) {
+  const list = type === 'plant' ? plants : materials;
+  const item = list.find(x => x.id === id);
+  if (!item) return;
+
+  // Image
+  const imgEl = document.getElementById('itemDetailImg');
+  if (item.img) {
+    imgEl.innerHTML = `<img src="${item.img}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='<span style=font-size:80px>${item.emoji}</span>'">`;
+  } else {
+    imgEl.innerHTML = `<span style="font-size:80px;">${item.emoji}</span>`;
+  }
+
+  // Name + scientific name
+  document.getElementById('itemDetailName').textContent = item.name;
+  const sciEl = document.getElementById('itemDetailSci');
+  sciEl.textContent = item.sci ? item.sci : '';
+  sciEl.style.display = item.sci ? 'block' : 'none';
+
+  // Category badge
+  const badgeEl = document.getElementById('itemDetailBadge');
+  const badgeMap = {
+    food: 'badge-food', ornamental: 'badge-ornamental', indoor: 'badge-indoor'
+  };
+  if (type === 'plant' && item.type) {
+    const cls = badgeMap[item.type] || 'badge-custom';
+    const labels = { food:'🍅 Food Plant', ornamental:'🌸 Ornamental', indoor:'🪴 Indoor' };
+    badgeEl.innerHTML = `<span class="catalog-type-badge ${cls}">${labels[item.type] || item.type}</span>`;
+    badgeEl.style.display = 'block';
+  } else {
+    badgeEl.style.display = 'none';
+  }
+
+  // Description
+  const descEl = document.getElementById('itemDetailDesc');
+  descEl.textContent = item.desc || 'No description available.';
+  descEl.style.display = 'block';
+
+  document.getElementById('itemDetailModal').classList.add('open');
+}
 
 function openItemEdit(type, id) {
   if (currentRole !== 'admin') return;
@@ -2142,6 +2508,7 @@ function openItemEdit(type, id) {
   document.getElementById('itemName').value  = item.name  || '';
   document.getElementById('itemEmoji').value = item.emoji || (type === 'plant' ? '🌿' : '📦');
   document.getElementById('itemImg').value   = (item.img && !item.img.startsWith('data:')) ? item.img : '';
+  document.getElementById('itemDesc').value  = item.desc  || '';
 
   const isPlant = type === 'plant';
   document.getElementById('itemSciWrap').style.display  = isPlant ? 'block' : 'none';
@@ -2182,7 +2549,7 @@ function handleImgUpload(input) {
   previewImg(localUrl, document.getElementById('itemEmoji').value);
 
   // Upload to Firebase Storage
-  uploadToStorage(file, 'images/plants', 'itemImgProgress').then(url => {
+  uploadToStorage(file, 'plants', 'itemImgProgress').then(url => {
     currentUploadedImgData = url;
     previewImg(url, document.getElementById('itemEmoji').value);
     document.getElementById('imgFileName').textContent = '✅ Upload complete';
@@ -2254,18 +2621,20 @@ async function saveItem() {
   if (editingType === 'plant') {
     const sci  = document.getElementById('itemSci').value.trim();
     const type = document.getElementById('itemType').value;
+    const desc = document.getElementById('itemDesc').value.trim();
     if (editingId === null) {
-      list.push({ id: Date.now(), name, sci, type, img, emoji });
+      list.push({ id: Date.now(), name, sci, type, img, emoji, desc });
     } else {
       const item = list.find(x => x.id === editingId);
-      if (item) { item.name = name; item.sci = sci; item.type = type; item.img = img; item.emoji = emoji; }
+      if (item) { item.name = name; item.sci = sci; item.type = type; item.img = img; item.emoji = emoji; item.desc = desc; }
     }
   } else {
+    const desc = document.getElementById('itemDesc').value.trim();
     if (editingId === null) {
-      list.push({ id: Date.now(), name, img, emoji });
+      list.push({ id: Date.now(), name, img, emoji, desc });
     } else {
       const item = list.find(x => x.id === editingId);
-      if (item) { item.name = name; item.img = img; item.emoji = emoji; }
+      if (item) { item.name = name; item.img = img; item.emoji = emoji; item.desc = desc; }
     }
   }
 
@@ -2316,6 +2685,156 @@ function deleteItem(type, id) {
 // ================================================================
 // ================================================================
 
+
+
+// ================================================================
+// PAGE EDITOR — GALLERY TAB
+// Admin can add / delete gallery images stored in Supabase
+// ================================================================
+function renderPEGalleryTab(el) {
+  el.innerHTML = `
+    <p style="font-size:13px;color:var(--text-light);margin-bottom:14px;">
+      Add or remove photos for the Garden Gallery section. Images are stored in Supabase.
+    </p>
+    <div id="pe-gallery-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:16px;"></div>
+    <div class="pe-field" id="pe-gallery-add-form">
+      <label>Add New Photo</label>
+      <input type="text" id="pe-gal-title" placeholder="Title e.g. Terrace Garden – RS Puram" style="margin-bottom:8px;">
+      <input type="text" id="pe-gal-desc"  placeholder="Location / description" style="margin-bottom:8px;">
+      <label for="pe-gal-file" style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;border:2px dashed var(--green-light);background:white;cursor:pointer;font-size:13px;color:var(--green-mid);font-weight:600;">
+        <span style="font-size:20px;">📁</span> Upload Photo (.jpg / .png)
+        <input type="file" id="pe-gal-file" accept="image/*" style="display:none" onchange="peGalleryPreview(this)">
+      </label>
+      <div id="pe-gal-preview" style="margin:8px 0;display:none;">
+        <img id="pe-gal-preview-img" style="width:100%;max-height:150px;object-fit:cover;border-radius:8px;">
+      </div>
+      <div id="pe-gal-progress" style="margin:4px 0;"></div>
+      <div style="text-align:center;font-size:12px;color:var(--text-light);margin:4px 0;">— or paste image URL —</div>
+      <input type="text" id="pe-gal-url" placeholder="https://example.com/image.jpg" oninput="peGalleryUrlPreview(this.value)" style="margin-bottom:8px;">
+      <button class="pe-save-btn" onclick="peAddGalleryItem()">➕ Add to Gallery</button>
+    </div>`;
+
+  // Render existing gallery items
+  peRenderGalleryList();
+}
+
+function peRenderGalleryList() {
+  const list = document.getElementById('pe-gallery-list');
+  if (!list) return;
+  if (!gallery.length) {
+    list.innerHTML = '<p style="font-size:13px;color:var(--text-light);grid-column:1/-1;">No gallery items yet.</p>';
+    return;
+  }
+  list.innerHTML = gallery.map(item => `
+    <div style="position:relative;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1);background:var(--green-mist);">
+      <img src="${item.src||''}" alt="${item.title}"
+        style="width:100%;height:110px;object-fit:cover;display:block;"
+        onerror="this.style.background='var(--green-pale)';this.src=''">
+      <div style="padding:6px 8px;font-size:11px;font-weight:600;color:var(--green-deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.title}</div>
+      <button onclick="peDeleteGalleryItem(${item.id})"
+        style="position:absolute;top:4px;right:4px;background:rgba(220,38,38,0.85);border:none;color:white;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>`).join('');
+}
+
+function peGalleryPreview(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  document.getElementById('pe-gal-preview').style.display = 'block';
+  document.getElementById('pe-gal-preview-img').src = url;
+  document.getElementById('pe-gal-url').value = '';
+}
+
+function peGalleryUrlPreview(url) {
+  if (!url) return;
+  document.getElementById('pe-gal-preview').style.display = 'block';
+  document.getElementById('pe-gal-preview-img').src = url;
+  // Clear file input
+  const fi = document.getElementById('pe-gal-file');
+  if (fi) fi.value = '';
+}
+
+async function peAddGalleryItem() {
+  if (currentRole !== 'admin') return;
+  const title = (document.getElementById('pe-gal-title').value || '').trim();
+  const desc  = (document.getElementById('pe-gal-desc').value  || '').trim();
+  const fileInput = document.getElementById('pe-gal-file');
+  const urlInput  = document.getElementById('pe-gal-url');
+  const file = fileInput && fileInput.files[0];
+  const pastedUrl = urlInput && urlInput.value.trim();
+
+  if (!title)          { showToast('⚠️ Please enter a title'); return; }
+  if (!file && !pastedUrl) { showToast('⚠️ Please upload a photo or paste a URL'); return; }
+
+  // Disable button while uploading
+  const btn = document.querySelector('#pe-gallery-add-form .pe-save-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Adding…'; }
+
+  let src = pastedUrl;
+
+  // Upload file to Supabase if provided
+  if (file) {
+    src = await uploadToStorage(file, 'gallery', 'pe-gal-progress');
+    if (src && src.startsWith('data:')) {
+      // base64 fallback — warn but continue
+      showToast('⚠️ Image saved as preview only. Set up Supabase storage for permanent hosting.');
+    }
+  }
+
+  // Add to gallery array
+  const newItem = {
+    id: Date.now(),
+    title,
+    desc:      desc || '',
+    mediaType: 'image',
+    src:       src || '',
+    price:     0,
+    featured:  false
+  };
+  gallery.unshift(newItem); // add to front
+
+  // Save to localStorage + Firestore
+  await peGallerySave();
+
+  // Reset form
+  document.getElementById('pe-gal-title').value = '';
+  document.getElementById('pe-gal-desc').value  = '';
+  document.getElementById('pe-gal-url').value   = '';
+  if (fileInput) fileInput.value = '';
+  document.getElementById('pe-gal-preview').style.display = 'none';
+  document.getElementById('pe-gal-progress').innerHTML = '';
+  if (btn) { btn.disabled = false; btn.textContent = '➕ Add to Gallery'; }
+
+  // Re-render gallery on page + update list in editor
+  renderGallery();
+  peRenderGalleryList();
+  showToast('✅ Photo added to Gallery!');
+}
+
+async function peDeleteGalleryItem(id) {
+  if (currentRole !== 'admin') return;
+  if (!confirm('Remove this photo from the gallery?')) return;
+  const item = gallery.find(g => g.id === id);
+  if (item && item.src && item.src.includes('supabase')) {
+    await deleteFromStorage(item.src);
+  }
+  gallery = gallery.filter(g => g.id !== id);
+  await peGallerySave();
+  renderGallery();
+  peRenderGalleryList();
+  showToast('🗑 Photo removed');
+}
+
+async function peGallerySave() {
+  ls.set('gt_gallery', JSON.stringify(gallery));
+  if (fbReady) {
+    const clean = gallery.map(g => ({
+      ...g,
+      src: g.src && g.src.startsWith('http') ? g.src : (g.src || '')
+    }));
+    await fbSet('gallery', 'items', { value: clean, updatedAt: new Date().toISOString() });
+  }
+}
 
 // ================================================================
 // PAGE EDITOR — admin only, edits all page content live
@@ -2435,6 +2954,10 @@ function renderPETab(tab) {
       <button onclick="addPENav()" style="width:100%;padding:10px;border-radius:50px;background:var(--green-pale);border:1.5px dashed var(--green-mid);color:var(--green-mid);font-size:13px;font-weight:600;cursor:pointer;margin-bottom:10px;">+ Add Link</button>
       <button class="pe-save-btn" onclick="savePESection('nav')">💾 Save Navigation</button>`;
 
+  } else if (tab === 'gallery') {
+    // Render gallery management tab
+    renderPEGalleryTab(el);
+
   } else if (tab === 'footer') {
     el.innerHTML = `
       <div class="pe-field"><label>Footer Brand Name</label><input id="pe-footerLogo" value="${pc.footerLogo||'🌿 GreenTop Gardens'}"></div>
@@ -2496,7 +3019,7 @@ function savePESection(tab) {
       icon:  (document.getElementById('pe-svc'+i+'-icon') ||{}).value || '🌿',
       title: (document.getElementById('pe-svc'+i+'-title')||{}).value || '',
       desc:  (document.getElementById('pe-svc'+i+'-desc') ||{}).value || ''
-    }));
+    })).filter(s => s.title); // skip empty entries
 
   } else if (tab === 'sections') {
     if (!pageContent.sectionHeads) pageContent.sectionHeads = {};
@@ -2530,6 +3053,146 @@ function savePESection(tab) {
 
 // Additional page content fields handled by applyPageContentExtra
 // (called from applyPageContent below — no duplicate function needed)
+
+
+// ================================================================
+// CATEGORY MANAGEMENT — admin only
+// ================================================================
+const BUILTIN_CATS = {
+  food:       { emoji:'🍅', label:'Food Plants' },
+  ornamental: { emoji:'🌸', label:'Ornamental Plants' },
+  indoor:     { emoji:'🪴', label:'Indoor Plants' }
+};
+
+function openAddCategoryModal() {
+  if (currentRole !== 'admin') return;
+  document.getElementById('newCatEmoji').value = '';
+  document.getElementById('newCatName').value  = '';
+  document.getElementById('newCatKeyPreview').textContent = '';
+  document.getElementById('addCategoryModal').classList.add('open');
+}
+
+function previewNewCatKey() {
+  const name = document.getElementById('newCatName').value.trim();
+  const key  = name.toLowerCase().replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'');
+  document.getElementById('newCatKeyPreview').textContent = key ? 'Key: "' + key + '"' : '';
+}
+
+function saveNewCategoryAdmin() {
+  if (currentRole !== 'admin') return;
+  const emoji = document.getElementById('newCatEmoji').value.trim() || '🌿';
+  const name  = document.getElementById('newCatName').value.trim();
+  if (!name) { showToast('⚠️ Please enter a category name'); return; }
+  const key = name.toLowerCase().replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'');
+  if (!key) { showToast('⚠️ Invalid name'); return; }
+  const allKeys = Object.keys(BUILTIN_CATS).concat(customCategories.map(c => c.key));
+  if (allKeys.includes(key)) { showToast('⚠️ Category already exists'); return; }
+  customCategories.push({ key, emoji, label: name });
+  saveCats();
+  document.getElementById('addCategoryModal').classList.remove('open');
+  renderCustomTabs();
+  showToast('✅ Category "' + name + '" added!');
+}
+
+let catUploadedImg = ''; // holds uploaded image URL for category
+
+function openEditCategoryModal(key) {
+  if (currentRole !== 'admin') return;
+  const builtin = BUILTIN_CATS[key];
+  const custom  = customCategories.find(c => c.key === key);
+  const cat = builtin || custom;
+  if (!cat) return;
+  catUploadedImg = cat.img || '';
+  document.getElementById('editCatKey').value   = key;
+  document.getElementById('editCatEmoji').value = cat.emoji || '';
+  document.getElementById('editCatName').value  = cat.label;
+  document.getElementById('editCatImgFile').value = '';
+  document.getElementById('editCatImgProgress').innerHTML = '';
+  // Show current icon preview
+  const prev = document.getElementById('editCatImgPreview');
+  if (cat.img) {
+    prev.innerHTML = `<img src="${cat.img}" style="width:100%;height:100%;object-fit:cover;">`;
+  } else {
+    prev.innerHTML = `<span style="font-size:40px;">${cat.emoji||'🌿'}</span>`;
+  }
+  document.getElementById('editCategoryModal').classList.add('open');
+}
+
+async function handleCatImgUpload(input) {
+  const file = input.files[0]; if (!file) return;
+  const prev = document.getElementById('editCatImgPreview');
+  prev.innerHTML = `<img src="${URL.createObjectURL(file)}" style="width:100%;height:100%;object-fit:cover;">`;
+  const url = await uploadToStorage(file, 'categories', 'editCatImgProgress');
+  if (url) {
+    catUploadedImg = url;
+    if (!url.startsWith('data:')) {
+      document.getElementById('editCatEmoji').value = ''; // clear emoji if image uploaded
+    }
+  }
+}
+
+async function saveEditCategoryAdmin() {
+  if (currentRole !== 'admin') return;
+  const key   = document.getElementById('editCatKey').value;
+  const emoji = document.getElementById('editCatEmoji').value.trim();
+  const label = document.getElementById('editCatName').value.trim();
+  const img   = catUploadedImg || '';
+  if (!label) { showToast('⚠️ Please enter a name'); return; }
+  const icon  = emoji || (img ? '' : '🌿');
+
+  const update = { emoji: icon, label, img };
+
+  if (BUILTIN_CATS[key]) {
+    Object.assign(BUILTIN_CATS[key], update);
+  } else {
+    const cat = customCategories.find(c => c.key === key);
+    if (cat) Object.assign(cat, update);
+    saveCats();
+  }
+  // Update tab button icon
+  const btn = document.getElementById('tab-' + key);
+  if (btn) {
+    const count = btn.querySelector('.plant-tab-count');
+    const actions = Array.from(btn.querySelectorAll('.cat-action-btn'));
+    if (img && !img.startsWith('data:')) {
+      btn.innerHTML = `<img src="${img}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;"> ${label} `;
+    } else {
+      btn.innerHTML = `${icon} ${label} `;
+    }
+    if (count) btn.appendChild(count);
+    actions.forEach(a => btn.appendChild(a));
+  }
+  document.getElementById('editCategoryModal').classList.remove('open');
+  renderCustomTabs();
+  renderPlantsGrid();
+  showToast('✅ Category updated!');
+}
+
+function deleteCategoryAdmin(key) {
+  if (currentRole !== 'admin') return;
+  if (BUILTIN_CATS[key]) { showToast('⚠️ Built-in categories cannot be deleted'); return; }
+  const cat = customCategories.find(c => c.key === key);
+  if (!cat) return;
+  const count = plants.filter(p => p.type === key).length;
+  const msg = count > 0
+    ? 'Delete "' + cat.label + '"? ' + count + ' plant(s) will move to Food Plants.'
+    : 'Delete category "' + cat.label + '"?';
+  if (!confirm(msg)) return;
+  plants.forEach(p => { if (p.type === key) p.type = 'food'; });
+  customCategories = customCategories.filter(c => c.key !== key);
+  if (activePlantTab === key) activePlantTab = 'all';
+  saveCats();
+  ls.set('gt_plants', JSON.stringify(plants));
+  if (fbReady) db.collection('config').doc('plants').set({ value: plants, updatedAt: new Date().toISOString() }, {merge:true}).catch(()=>{});
+  renderCustomTabs();
+  renderPlantsGrid();
+  showToast('🗑 Category deleted');
+}
+
+function saveCats() {
+  ls.set('gt_custom_cats', JSON.stringify(customCategories));
+  if (fbReady) fbSet('config', 'categories', { value: customCategories, updatedAt: new Date().toISOString() });
+}
 
 // ================================================================
 // PACKAGE EDIT — admin only
@@ -2777,6 +3440,10 @@ window.addEventListener('resize', () => {
 
 
 
+
+<!-- EDIT PAGE FAB — only shown for admin -->
+<button class="edit-page-fab" id="editPageFab" onclick="openPageEditor()" title="Edit Page Content">✏️</button>
+
 <!-- PAGE EDITOR MODAL -->
 <div class="modal-overlay" id="pageEditorModal">
   <div class="modal" style="max-width:680px;max-height:min(88vh,720px);display:flex;flex-direction:column;overflow:hidden;">
@@ -2789,6 +3456,7 @@ window.addEventListener('resize', () => {
       <button class="pe-tab"        id="pe-tab-hero"     onclick="showPETab('hero')">🏠 Hero</button>
       <button class="pe-tab"        id="pe-tab-stats"    onclick="showPETab('stats')">📊 Stats</button>
       <button class="pe-tab"        id="pe-tab-services" onclick="showPETab('services')">🔧 Services</button>
+      <button class="pe-tab"        id="pe-tab-gallery"  onclick="showPETab('gallery')">🖼 Gallery</button>
       <button class="pe-tab"        id="pe-tab-sections" onclick="showPETab('sections')">📑 Sections</button>
       <button class="pe-tab"        id="pe-tab-nav"      onclick="showPETab('nav')">🔗 Nav</button>
       <button class="pe-tab"        id="pe-tab-footer"   onclick="showPETab('footer')">📄 Footer</button>
@@ -2835,15 +3503,72 @@ window.addEventListener('resize', () => {
 <div class="modal-overlay" id="adminModal">
   <div class="modal" style="max-width:720px;max-height:min(85vh,700px);display:flex;flex-direction:column;overflow:hidden;">
     <button class="modal-close" onclick="closeAdminModal()">✕</button>
-    <h2 style="margin-bottom:4px;">📋 Orders Dashboard</h2>
-    <p style="font-size:13px;color:var(--text-light);margin-bottom:16px;">
-      Live updates — status changes reflect instantly for customers.
-    </p>
+    <h2 id="adminModalTitle" style="margin-bottom:8px;">🛒 Orders Dashboard</h2>
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-shrink:0;">
+      <button onclick="currentAdminTab='orders';renderAdminModalTab('orders')" style="padding:7px 18px;border-radius:50px;border:none;background:var(--green-pale);color:var(--green-deep);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">🛒 Orders</button>
+      <button onclick="currentAdminTab='bookings';renderAdminModalTab('bookings');clearBookingsBadge()" style="padding:7px 18px;border-radius:50px;border:none;background:#e0f2fe;color:#0369a1;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">📅 Bookings</button>
+    </div>
     <div id="adminOrdersContainer" style="overflow-y:auto;flex:1;padding-right:4px;"></div>
   </div>
 </div>
 
 <!-- ITEM EDIT MODAL (plants / materials) -->
+
+
+<!-- ADD CATEGORY MODAL -->
+<div class="modal-overlay" id="addCategoryModal">
+  <div class="modal" style="max-width:400px;">
+    <button class="modal-close" onclick="document.getElementById('addCategoryModal').classList.remove('open')">✕</button>
+    <h2>➕ Add Category</h2>
+    <p style="font-size:13px;color:var(--text-light);margin-bottom:18px;">Add a new plant category tab.</p>
+    <div class="input-wrap"><label>Emoji Icon</label><input type="text" id="newCatEmoji" placeholder="e.g. 🌵" maxlength="4" style="width:80px;"></div>
+    <div class="input-wrap"><label>Category Name</label><input type="text" id="newCatName" placeholder="e.g. Succulents" oninput="previewNewCatKey()"></div>
+    <div id="newCatKeyPreview" style="font-size:11px;color:var(--text-light);margin-top:-10px;margin-bottom:12px;"></div>
+    <button class="btn-submit" onclick="saveNewCategoryAdmin()">➕ Add Category</button>
+  </div>
+</div>
+
+<!-- EDIT CATEGORY MODAL -->
+<div class="modal-overlay" id="editCategoryModal">
+  <div class="modal" style="max-width:420px;">
+    <button class="modal-close" onclick="document.getElementById('editCategoryModal').classList.remove('open')">✕</button>
+    <h2>✏️ Edit Category</h2>
+    <p style="font-size:13px;color:var(--text-light);margin-bottom:18px;">Update the name, icon image or emoji.</p>
+    <input type="hidden" id="editCatKey">
+    <div class="input-wrap"><label>Category Name</label><input type="text" id="editCatName" placeholder="Category name"></div>
+    <div class="input-wrap">
+      <label>Category Icon</label>
+      <!-- Image preview -->
+      <div id="editCatImgPreview" style="width:80px;height:80px;border-radius:10px;background:var(--green-mist);display:flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:10px;overflow:hidden;border:1.5px solid var(--green-pale);"></div>
+      <!-- Upload image -->
+      <label for="editCatImgFile" style="display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:10px;border:2px dashed var(--green-light);background:var(--green-mist);cursor:pointer;font-size:13px;color:var(--green-mid);font-weight:600;margin-bottom:8px;">
+        <span>📁</span> Upload Image from Device
+        <input type="file" id="editCatImgFile" accept="image/*" style="display:none" onchange="handleCatImgUpload(this)">
+      </label>
+      <div id="editCatImgProgress"></div>
+      <div style="text-align:center;font-size:12px;color:var(--text-light);margin:6px 0;">— or use emoji —</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <input type="text" id="editCatEmoji" maxlength="4" placeholder="🌿" style="width:70px;padding:8px;border-radius:8px;border:1.5px solid var(--green-pale);font-size:20px;text-align:center;background:var(--green-mist);outline:none;">
+        <span style="font-size:12px;color:var(--text-light);">Type an emoji to use instead of an image</span>
+      </div>
+    </div>
+    <button class="btn-submit" onclick="saveEditCategoryAdmin()">💾 Save Category</button>
+  </div>
+</div>
+
+<!-- ITEM DETAIL POPUP — shows when user clicks plant/material card -->
+<div class="modal-overlay" id="itemDetailModal">
+  <div class="modal" style="max-width:400px;text-align:center;">
+    <button class="modal-close" onclick="document.getElementById('itemDetailModal').classList.remove('open')">✕</button>
+    <div id="itemDetailImg" style="width:100%;height:200px;border-radius:12px;overflow:hidden;background:var(--green-mist);display:flex;align-items:center;justify-content:center;font-size:80px;margin-bottom:16px;"></div>
+    <h2 id="itemDetailName" style="font-family:'Playfair Display',serif;font-size:22px;color:var(--green-deep);margin-bottom:4px;"></h2>
+    <div id="itemDetailSci" style="font-size:13px;color:var(--text-light);font-style:italic;margin-bottom:12px;"></div>
+    <div id="itemDetailBadge" style="margin-bottom:14px;"></div>
+    <p id="itemDetailDesc" style="font-size:14px;color:var(--text-mid);line-height:1.7;margin-bottom:16px;"></p>
+    <button class="btn-primary" style="width:100%;padding:12px;" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'});document.getElementById('itemDetailModal').classList.remove('open');showToast('📞 Contact us to order this plant!')">📞 Enquire Now</button>
+  </div>
+</div>
+
 <div class="modal-overlay" id="itemModal">
   <div class="modal item-modal" style="max-width:420px;">
     <button class="modal-close" onclick="closeItemModal()">✕</button>
@@ -2883,6 +3608,10 @@ window.addEventListener('resize', () => {
         <div id="imgFileName" style="font-size:12px;color:var(--green-mid);display:none;padding:6px 10px;background:var(--green-pale);border-radius:6px;"></div>
         <button type="button" id="clearImgBtn" onclick="clearImage()" style="display:none;padding:6px 14px;border-radius:50px;border:none;background:#fee2e2;color:#991b1b;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;align-self:flex-start;">✕ Remove Image</button>
       </div>
+    </div>
+    <div class="input-wrap">
+      <label>Description</label>
+      <textarea id="itemDesc" placeholder="Brief description shown when user clicks the card…" style="width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--green-pale);background:var(--green-mist);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;min-height:80px;resize:vertical;"></textarea>
     </div>
     <div class="input-wrap">
       <label>Emoji (shown when no image)</label>
