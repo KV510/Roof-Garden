@@ -2668,12 +2668,15 @@ async function uploadToStorage(file, folder, progressId) {
 
     if (!res.ok) {
       let errText = await res.text();
-      let msg = '❌ Upload failed (' + res.status + ')';
-      if (res.status === 404) msg = '❌ Bucket "images" not found — create it in Supabase → Storage → New bucket → name: images → Public ON';
-      if (res.status === 403) msg = '❌ Permission denied — add INSERT policy for anon role in Supabase → Storage → Policies';
-      showMsg(`<div style="font-size:11px;color:#dc2626;margin-top:6px;padding:8px;background:#fef2f2;border-radius:6px;">${msg}</div>`);
-      console.warn('[Supabase REST] Upload error:', res.status, errText);
-      // Fallback: local base64 preview
+      let errJson = {};
+      try { errJson = JSON.parse(errText); } catch(e) {}
+      const detail = errJson.message || errJson.error || errText || 'Unknown error';
+      console.error('[Supabase REST] Upload failed:', res.status, detail);
+      showMsg(`<div style="font-size:11px;color:#dc2626;margin-top:6px;padding:8px;background:#fef2f2;border-radius:6px;">
+        ❌ Upload failed (${res.status})<br>
+        <strong>Error:</strong> ${detail}<br>
+        <strong>URL:</strong> ${uploadUrl}
+      </div>`);
       return new Promise((res2, rej) => { const r = new FileReader(); r.onload = e => res2(e.target.result); r.onerror = rej; r.readAsDataURL(file); });
     }
 
