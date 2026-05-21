@@ -25,7 +25,14 @@
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
-  body { font-family: 'DM Sans', sans-serif; background: var(--white); color: var(--text-dark); min-height: 100vh; overflow-x: hidden; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background:
+      url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2340916c' fill-opacity='0.04'%3E%3Cpath d='M0 0h40v40H0zm40 40h40v40H40z'/%3E%3C/g%3E%3C/svg%3E"),
+      linear-gradient(160deg, #d8f3dc 0%, #b7e4c7 40%, #c7f0d8 70%, #d8f3dc 100%);
+    background-attachment: fixed;
+    color: var(--text-dark); min-height: 100vh; overflow-x: hidden;
+  }
 
   /* TOPBAR */
   .topbar {
@@ -62,8 +69,8 @@
   .btn-logout:hover { background: #fecaca; }
 
   /* HERO */
-  .hero { margin-top: 64px; min-height: 92vh; background: linear-gradient(135deg, var(--green-mist) 0%, var(--green-pale) 50%, #c7f0d8 100%); display: flex; align-items: center; justify-content: center; text-align: center; padding: 60px 24px; position: relative; overflow: hidden; }
-  .hero::before { content: ''; position: absolute; inset: 0; background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2340916c' fill-opacity='0.04'%3E%3Cpath d='M0 0h40v40H0zm40 40h40v40H40z'/%3E%3C/g%3E%3C/svg%3E"); }
+  .hero { margin-top: 64px; min-height: 92vh; background: transparent; display: flex; align-items: center; justify-content: center; text-align: center; padding: 60px 24px; position: relative; overflow: hidden; }
+  /* hero::before removed — checkerboard now in body background */
   .hero-float { position: absolute; font-size: 80px; opacity: 0.12; animation: floatLeaf 6s ease-in-out infinite; pointer-events: none; }
   .hero-float:nth-child(1) { top: 10%; left: 5%; animation-delay: 0s; }
   .hero-float:nth-child(2) { top: 20%; right: 8%; animation-delay: 1.5s; font-size: 60px; }
@@ -82,18 +89,28 @@
   .stat-lbl { font-size: 13px; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; }
 
   /* SECTIONS */
-  section { padding: 80px 24px; }
+  section { padding: 80px 24px; background: transparent; }
   .section-inner { max-width: 1100px; margin: 0 auto; }
+  /* Subtle divider between sections */
+  section + section::before {
+    content: '';
+    display: block;
+    width: 120px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--green-light), transparent);
+    margin: 0 auto -40px;
+    opacity: 0.5;
+  }
   .section-head { text-align: center; margin-bottom: 52px; }
   .section-tag { display: inline-block; padding: 5px 16px; border-radius: 50px; background: var(--green-pale); color: var(--green-mid); font-size: 12px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 14px; }
   .section-head h2 { font-family: 'Playfair Display', serif; font-size: clamp(28px, 4vw, 44px); color: var(--green-deep); margin-bottom: 12px; }
   .section-head p { font-size: 16px; color: var(--text-light); max-width: 500px; margin: 0 auto; }
 
   /* SERVICES */
-  .services-bg { background: var(--green-mist); }
+  .services-bg { background: transparent; }
   .services-carousel-wrap { position: relative; overflow: hidden; }
   .services-track { display: flex; gap: 24px; transition: transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94); will-change: transform; }
-  .service-card { background: white; border-radius: var(--radius); padding: 32px 26px; box-shadow: var(--shadow-card); border: 1.5px solid var(--green-pale); transition: box-shadow 0.3s; position: relative; overflow: hidden; flex: 0 0 100%; box-sizing: border-box; }
+  .service-card { background: rgba(255,255,255,0.85); border-radius: var(--radius); padding: 32px 26px; box-shadow: var(--shadow-card); border: 1.5px solid var(--green-pale); transition: box-shadow 0.3s; position: relative; overflow: hidden; flex: 0 0 100%; box-sizing: border-box; }
   .service-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--green-light), var(--green-mid)); }
   .service-card:hover { box-shadow: 0 12px 40px rgba(45,106,79,0.18); }
   .service-icon { font-size: 40px; margin-bottom: 16px; }
@@ -243,42 +260,81 @@
   .search-clear { background: var(--green-pale); border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; font-size: 12px; color: var(--green-mid); flex-shrink: 0; display: none; align-items: center; justify-content: center; }
 
   /* PACKAGES */
-  .packages-bg { background: linear-gradient(160deg, var(--green-deep) 0%, #1a4731 100%); }
-  .packages-bg .section-tag { background: rgba(255,255,255,0.15); color: #a8edbe; }
-  .packages-bg .section-head h2 { color: white; }
-  .packages-bg .section-head p { color: rgba(255,255,255,0.65); }
-  .packages-static-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; align-items: start; }
-  .pkg-card { background: rgba(255,255,255,0.07); border: 1.5px solid rgba(255,255,255,0.15); border-radius: var(--radius); padding: 36px 28px; text-align: center; transition: all 0.3s; position: relative; overflow: hidden; }
-  .pkg-card.featured { background: white; border-color: var(--green-light); transform: scale(1.04); box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
-  .pkg-card:hover { transform: translateY(-6px) scale(1.01); }
-  .pkg-card.featured:hover { transform: translateY(-6px) scale(1.04); }
-  .pkg-badge { position: absolute; top: 16px; right: 16px; background: var(--gold); color: white; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 50px; letter-spacing: 1px; text-transform: uppercase; }
-  .pkg-duration { font-size: 13px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; }
-  .pkg-card.featured .pkg-duration { color: var(--text-light); }
-  .pkg-name { font-family: 'Playfair Display', serif; font-size: 26px; color: white; margin-bottom: 20px; }
-  .pkg-card.featured .pkg-name { color: var(--green-deep); }
-  .pkg-price { font-size: 48px; font-weight: 700; color: var(--green-light); margin-bottom: 4px; font-family: 'Playfair Display', serif; }
-  .pkg-card.featured .pkg-price { color: var(--green-deep); }
-  .pkg-currency { font-size: 22px; vertical-align: super; }
-  .pkg-period { font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 28px; }
-  .pkg-card.featured .pkg-period { color: var(--text-light); }
-  .pkg-features { list-style: none; text-align: left; margin-bottom: 28px; }
-  .pkg-features li { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 14px; color: rgba(255,255,255,0.8); display: flex; align-items: center; gap: 10px; }
-  .pkg-card.featured .pkg-features li { border-color: var(--green-pale); color: var(--text-mid); }
-  .pkg-features li::before { content: '✓'; color: var(--green-light); font-weight: 700; }
-  .pkg-card.featured .pkg-features li::before { color: var(--green-mid); }
-  .btn-pkg { width: 100%; padding: 14px; border-radius: 50px; border: 2px solid rgba(255,255,255,0.4); background: transparent; color: white; font-size: 15px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.3s; }
-  .btn-pkg:hover { background: rgba(255,255,255,0.15); }
-  .pkg-card.featured .btn-pkg { background: linear-gradient(135deg, var(--green-deep), var(--green-mid)); border-color: transparent; color: white; box-shadow: 0 8px 24px rgba(45,106,79,0.4); }
+  .packages-bg { background: transparent; }
+  .packages-bg .section-tag { background: var(--green-pale); color: var(--green-mid); }
+  .packages-bg .section-head h2 { color: var(--green-deep); }
+  .packages-bg .section-head p { color: var(--text-mid); }
+  .packages-static-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 28px; align-items: stretch; }
+
+  /* Base card — white, crisp, readable */
+  .pkg-card {
+    background: white;
+    border: 1.5px solid rgba(45,106,79,0.12);
+    border-radius: 22px;
+    padding: 38px 30px 32px;
+    text-align: center;
+    transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    position: relative; overflow: hidden;
+    box-shadow: 0 6px 28px rgba(45,106,79,0.10);
+    display: flex; flex-direction: column;
+  }
+  /* Top accent stripe */
+  .pkg-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 5px;
+    background: linear-gradient(90deg, var(--green-light), var(--green-mid));
+    border-radius: 22px 22px 0 0;
+  }
+  .pkg-card:hover { transform: translateY(-10px); box-shadow: 0 20px 50px rgba(45,106,79,0.18); }
+
+  /* Featured — dark green, stands out */
+  .pkg-card.featured {
+    background: linear-gradient(155deg, var(--green-deep) 0%, #1b5e36 100%);
+    border: 3px solid var(--green-mid);
+    box-shadow: 0 24px 64px rgba(45,106,79,0.45);
+  }
+  .pkg-card.featured::before { background: linear-gradient(90deg, rgba(255,255,255,0.3), rgba(255,255,255,0.8), rgba(255,255,255,0.3)); }
+  .pkg-card.featured:hover { transform: translateY(-10px); }
+
+  .pkg-badge { position: absolute; top: 18px; right: 18px; background: var(--gold); color: white; font-size: 10px; font-weight: 700; padding: 5px 14px; border-radius: 50px; letter-spacing: 1.5px; text-transform: uppercase; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+
+  .pkg-duration { font-size: 11px; font-weight: 700; color: var(--green-mid); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 10px; }
+  .pkg-card.featured .pkg-duration { color: rgba(168,237,190,0.85); }
+
+  .pkg-name { font-family: 'Playfair Display', serif; font-size: 26px; color: var(--green-deep); margin-bottom: 20px; font-weight: 700; }
+  .pkg-card.featured .pkg-name { color: white; }
+
+  .pkg-price { font-size: 52px; font-weight: 800; color: var(--green-deep); margin-bottom: 2px; font-family: 'DM Sans', sans-serif; line-height: 1; }
+  .pkg-currency { font-size: 26px; font-weight: 700; vertical-align: super; line-height: 1; }
+  .pkg-card.featured .pkg-price { color: white; }
+
+  .pkg-period { font-size: 13px; color: var(--text-light); margin-bottom: 28px; margin-top: 4px; }
+  .pkg-card.featured .pkg-period { color: rgba(255,255,255,0.65); }
+
+  /* Divider */
+  .pkg-card .pkg-divider { width: 40px; height: 3px; background: linear-gradient(90deg,var(--green-light),var(--green-mid)); border-radius: 3px; margin: 0 auto 24px; }
+  .pkg-card.featured .pkg-divider { background: linear-gradient(90deg,rgba(255,255,255,0.5),white,rgba(255,255,255,0.5)); }
+
+  .pkg-features { list-style: none; text-align: left; margin-bottom: 28px; flex: 1; }
+  .pkg-features li { padding: 9px 0; border-bottom: 1px solid var(--green-pale); font-size: 13.5px; color: var(--text-mid); display: flex; align-items: center; gap: 10px; }
+  .pkg-features li:last-child { border-bottom: none; }
+  .pkg-features li::before { content: '✓'; color: var(--green-mid); font-weight: 800; font-size: 15px; flex-shrink: 0; }
+  .pkg-card.featured .pkg-features li { border-color: rgba(255,255,255,0.12); color: rgba(255,255,255,0.88); }
+  .pkg-card.featured .pkg-features li::before { color: #a8edbe; }
+
+  .btn-pkg { width: 100%; padding: 14px; border-radius: 50px; border: 2px solid var(--green-light); background: transparent; color: var(--green-deep); font-size: 14px; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.3s; letter-spacing: 0.3px; }
+  .btn-pkg:hover { background: var(--green-pale); border-color: var(--green-mid); transform: translateY(-1px); }
+  .pkg-card.featured .btn-pkg { background: white; border-color: white; color: var(--green-deep); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+  .pkg-card.featured .btn-pkg:hover { background: #f0fdf4; }
 
   /* GALLERY */
   .gallery-carousel-wrap { position: relative; overflow: hidden; }
   .gallery-track { display: flex; gap: 20px; transition: transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94); will-change: transform; }
   .gallery-card { border-radius: var(--radius); overflow: hidden; position: relative; box-shadow: var(--shadow-card); border: 1.5px solid var(--green-pale); transition: all 0.3s; cursor: pointer; background: var(--green-mist); flex: 0 0 100%; box-sizing: border-box; }
   .gallery-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(45,106,79,0.18); }
-  .gallery-img-wrap { width: 100%; height: 210px; overflow: hidden; position: relative; background: var(--green-mist); display: flex; align-items: center; justify-content: center; }
-  .gallery-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
-  .gallery-img-wrap video { width: 100%; height: 100%; object-fit: cover; }
+  .gallery-img-wrap { width: 100%; height: 480px; overflow: hidden; position: relative; background: var(--green-mist); display: flex; align-items: center; justify-content: center; }
+  .gallery-img-wrap img { width: 100%; height: 100%; object-fit: contain; background: #f0f7f1; }
+  .gallery-img-wrap video { width: 100%; height: 100%; object-fit: contain; background: #000; }
   .gallery-featured-badge { position: absolute; top: 10px; right: 10px; background: var(--gold); color: white; border-radius: 6px; padding: 3px 10px; font-size: 11px; font-weight: 700; }
   .gallery-card-body { padding: 14px 16px; }
   .gallery-card-title { font-size: 15px; font-weight: 700; color: var(--green-deep); margin-bottom: 4px; }
@@ -306,7 +362,7 @@
   .form-group textarea { min-height: 100px; resize: vertical; }
 
   /* VISIT BOOKING */
-  .visit-booking-section { background: var(--green-mist); }
+  .visit-booking-section { background: transparent; }
   .time-slots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin: 12px 0; }
   .time-slot { padding: 10px 8px; border-radius: 10px; border: 1.5px solid var(--green-pale); background: white; text-align: center; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-mid); transition: all 0.2s; }
   .time-slot:hover:not(.slot-blocked):not(.slot-full) { border-color: var(--green-mid); color: var(--green-deep); background: var(--green-pale); }
@@ -416,7 +472,7 @@
   .toast.show { opacity: 1; transform: translateY(0); }
 
   /* CART FAB */
-  .cart-fab { position: fixed; bottom: 88px; right: 28px; z-index: 1500; width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, var(--green-deep), var(--green-mid)); border: none; cursor: pointer; box-shadow: 0 8px 24px rgba(45,106,79,0.45); display: none; align-items: center; justify-content: center; font-size: 24px; transition: all 0.3s; }
+  .cart-fab { display: none !important; }
   .cart-fab:hover { transform: scale(1.1); }
   .cart-fab .cart-badge { position: absolute; top: -4px; right: -4px; background: #ef4444; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
 
@@ -590,7 +646,7 @@
 </section>
 
 <!-- MATERIALS -->
-<section style="background:var(--green-mist);" id="materials">
+<section id="materials">
   <div class="section-inner">
     <div class="section-head"><div class="section-tag">Installation Materials</div><h2>Materials We Use</h2><p>High-quality components chosen for durability and plant health</p></div>
     <div class="catalog-search-wrap">
@@ -638,10 +694,7 @@
             <div style="display:flex;gap:12px;align-items:flex-start;"><span style="font-size:22px;">💰</span><div><strong style="display:block;font-size:14px;color:var(--green-deep);">Free Quotation</strong><span style="font-size:13px;color:var(--text-light);">Detailed cost estimate with no obligation to proceed.</span></div></div>
           </div>
         </div>
-        <div id="myBookingsWrap" style="display:none;background:white;border-radius:var(--radius);padding:24px;box-shadow:var(--shadow-card);border:1.5px solid var(--green-pale);">
-          <h3 style="font-family:'Playfair Display',serif;font-size:18px;color:var(--green-deep);margin-bottom:12px;">📋 My Bookings</h3>
-          <div id="myBookingsList"></div>
-        </div>
+
       </div>
     </div>
   </div>
@@ -750,10 +803,30 @@
     <p style="font-size:13px;color:var(--text-light);margin-bottom:18px;">Select plants &amp; materials, then submit your enquiry.</p>
     <div class="order-modal-body">
       <div class="order-left">
+        <!-- Search + Filter bar -->
+        <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center;">
+          <div style="position:relative;flex:1;">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;">🔍</span>
+            <input type="text" id="orderSearch" placeholder="Search plants & materials…"
+              oninput="filterOrderItems()"
+              style="width:100%;padding:9px 12px 9px 32px;border-radius:50px;border:1.5px solid var(--green-pale);background:var(--green-mist);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;">
+          </div>
+          <select id="orderCatFilter" onchange="filterOrderItems()"
+            style="padding:9px 12px;border-radius:50px;border:1.5px solid var(--green-pale);background:var(--green-mist);font-family:'DM Sans',sans-serif;font-size:12px;outline:none;cursor:pointer;color:var(--text-dark);">
+            <option value="">All Types</option>
+            <option value="plant">🌿 Plants</option>
+            <option value="material">🔧 Materials</option>
+            <option value="food">🍅 Food Plants</option>
+            <option value="ornamental">🌸 Ornamental</option>
+            <option value="indoor">🪴 Indoor</option>
+          </select>
+        </div>
+
         <div class="order-section-title">🌿 Plants</div>
         <div class="product-select-grid" id="orderPlantGrid"></div>
-        <div class="order-section-title">🔧 Materials</div>
+        <div class="order-section-title" id="orderMaterialTitle">🔧 Materials</div>
         <div class="product-select-grid" id="orderMaterialGrid"></div>
+        <div id="orderNoResults" style="display:none;text-align:center;padding:20px;color:var(--text-light);font-size:13px;">No items match your search.</div>
         <div class="input-wrap" style="margin-top:16px;"><label>Additional Notes</label><textarea id="orderNotes" placeholder="Any special requirements…" style="width:100%;padding:12px 16px;border-radius:10px;border:1.5px solid var(--green-pale);background:var(--green-mist);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;min-height:80px;resize:vertical;"></textarea></div>
       </div>
       <div class="order-right">
@@ -787,8 +860,12 @@
 <div class="modal-overlay" id="myOrdersModal">
   <div class="modal" style="max-width:600px;max-height:min(82vh,680px);display:flex;flex-direction:column;overflow:hidden;">
     <button class="modal-close" onclick="closeMyOrdersModal()">✕</button>
-    <h2 style="margin-bottom:4px;">📦 My Orders</h2>
-    <p style="font-size:13px;color:var(--text-light);margin-bottom:16px;">Track your order history and status.</p>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px;">
+      <h2>📦 My Orders</h2>
+      <button class="btn-primary" style="padding:8px 18px;font-size:13px;" onclick="closeMyOrdersModal();openOrderModal()">➕ New Order</button>
+    </div>
+    <p style="font-size:13px;color:var(--text-light);margin-bottom:12px;">Track your order history and status.</p>
+
     <div id="myOrdersList" style="overflow-y:auto;flex:1;padding-right:4px;"><div style="text-align:center;padding:40px 20px;color:var(--text-light);">Loading orders…</div></div>
   </div>
 </div>
@@ -853,6 +930,8 @@ const FIREBASE_CONFIG = {
 const ADMIN_EMAILS = [
   'at2026@gmail.com',   // 👈 your admin email
 ];
+// Technician emails — loaded dynamically from Firestore config/technicians
+let TECHNICIAN_EMAILS = [];
 
 let db = null, auth = null, fbReady = false, fbAdminReady = false;
 (function() {
@@ -877,7 +956,16 @@ let db = null, auth = null, fbReady = false, fbAdminReady = false;
         return;
       }
 
+      // Load technician emails from Firestore first (if not loaded yet)
+      if (TECHNICIAN_EMAILS.length === 0 && db) {
+        try {
+          const tsnap = await db.collection('config').doc('technicians').get();
+          if (tsnap.exists) TECHNICIAN_EMAILS = tsnap.data().emails || [];
+        } catch(e) {}
+      }
+
       const isAdmin = ADMIN_EMAILS.map(e => e.toLowerCase()).includes(user.email.toLowerCase());
+      const isTech  = TECHNICIAN_EMAILS.map(e => e.toLowerCase()).includes(user.email.toLowerCase());
 
       if (isAdmin) {
         // ── Restore admin session ──────────────────────────────────
@@ -888,7 +976,16 @@ let db = null, auth = null, fbReady = false, fbAdminReady = false;
         currentAdminName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
         saveSession(currentRole, null, currentAdminName);
         startSessionTimer();
-        setTimeout(setupAdminNotifications, 1500); // set up on page refresh too
+        setTimeout(setupAdminNotifications, 1500);
+      } else if (isTech) {
+        // ── Restore technician session ─────────────────────────────
+        fbAdminReady  = false;
+        currentRole   = 'technician';
+        currentUser   = null;
+        const rawName = user.displayName || user.email.split('@')[0];
+        currentAdminName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+        saveSession(currentRole, null, currentAdminName);
+        startSessionTimer();
       } else {
         // ── Restore customer session ───────────────────────────────
         fbAdminReady = false;
@@ -1229,8 +1326,9 @@ function renderPackages() {
       <div class="pkg-name">${pkg.name}</div>
       <div class="pkg-price"><span class="pkg-currency">₹</span>${Number(pkg.price).toLocaleString('en-IN')}</div>
       <div class="pkg-period">${pkg.period}</div>
+      <div class="pkg-divider"></div>
       <ul class="pkg-features">${pkg.features.map(f=>`<li>${f}</li>`).join('')}</ul>
-      <button class="btn-pkg" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'});showToast('📋 ${pkg.name} selected – fill the form below!')">Book This Plan</button>
+      <button class="btn-pkg" onclick="openPkgBookingModal(${pkg.id})">Book This Plan</button>
       ${currentRole === 'admin' ? `<button class="pkg-edit-btn" style="display:block;" onclick="openPkgEdit(${pkg.id})">✏️ Edit</button>` : ''}
     </div>`).join('');
 }
@@ -1296,7 +1394,7 @@ function renderGallery() {
       </div>
       <div class="gallery-card-body">
         <div class="gallery-card-title">${item.title}</div>
-        <div class="gallery-card-meta">${item.desc}${isPaid ? ` · <span style="color:var(--gold);font-weight:700;">₹${item.price}</span>` : ' · <span style="color:var(--green-mid);font-weight:600;">Free</span>'}</div>
+        <div class="gallery-card-meta">${item.desc}${isPaid ? ` · <span style="color:var(--gold);font-weight:700;">₹${item.price}</span>` : ''}</div>
       </div>`;
     track.appendChild(card);
   });
@@ -1663,7 +1761,7 @@ function updateNavActions() {
   function setGreeting(name, role) {
     if (!greetEl) return;
     if (!name) { greetEl.style.display = 'none'; return; }
-    const emoji = role === 'admin' ? '⚙️' : '👋';
+    const emoji = role === 'admin' ? '⚙️' : role === 'technician' ? '🔧' : '👋';
     greetEl.textContent = `${emoji} ${getGreeting()}, ${name}!`;
     greetEl.style.display = 'block';
   }
@@ -1683,6 +1781,7 @@ function updateNavActions() {
     const name = currentAdminName || 'Admin';
     setGreeting(name, 'admin');
     el.innerHTML = `
+      <button class="btn-primary" style="position:relative;background:linear-gradient(135deg,#065f46,#047857);" onclick="openAdminModal('technicians')">👷 Team</button>
       <button class="btn-primary" style="position:relative;" onclick="openAdminModal('orders');clearOrdersBadge()">
         🛒 Orders
         <span id="ordersBadge" style="display:none;position:absolute;top:-5px;right:-5px;background:#ef4444;color:white;border-radius:50%;min-width:16px;height:16px;font-size:9px;font-weight:700;align-items:center;justify-content:center;border:2px solid white;padding:0 3px;"></span>
@@ -1696,6 +1795,25 @@ function updateNavActions() {
     if (visitSection) visitSection.style.display = '';
     if (enquiryWrap)  enquiryWrap.style.display  = 'none';
 
+  } else if (currentRole === 'technician') {
+    // ── Technician ────────────────────────────────────────────────────
+    const name = currentAdminName || 'Technician';
+    setGreeting(name, 'technician');
+    el.innerHTML = `
+      <button class="btn-primary" style="position:relative;" onclick="openTechDashboard('orders')">
+        🔧 Orders
+        <span id="ordersBadge" style="display:none;position:absolute;top:-5px;right:-5px;background:#ef4444;color:white;border-radius:50%;min-width:16px;height:16px;font-size:9px;font-weight:700;align-items:center;justify-content:center;border:2px solid white;padding:0 3px;"></span>
+      </button>
+      <button class="btn-primary" style="position:relative;" onclick="openTechDashboard('bookings')">
+        📅 Bookings
+        <span id="bookingsBadge" style="display:none;position:absolute;top:-5px;right:-5px;background:#ef4444;color:white;border-radius:50%;min-width:16px;height:16px;font-size:9px;font-weight:700;align-items:center;justify-content:center;border:2px solid white;padding:0 3px;"></span>
+      </button>
+      <button class="btn-logout" onclick="doLogout()" style="font-size:12px;padding:7px 12px;">Sign Out</button>`;
+    if (fab) fab.style.display = 'none';
+    if (visitSection) visitSection.style.display = 'none';
+    if (enquiryWrap)  enquiryWrap.style.display  = 'none';
+    setTimeout(setupAdminNotifications, 1500);
+
   } else {
     // ── Customer ──────────────────────────────────────────────────────
     const name = currentUser
@@ -1703,10 +1821,10 @@ function updateNavActions() {
       : 'Guest';
     setGreeting(name, 'user');
     el.innerHTML = `
-      <button class="btn-primary" style="padding:9px 16px;font-size:13px;" onclick="openOrderModal()">🛒 Order</button>
-      <button class="btn-login"   style="padding:9px 16px;font-size:13px;" onclick="openMyOrdersModal()">📦 My Orders</button>
+      <button class="btn-login" style="padding:9px 16px;font-size:13px;" onclick="openMyOrdersModal()">📦 My Orders</button>
+      <button class="btn-login" style="padding:9px 16px;font-size:13px;" onclick="openMyBookingsModal()">📅 My Bookings</button>
       <button class="btn-logout" onclick="doLogout()">Sign Out</button>`;
-    if (fab) fab.style.display = 'flex';
+    // cart fab hidden — order via My Orders button
     if (visitSection) visitSection.style.display = '';
     if (enquiryWrap)  enquiryWrap.style.display  = 'none';
     renderMyBookings();
@@ -1737,17 +1855,80 @@ function openOrderModal() {
 function closeOrderModal() { document.getElementById('orderModal').classList.remove('open'); }
 
 function renderOrderModal() {
-  const pg = document.getElementById('orderPlantGrid');
-  pg.innerHTML = [...plants].sort((a,b)=>a.name.localeCompare(b.name)).map(p => {
-    const qty = cart.plants[p.id] || 0;
-    return `<div class="product-select-item ${qty>0?'selected':''}" id="psi-plant-${p.id}"><span class="ps-emoji">${p.emoji}</span><span class="ps-name">${p.name}</span><div class="qty-control"><button onclick="changeQty('plant',${p.id},-1)">−</button><span class="qty-val" id="qty-plant-${p.id}">${qty}</span><button onclick="changeQty('plant',${p.id},1)">+</button></div></div>`;
-  }).join('');
-  const mg = document.getElementById('orderMaterialGrid');
-  mg.innerHTML = [...materials].sort((a,b)=>a.name.localeCompare(b.name)).map(m => {
-    const qty = cart.materials[m.id] || 0;
-    return `<div class="product-select-item ${qty>0?'selected':''}" id="psi-material-${m.id}"><span class="ps-emoji">${m.emoji}</span><span class="ps-name">${m.name}</span><div class="qty-control"><button onclick="changeQty('material',${m.id},-1)">−</button><span class="qty-val" id="qty-material-${m.id}">${qty}</span><button onclick="changeQty('material',${m.id},1)">+</button></div></div>`;
-  }).join('');
+  // Populate category filter with custom categories too
+  const sel = document.getElementById('orderCatFilter');
+  if (sel) {
+    const existing = Array.from(sel.options).map(o => o.value);
+    customCategories.forEach(cat => {
+      if (!existing.includes(cat.key)) {
+        const opt = document.createElement('option');
+        opt.value = cat.key; opt.textContent = (cat.emoji||'🌿') + ' ' + cat.label;
+        sel.appendChild(opt);
+      }
+    });
+  }
+  filterOrderItems();
   renderOrderSummary();
+}
+
+function filterOrderItems() {
+  const q   = (document.getElementById('orderSearch')?.value || '').toLowerCase().trim();
+  const cat = document.getElementById('orderCatFilter')?.value || '';
+
+  // Filter plants
+  let filteredPlants = [...plants].sort((a,b) => a.name.localeCompare(b.name));
+  let filteredMats   = [...materials].sort((a,b) => a.name.localeCompare(b.name));
+
+  if (cat === 'material') { filteredPlants = []; }
+  else if (cat === 'plant') { filteredMats = []; }
+  else if (cat && cat !== 'plant' && cat !== 'material') {
+    filteredPlants = filteredPlants.filter(p => p.type === cat || p.category === cat);
+    filteredMats   = [];
+  }
+
+  if (q) {
+    filteredPlants = filteredPlants.filter(p => p.name.toLowerCase().includes(q) || (p.sci||'').toLowerCase().includes(q));
+    filteredMats   = filteredMats.filter(m => m.name.toLowerCase().includes(q));
+  }
+
+  const pg = document.getElementById('orderPlantGrid');
+  const mg = document.getElementById('orderMaterialGrid');
+  const pt = document.querySelector('.order-section-title');
+  const mt = document.getElementById('orderMaterialTitle');
+  const noRes = document.getElementById('orderNoResults');
+
+  if (pg) pg.innerHTML = filteredPlants.map(p => {
+    const qty = cart.plants[p.id] || 0;
+    return `<div class="product-select-item ${qty>0?'selected':''}" id="psi-plant-${p.id}">
+      <span class="ps-emoji">${p.emoji}</span>
+      <span class="ps-name">${p.name}</span>
+      <div class="qty-control">
+        <button onclick="changeQty('plant',${p.id},-1)">−</button>
+        <span class="qty-val" id="qty-plant-${p.id}">${qty}</span>
+        <button onclick="changeQty('plant',${p.id},1)">+</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  if (mg) mg.innerHTML = filteredMats.map(m => {
+    const qty = cart.materials[m.id] || 0;
+    return `<div class="product-select-item ${qty>0?'selected':''}" id="psi-material-${m.id}">
+      <span class="ps-emoji">${m.emoji}</span>
+      <span class="ps-name">${m.name}</span>
+      <div class="qty-control">
+        <button onclick="changeQty('material',${m.id},-1)">−</button>
+        <span class="qty-val" id="qty-material-${m.id}">${qty}</span>
+        <button onclick="changeQty('material',${m.id},1)">+</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Show/hide section titles based on results
+  if (pt) pt.style.display = filteredPlants.length ? '' : 'none';
+  if (mt) mt.style.display = filteredMats.length ? '' : 'none';
+
+  const noResults = filteredPlants.length === 0 && filteredMats.length === 0;
+  if (noRes) noRes.style.display = noResults ? 'block' : 'none';
 }
 
 function changeQty(type, id, delta) {
@@ -1827,6 +2008,62 @@ function closeMyOrdersModal() {
 // Holds the real-time listener for the current user's orders
 let myOrdersListener = null;
 
+function bkNoteHtml(docId, note) {
+  const esc = (note||'').replace(/"/g,'&quot;');
+  return `<div style="margin-top:10px;border:1.5px solid var(--green-pale);border-radius:10px;overflow:hidden;">
+    <div style="background:var(--green-mist);padding:5px 12px;font-size:10px;font-weight:700;color:var(--green-mid);text-transform:uppercase;letter-spacing:1px;">My Note for this Booking</div>
+    ${note ? `<div style="padding:8px 12px;font-size:13px;color:#1a2e1a;background:white;border-bottom:1px solid var(--green-pale);">${note}</div>` : ''}
+    <div style="display:flex;gap:6px;padding:7px 10px;background:white;">
+      <input type="text" id="bknote-${docId}" value="${esc}" placeholder="Add a note for this booking…"
+        style="flex:1;padding:6px 10px;border-radius:50px;border:1.5px solid var(--green-pale);font-size:12px;outline:none;background:#f9fdf9;"
+        data-doc="${docId}" data-type="booking"
+        onkeydown="if(event.key==='Enter'){saveItemNote('booking',this.dataset.doc,this.value);}">
+      <button data-doc="${docId}"
+        onclick="saveItemNote('booking',this.dataset.doc,document.getElementById('bknote-'+this.dataset.doc).value)"
+        style="padding:6px 14px;border-radius:50px;border:none;background:var(--green-mid);color:white;font-size:12px;font-weight:600;cursor:pointer;">Save</button>
+    </div></div>`;
+}
+
+async function openMyBookingsModal() {
+  if (!currentUser) { openAuthModal('signin'); return; }
+  document.getElementById('myBookingsModal').classList.add('open');
+  const list = document.getElementById('myBookingsModalList');
+  list.innerHTML = '<p style="text-align:center;padding:30px;color:var(--text-light);">⏳ Loading...</p>';
+  try {
+    let all = [];
+    if (fbReady && auth.currentUser) {
+      const snap = await db.collection('enquiry').where('userId', '==', auth.currentUser.uid).get();
+      all = snap.docs.map(d => ({ _id: d.id, ...d.data() }))
+        .sort((a, b) => new Date(b.createdAt||0) - new Date(a.createdAt||0));
+    }
+    getBookings().filter(b => b.user === currentUser.username).forEach(lb => {
+      if (!all.find(fb => fb.id === lb.id)) all.push(lb);
+    });
+    if (!all.length) {
+      list.innerHTML = '<div style="text-align:center;padding:40px;"><div style="font-size:48px;margin-bottom:12px;">📅</div><div style="font-size:15px;font-weight:600;color:var(--green-deep);margin-bottom:6px;">No bookings yet</div><p style="font-size:13px;color:var(--text-light);">Book a visit or select a maintenance plan to get started.</p></div>';
+      return;
+    }
+    list.innerHTML = all.map(b => {
+      const isPkg = b.type === 'package';
+      const sc = b.status==='confirmed'?'#d1fae5':b.status==='cancelled'?'#fee2e2':b.status==='visited'?'#dbeafe':'#fef3c7';
+      const st = b.status==='confirmed'?'✅ Confirmed':b.status==='cancelled'?'❌ Cancelled':b.status==='visited'?'🏡 Visited':'⏳ Pending';
+      return '<div style="background:white;border:1.5px solid var(--green-pale);border-radius:12px;padding:16px;margin-bottom:10px;box-shadow:0 2px 8px rgba(45,106,79,0.07);">'
+        + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;">'
+        + '<div>'
+        + '<div style="font-weight:700;font-size:14px;color:var(--green-deep);">' + (isPkg ? '📋 ' + b.pkgName : '📅 ' + (b.date||'') + ' — ' + (b.slot||'')) + '</div>'
+        + '<div style="font-size:12px;color:var(--text-light);margin-top:2px;">' + (isPkg ? '₹' + Number(b.pkgPrice||0).toLocaleString('en-IN') + ' · ' + (b.pkgPeriod||'') : (b.purpose||'')) + '</div>'
+        + '<div style="font-size:11px;color:var(--text-light);margin-top:2px;">' + (b.createdAt ? new Date(b.createdAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '') + '</div>'
+        + '</div>'
+        + '<span style="padding:4px 12px;border-radius:50px;font-size:11px;font-weight:700;background:' + sc + ';white-space:nowrap;">' + st + '</span>'
+        + '</div>'
+        + (b.adminNote ? '<div style="padding:8px 12px;background:var(--green-mist);border-radius:8px;border-left:3px solid var(--green-mid);font-size:12px;color:var(--text-mid);margin-top:6px;">💬 <strong>Note from GreenTop:</strong> ' + b.adminNote + '</div>' : '')
+        + bkNoteHtml(b._id||b.id, b.customerNote||'')
+        + '</div>';
+    }).join('');
+  } catch(e) { list.innerHTML = '<p style="color:#dc2626;text-align:center;padding:20px;">❌ ' + e.message + '</p>'; }
+}
+
+
 async function renderMyOrders() {
   const el = document.getElementById('myOrdersList');
   el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-light);">⏳ Loading…</div>`;
@@ -1841,11 +2078,11 @@ async function renderMyOrders() {
 
   // Firestore real-time listener — fires on load + every status change
   const uid = auth.currentUser ? auth.currentUser.uid : currentUser.username;
-  const myOrdersRef = db.collection('orders')
-    .where('userId', '==', uid)
-    .orderBy('time', 'desc');
+  // No orderBy — sort client-side to avoid requiring a Firestore composite index
+  const myOrdersRef = db.collection('orders').where('userId', '==', uid);
   myOrdersListener = myOrdersRef.onSnapshot(snap => {
-      let myOrders = snap.docs.map(d => ({ _fbId: d.id, ...d.data() }));
+      let myOrders = snap.docs.map(d => ({ _fbId: d.id, ...d.data() }))
+        .sort((a, b) => new Date(b.time||0) - new Date(a.time||0));
 
       if (myOrders.length === 0) {
         el.innerHTML = `<div style="text-align:center;padding:40px;">
@@ -1888,11 +2125,232 @@ async function renderMyOrders() {
           ${o.adminNote ? `<div style="margin:8px 0;padding:8px 12px;background:#fffbeb;border-radius:8px;border-left:3px solid #f59e0b;font-size:12px;color:#92400e;">
             📋 <strong>Update from GreenTop:</strong> ${o.adminNote}</div>` : ''}
           ${trackBar(o.status || 'pending')}
+          <!-- Per-order customer note -->
+          <div style="margin-top:12px;border:1.5px solid var(--green-pale);border-radius:10px;overflow:hidden;">
+            <div style="background:var(--green-mist);padding:6px 12px;font-size:10px;font-weight:700;color:var(--green-mid);text-transform:uppercase;letter-spacing:1px;">My Note for this Order</div>
+            ${o.customerNote ? `<div style="padding:8px 12px;font-size:13px;color:var(--text-dark);background:white;border-bottom:1px solid var(--green-pale);">${o.customerNote}</div>` : ''}
+            <div style="display:flex;gap:6px;padding:7px 10px;background:white;">
+              <input type="text" id="cnote-${o._fbId}"
+                value="${(o.customerNote||'').replace(/"/g,'&quot;')}"
+                placeholder="Add a note for this order…"
+                style="flex:1;padding:6px 10px;border-radius:50px;border:1.5px solid var(--green-pale);font-size:12px;font-family:'DM Sans',sans-serif;outline:none;background:#f9fdf9;"
+                onkeydown="if(event.key==='Enter')saveItemNote('order','${o._fbId}',this.value)">
+              <button onclick="saveItemNote('order','${o._fbId}',document.getElementById('cnote-${o._fbId}').value)"
+                style="padding:6px 14px;border-radius:50px;border:none;background:var(--green-mid);color:white;font-size:12px;font-weight:600;cursor:pointer;">Save</button>
+            </div>
+          </div>
         </div>`).join('');
 
   }, err => {
     el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-light);">❌ ${err.message}</div>`;
   });
+}
+
+
+// ================================================================
+// TECHNICIAN DASHBOARD
+// ================================================================
+let techL2Tab = 'active';
+let techL1Tab = 'orders';
+let _unsubTechOrders   = null;
+let _unsubTechBookings = null;
+
+function openTechDashboard(section) {
+  techL1Tab = section || 'orders';
+  techL2Tab = section === 'bookings' ? 'upcoming' : 'active';
+  document.getElementById('techDashTitle').textContent = section === 'bookings' ? 'Bookings' : 'Orders';
+  document.getElementById('techDashModal').classList.add('open');
+  renderTechL2Tabs();
+  renderTechContent();
+}
+
+function closeTechDashboard() {
+  document.getElementById('techDashModal').classList.remove('open');
+  if (_unsubTechOrders)   { _unsubTechOrders();   _unsubTechOrders = null; }
+  if (_unsubTechBookings) { _unsubTechBookings(); _unsubTechBookings = null; }
+}
+
+function renderTechL2Tabs() {
+  const el = document.getElementById('techL2Tabs');
+  if (!el) return;
+  const tabs = techL1Tab === 'orders'
+    ? [{ key:'active', icon:'🔧', label:'Active' }, { key:'delivered', icon:'✅', label:'Delivered' }, { key:'cancelled', icon:'❌', label:'Cancelled' }]
+    : [{ key:'upcoming', icon:'📅', label:'Upcoming' }, { key:'visited', icon:'✅', label:'Visited' }, { key:'cancelled', icon:'❌', label:'Cancelled' }];
+  el.innerHTML = tabs.map(t =>
+    `<button class="admin-l2-tab${techL2Tab===t.key?' active-l2':''}" onclick="techL2Tab='${t.key}';renderTechL2Tabs();renderTechContent()">
+      ${t.icon} ${t.label} <span id="tech-count-${t.key}" class="tab-count"></span>
+    </button>`
+  ).join('');
+}
+
+function renderTechContent() {
+  const container = document.getElementById('techDashContainer');
+  if (!container) return;
+  if (techL1Tab === 'orders') renderTechOrders(container);
+  else renderTechBookings(container);
+}
+
+function renderTechOrders(container) {
+  if (_unsubTechOrders) { _unsubTechOrders(); _unsubTechOrders = null; }
+  container.innerHTML = '<p style="text-align:center;padding:30px;color:var(--text-light);">⏳ Loading orders…</p>';
+  if (!fbReady) return;
+
+  _unsubTechOrders = db.collection('orders').onSnapshot(snap => {
+    let all = snap.docs.map(d => ({ _fbId: d.id, ...d.data() }))
+      .sort((a,b) => new Date(b.time||0) - new Date(a.time||0));
+
+    // Update tab counts
+    ['active','delivered','cancelled'].forEach(k => {
+      const el = document.getElementById('tech-count-' + k);
+      if (el) el.textContent = k==='active' ? all.filter(o=>!['delivered','cancelled'].includes(o.status)).length
+        : all.filter(o=>o.status===k).length;
+    });
+
+    // Filter
+    if (techL2Tab === 'delivered') all = all.filter(o => o.status === 'delivered');
+    else if (techL2Tab === 'cancelled') all = all.filter(o => o.status === 'cancelled');
+    else all = all.filter(o => !['delivered','cancelled'].includes(o.status));
+
+    if (!all.length) { container.innerHTML = '<p style="text-align:center;padding:30px;color:var(--text-light);">No orders in this category.</p>'; return; }
+
+    // Group by customer
+    const byCustomer = {};
+    all.forEach(o => {
+      const key = o.userId || o.user || 'Unknown';
+      if (!byCustomer[key]) byCustomer[key] = { name: o.user||'Unknown', whatsapp: o.whatsapp||'', location: o.location||'', orders: [] };
+      byCustomer[key].orders.push(o);
+    });
+
+    container.innerHTML = Object.entries(byCustomer).map(([uid, cust]) => `
+      <div style="background:white;border:1.5px solid var(--green-pale);border-radius:14px;margin-bottom:16px;overflow:hidden;box-shadow:0 2px 10px rgba(45,106,79,0.07);">
+        <div style="background:linear-gradient(135deg,var(--green-mist),#e8f5e9);padding:12px 16px;border-bottom:1.5px solid var(--green-pale);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+          <div>
+            <div style="font-weight:700;font-size:15px;color:var(--green-deep);">👤 ${cust.name}</div>
+            <div style="font-size:12px;color:var(--text-light);">
+              ${cust.whatsapp ? `<a href="https://wa.me/${cust.whatsapp.replace(/\D/g,'')}" target="_blank" style="color:var(--green-mid);font-weight:600;">📱 ${cust.whatsapp}</a>` : ''}
+              ${cust.location ? ` &nbsp;📍 ${cust.location}` : ''}
+            </div>
+          </div>
+          <span style="font-size:12px;font-weight:600;color:var(--green-mid);">${cust.orders.length} order${cust.orders.length>1?'s':''}</span>
+        </div>
+        ${cust.orders.map(o => {
+          const st = o.status || 'pending';
+          const s = ORDER_STATUSES.find(x => x.key === st) || { icon:'⏳', label: st };
+          return `<div style="padding:14px 16px;border-bottom:1px solid var(--green-pale);">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+              <div style="font-size:13px;color:var(--text-dark);">
+                ${(o.products||[]).map(p => `${p.emoji||''} <strong>${p.name}</strong> ×${p.qty}`).join(' · ')}
+              </div>
+              <div style="font-size:11px;color:var(--text-light);text-align:right;">
+                📅 ${o.time ? new Date(o.time).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '—'}
+              </div>
+            </div>
+            ${o.customerNote ? `<div style="padding:6px 10px;background:#e0f2fe;border-radius:7px;font-size:12px;color:#0369a1;margin-bottom:8px;border-left:3px solid #0369a1;">💬 Customer: ${o.customerNote}</div>` : ''}
+            ${o.adminNote ? `<div style="padding:6px 10px;background:#fffbeb;border-radius:7px;font-size:12px;color:#92400e;margin-bottom:8px;">📋 Admin note: ${o.adminNote}</div>` : ''}
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+              <span class="order-status-badge status-${st}" style="font-size:11px;">${s.icon} ${s.label}</span>
+              <select onchange="updateOrderStatus('${o._fbId}',this.value)" style="padding:5px 10px;border-radius:8px;border:1.5px solid var(--green-pale);font-size:12px;font-family:'DM Sans',sans-serif;background:var(--green-mist);outline:none;cursor:pointer;">
+                <option value="">— Update Status —</option>
+                ${ORDER_STATUSES.map(x => `<option value="${x.key}" ${st===x.key?'selected':''}>${x.icon} ${x.label}</option>`).join('')}
+                <option value="cancelled" ${st==='cancelled'?'selected':''}>❌ Cancelled</option>
+              </select>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <input type="text" id="tnote-${o._fbId}" placeholder="✏️ Add note for customer…"
+                value="${(o.adminNote||'').replace(/"/g,'&quot;')}"
+                style="flex:1;padding:7px 12px;border-radius:8px;border:1.5px solid var(--green-pale);font-size:12px;font-family:'DM Sans',sans-serif;background:var(--green-mist);"
+                onkeydown="if(event.key==='Enter')saveAdminNote('${o._fbId}')">
+              <button onclick="saveTechNote('order','${o._fbId}')" style="padding:7px 14px;border-radius:8px;border:none;background:var(--green-mid);color:white;font-size:12px;font-weight:600;cursor:pointer;">💾</button>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`).join('');
+  });
+}
+
+function renderTechBookings(container) {
+  if (_unsubTechBookings) { _unsubTechBookings(); _unsubTechBookings = null; }
+  container.innerHTML = '<p style="text-align:center;padding:30px;color:var(--text-light);">⏳ Loading bookings…</p>';
+  if (!fbReady) return;
+
+  _unsubTechBookings = db.collection('enquiry').onSnapshot(snap => {
+    let all = snap.docs.map(d => ({ _id: d.id, ...d.data() }))
+      .filter(b => b.date || b.type === 'package')
+      .sort((a,b) => new Date(b.createdAt||b.time||0) - new Date(a.createdAt||a.time||0));
+
+    // Tab counts
+    ['upcoming','visited','cancelled'].forEach(k => {
+      const el = document.getElementById('tech-count-' + k);
+      if (el) el.textContent = k==='upcoming' ? all.filter(b=>!['visited','cancelled'].includes(b.status)).length
+        : all.filter(b=>b.status===k).length;
+    });
+
+    if (techL2Tab === 'visited')   all = all.filter(b => b.status === 'visited');
+    else if (techL2Tab === 'cancelled') all = all.filter(b => b.status === 'cancelled');
+    else all = all.filter(b => !['visited','cancelled'].includes(b.status));
+
+    if (!all.length) { container.innerHTML = '<p style="text-align:center;padding:30px;color:var(--text-light);">No bookings in this category.</p>'; return; }
+
+    // Group by customer
+    const byCust = {};
+    all.forEach(b => {
+      const key = b.userId || b.wa || b.name || '?';
+      if (!byCust[key]) byCust[key] = { name: b.name||'Unknown', wa: b.wa||b.whatsapp||'', bookings:[] };
+      byCust[key].bookings.push(b);
+    });
+
+    container.innerHTML = Object.entries(byCust).map(([key, cust]) => `
+      <div style="background:white;border:1.5px solid var(--green-pale);border-radius:14px;margin-bottom:16px;overflow:hidden;box-shadow:0 2px 10px rgba(45,106,79,0.07);">
+        <div style="background:linear-gradient(135deg,#e0f2fe,#bae6fd);padding:12px 16px;border-bottom:1.5px solid #bae6fd;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+          <div>
+            <div style="font-weight:700;font-size:15px;color:#0369a1;">👤 ${cust.name}</div>
+            ${cust.wa ? `<a href="https://wa.me/${cust.wa.replace(/\D/g,'')}" target="_blank" style="font-size:12px;color:#0284c7;font-weight:600;">📱 ${cust.wa}</a>` : ''}
+          </div>
+          <span style="font-size:12px;font-weight:600;color:#0369a1;">${cust.bookings.length} booking${cust.bookings.length>1?'s':''}</span>
+        </div>
+        ${cust.bookings.map(b => {
+          const isPkg = b.type === 'package';
+          const sc = b.status==='confirmed'?'#d1fae5':b.status==='cancelled'?'#fee2e2':b.status==='visited'?'#dbeafe':'#fef3c7';
+          const st = b.status==='confirmed'?'✅ Confirmed':b.status==='cancelled'?'❌ Cancelled':b.status==='visited'?'🏡 Visited':'⏳ Pending';
+          return `<div style="padding:14px 16px;border-bottom:1px solid var(--green-pale);">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+              <div>
+                <div style="font-weight:700;font-size:13px;color:var(--green-deep);">${isPkg ? '📋 ' + b.pkgName : '📅 ' + (b.date||'—') + ' · ' + (b.slot||'—')}</div>
+                <div style="font-size:12px;color:var(--text-mid);">${isPkg ? '₹' + Number(b.pkgPrice||0).toLocaleString('en-IN') + ' · ' + (b.pkgPeriod||'') : (b.purpose||'')}</div>
+              </div>
+              <span style="padding:4px 12px;border-radius:50px;font-size:11px;font-weight:700;background:${sc};">${st}</span>
+            </div>
+            ${b.customerNote ? `<div style="padding:6px 10px;background:#e0f2fe;border-radius:7px;font-size:12px;color:#0369a1;margin-bottom:8px;border-left:3px solid #0369a1;">💬 Customer: ${b.customerNote}</div>` : ''}
+            ${b.adminNote ? `<div style="padding:6px 10px;background:#fffbeb;border-radius:7px;font-size:12px;color:#92400e;margin-bottom:8px;">📋 Admin note: ${b.adminNote}</div>` : ''}
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+              <button onclick="updateBookingStatus('${b._id}','confirmed')" style="padding:5px 12px;border-radius:50px;border:none;background:#d1fae5;color:#065f46;font-size:11px;font-weight:700;cursor:pointer;">✅ Confirm</button>
+              <button onclick="updateBookingStatus('${b._id}','visited')" style="padding:5px 12px;border-radius:50px;border:none;background:#dbeafe;color:#1e40af;font-size:11px;font-weight:700;cursor:pointer;">🏡 Visited</button>
+              <button onclick="updateBookingStatus('${b._id}','cancelled')" style="padding:5px 12px;border-radius:50px;border:none;background:#fee2e2;color:#991b1b;font-size:11px;font-weight:700;cursor:pointer;">❌ Cancel</button>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <input type="text" id="tbnote-${b._id}" placeholder="✏️ Add note for customer…"
+                value="${(b.adminNote||'').replace(/"/g,'&quot;')}"
+                style="flex:1;padding:7px 12px;border-radius:8px;border:1.5px solid var(--green-pale);font-size:12px;font-family:'DM Sans',sans-serif;background:var(--green-mist);"
+                onkeydown="if(event.key==='Enter')saveTechNote('booking','${b._id}')">
+              <button onclick="saveTechNote('booking','${b._id}')" style="padding:7px 14px;border-radius:8px;border:none;background:#0284c7;color:white;font-size:12px;font-weight:600;cursor:pointer;">💾</button>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`).join('');
+  });
+}
+
+async function saveTechNote(type, docId) {
+  if (!fbReady) return;
+  const prefix = type === 'order' ? 'tnote-' : 'tbnote-';
+  const el = document.getElementById(prefix + docId);
+  if (!el) return;
+  const note = el.value.trim();
+  const col  = type === 'order' ? 'orders' : 'enquiry';
+  try {
+    await db.collection(col).doc(docId).update({ adminNote: note });
+    showToast('✅ Note saved — customer will see this');
+  } catch(e) { showToast('❌ ' + e.message); }
 }
 
 // ================================================================
@@ -2044,6 +2502,81 @@ function updateOrderBadge() {
   updateDashBadge();
 }
 
+
+// ================================================================
+// CUSTOMER NOTES — single note per section saved to Firestore user profile
+// ================================================================
+async function saveGeneralNote(section, note) {
+  if (!auth?.currentUser) { showToast('⚠️ Please sign in'); return; }
+  note = (note || '').trim();
+  if (!note) return;
+  const uid   = auth.currentUser.uid;
+  const field = section === 'orders' ? 'ordersMessages' : 'bookingsMessages';
+  const msg   = { text: note, time: new Date().toISOString(), from: 'customer' };
+  try {
+    // Load existing messages, append new one
+    const snap = await db.collection('users').doc(uid).get();
+    const existing = (snap.exists && snap.data()[field]) || [];
+    const updated  = [...existing, msg];
+    await db.collection('users').doc(uid).set({ [field]: updated }, { merge: true });
+    renderMessageThread(section, updated);
+    showToast('✅ Message sent!');
+  } catch(e) {
+    showToast('❌ ' + e.message);
+  }
+}
+
+function renderMessageThread(section, messages) {
+  const containerId = section === 'orders' ? 'myOrdersMessages' : 'myBookingsMessages';
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (!messages || !messages.length) {
+    el.innerHTML = '<p style="font-size:12px;color:var(--text-light);text-align:center;margin:0;">No messages yet.</p>';
+    return;
+  }
+  el.innerHTML = messages.map(m => {
+    const time = m.time ? new Date(m.time).toLocaleDateString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+    return `<div style="background:var(--green-pale);border-radius:10px 10px 2px 10px;padding:6px 10px;max-width:85%;align-self:flex-end;">
+      <div style="font-size:13px;color:var(--text-dark);">${m.text}</div>
+      <div style="font-size:10px;color:var(--text-light);margin-top:2px;text-align:right;">${time}</div>
+    </div>`;
+  }).join('');
+  // Scroll to bottom
+  el.scrollTop = el.scrollHeight;
+}
+
+async function loadGeneralNotes() {
+  if (!auth?.currentUser) return;
+  try {
+    const snap = await db.collection('users').doc(auth.currentUser.uid).get();
+    if (!snap.exists) return;
+    const data = snap.data();
+    if (data.ordersMessages)   renderMessageThread('orders',   data.ordersMessages);
+    if (data.bookingsMessages) renderMessageThread('bookings', data.bookingsMessages);
+  } catch(e) {}
+}
+
+
+// ── Per-item customer notes (saved to Firestore order/booking doc) ────────
+async function saveItemNote(type, docId, note) {
+  if (!fbReady || !docId) return;
+  note = (note || '').trim();
+  const col = type === 'order' ? 'orders' : 'enquiry';
+  try {
+    await db.collection(col).doc(docId).update({ customerNote: note });
+    // Update displayed note above input
+    const inputEl = document.getElementById((type==='order'?'cnote-':'bknote-') + docId);
+    if (inputEl) inputEl.value = note;
+    showToast('✅ Note saved!');
+  } catch(e) {
+    showToast('❌ ' + e.message);
+  }
+}
+
+async function saveCustomerNote(type, docId, note) {
+  await saveGeneralNote(type === 'order' ? 'orders' : 'bookings', note);
+}
+
 async function submitVisitBooking() {
   // Must be logged in to book a visit
   if (!currentRole || !currentUser) {
@@ -2067,13 +2600,157 @@ async function submitVisitBooking() {
   selectedBookingSlot=null; selectedBookingDate=null;
   renderBookingCalendar(); renderTimeSlots(); renderMyBookings();
 }
-function renderMyBookings() {
-  const wrap = document.getElementById('myBookingsWrap'); const list = document.getElementById('myBookingsList');
-  if (!wrap||!list||!currentUser) return;
-  const bookings = getBookings().filter(b=>b.user===currentUser.username).slice(0,5);
-  if (bookings.length===0) { wrap.style.display='none'; return; }
-  wrap.style.display='block';
-  list.innerHTML = bookings.map(b=>`<div style="padding:10px 12px;background:var(--green-mist);border-radius:8px;margin-bottom:8px;border:1.5px solid var(--green-pale);"><div style="font-size:13px;font-weight:700;color:var(--green-deep);">📅 ${b.date} at ${b.slot}</div><div style="font-size:12px;color:var(--text-light);">${b.purpose}</div><div style="font-size:11px;font-weight:600;color:${b.status==='confirmed'?'#166534':b.status==='cancelled'?'#991b1b':'#92400e'}">${b.status==='confirmed'?'✅ Confirmed':b.status==='cancelled'?'❌ Cancelled':'⏳ Pending'}</div></div>`).join('');
+async function renderMyBookings() {
+  const wrap = document.getElementById('myBookingsWrap');
+  const list = document.getElementById('myBookingsList');
+  if (!wrap || !list || !currentUser) return;
+
+  wrap.style.display = 'block';
+  list.innerHTML = '<p style="font-size:13px;color:var(--text-light);text-align:center;padding:10px;">⏳ Loading your bookings…</p>';
+
+  try {
+    // Fetch from Firestore — includes visit bookings AND package requests
+    let allBookings = [];
+
+    if (fbReady && auth.currentUser) {
+      const snap = await db.collection('enquiry')
+        .where('userId', '==', auth.currentUser.uid)
+        .get();
+      allBookings = snap.docs.map(d => ({ _id: d.id, ...d.data() }))
+        .sort((a, b) => new Date(b.createdAt||0) - new Date(a.createdAt||0));
+    }
+
+    // Also include local bookings (in case userId wasn't saved)
+    const localBk = getBookings().filter(b => b.user === currentUser.username);
+    localBk.forEach(lb => {
+      if (!allBookings.find(fb => fb.id === lb.id)) allBookings.push(lb);
+    });
+
+    if (!allBookings.length) {
+      wrap.style.display = 'none';
+      return;
+    }
+
+    list.innerHTML = allBookings.map(b => {
+      const isPkg = b.type === 'package';
+      const statusColor = b.status==='confirmed'?'#166534' : b.status==='cancelled'?'#991b1b' : b.status==='visited'?'#1d4ed8' : '#92400e';
+      const statusLabel = b.status==='confirmed'?'✅ Confirmed' : b.status==='cancelled'?'❌ Cancelled' : b.status==='visited'?'🏡 Visited' : '⏳ Pending';
+      return `<div style="padding:12px 14px;background:var(--green-mist);border-radius:10px;margin-bottom:10px;border:1.5px solid var(--green-pale);">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--green-deep);">
+              ${isPkg ? '📋 ' + b.pkgName : '📅 ' + (b.date||'') + ' at ' + (b.slot||'')}
+            </div>
+            <div style="font-size:12px;color:var(--text-light);margin-top:2px;">
+              ${isPkg ? '₹' + Number(b.pkgPrice||0).toLocaleString('en-IN') + ' · ' + (b.pkgPeriod||'') : (b.purpose||'')}
+            </div>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:${statusColor};white-space:nowrap;">${statusLabel}</span>
+        </div>
+        ${b.adminNote ? `<div style="margin-top:8px;padding:6px 10px;background:white;border-radius:6px;border-left:3px solid var(--green-mid);font-size:12px;color:var(--text-mid);">💬 ${b.adminNote}</div>` : ''}
+
+      </div>`;
+    }).join('');
+
+    setTimeout(loadGeneralNotes, 300);
+  } catch(e) {
+    list.innerHTML = '<p style="font-size:12px;color:var(--text-light);text-align:center;">Unable to load bookings.</p>';
+  }
+}
+
+
+// ================================================================
+// TECHNICIAN MANAGEMENT — admin adds/removes technicians
+// ================================================================
+async function renderTechManagement(container) {
+  if (!container) return;
+  container.innerHTML = '<p style="text-align:center;padding:20px;color:var(--text-light);">⏳ Loading…</p>';
+
+  try {
+    const snap = await db.collection('config').doc('technicians').get();
+    const emails = (snap.exists && snap.data().emails) || [];
+    TECHNICIAN_EMAILS = emails;
+
+    container.innerHTML = `
+      <div style="max-width:560px;margin:0 auto;">
+        <!-- Add technician -->
+        <div style="background:white;border:1.5px solid var(--green-pale);border-radius:14px;padding:20px;margin-bottom:20px;box-shadow:0 2px 10px rgba(45,106,79,0.07);">
+          <h3 style="font-size:15px;color:var(--green-deep);margin-bottom:4px;">➕ Add Technician</h3>
+          <p style="font-size:12px;color:var(--text-light);margin-bottom:14px;">Enter the Firebase account email of the new technician. Make sure they have an account first.</p>
+          <div style="display:flex;gap:8px;">
+            <input type="email" id="newTechEmail" placeholder="technician@email.com"
+              style="flex:1;padding:10px 14px;border-radius:10px;border:1.5px solid var(--green-pale);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;background:var(--green-mist);"
+              onkeydown="if(event.key==='Enter')addTechnician()">
+            <button onclick="addTechnician()" style="padding:10px 20px;border-radius:10px;border:none;background:var(--green-mid);color:white;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">Add</button>
+          </div>
+          <div id="techAddStatus" style="margin-top:8px;font-size:12px;"></div>
+        </div>
+
+        <!-- Technician list -->
+        <div style="background:white;border:1.5px solid var(--green-pale);border-radius:14px;padding:20px;box-shadow:0 2px 10px rgba(45,106,79,0.07);">
+          <h3 style="font-size:15px;color:var(--green-deep);margin-bottom:14px;">👷 Current Technicians (${emails.length})</h3>
+          <div id="techList">
+            ${emails.length === 0
+              ? '<p style="font-size:13px;color:var(--text-light);text-align:center;padding:20px 0;">No technicians added yet.</p>'
+              : emails.map((email, i) => `
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--green-mist);border-radius:10px;margin-bottom:8px;border:1.5px solid var(--green-pale);">
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:22px;">🔧</span>
+                    <div>
+                      <div style="font-size:13px;font-weight:600;color:var(--text-dark);">${email}</div>
+                      <div style="font-size:11px;color:var(--text-light);">Technician #${i+1}</div>
+                    </div>
+                  </div>
+                  <button onclick="removeTechnician('${email}')"
+                    style="padding:5px 12px;border-radius:50px;border:none;background:#fee2e2;color:#991b1b;font-size:12px;font-weight:600;cursor:pointer;">
+                    Remove
+                  </button>
+                </div>`).join('')}
+          </div>
+        </div>
+
+        <!-- Info box -->
+        <div style="margin-top:16px;padding:14px 18px;background:#fffbeb;border-radius:12px;border-left:4px solid #f59e0b;">
+          <div style="font-size:13px;font-weight:700;color:#92400e;margin-bottom:6px;">⚠️ Before adding a technician:</div>
+          <div style="font-size:12px;color:#92400e;line-height:1.8;">
+            1. Go to Firebase Console → Authentication → Add User<br>
+            2. Create their account with email + password<br>
+            3. Then enter their email here<br>
+            4. Share the login credentials with them
+          </div>
+        </div>
+      </div>`;
+  } catch(e) {
+    container.innerHTML = `<p style="color:#dc2626;text-align:center;padding:20px;">❌ ${e.message}</p>`;
+  }
+}
+
+async function addTechnician() {
+  const emailEl = document.getElementById('newTechEmail');
+  const statusEl = document.getElementById('techAddStatus');
+  const email = (emailEl?.value || '').trim().toLowerCase();
+  if (!email || !email.includes('@')) { if(statusEl) statusEl.innerHTML = '<span style="color:#dc2626;">⚠️ Please enter a valid email.</span>'; return; }
+  if (ADMIN_EMAILS.map(e=>e.toLowerCase()).includes(email)) { if(statusEl) statusEl.innerHTML = '<span style="color:#dc2626;">⚠️ That is an admin email.</span>'; return; }
+  if (TECHNICIAN_EMAILS.map(e=>e.toLowerCase()).includes(email)) { if(statusEl) statusEl.innerHTML = '<span style="color:#f59e0b;">Already added.</span>'; return; }
+  try {
+    const updated = [...TECHNICIAN_EMAILS, email];
+    await db.collection('config').doc('technicians').set({ emails: updated }, { merge: true });
+    TECHNICIAN_EMAILS = updated;
+    if(statusEl) statusEl.innerHTML = '<span style="color:#166534;">✅ Technician added!</span>';
+    if(emailEl) emailEl.value = '';
+    setTimeout(() => renderTechManagement(document.getElementById('adminOrdersContainer')), 500);
+  } catch(e) { if(statusEl) statusEl.innerHTML = `<span style="color:#dc2626;">❌ ${e.message}</span>`; }
+}
+
+async function removeTechnician(email) {
+  if (!confirm('Remove ' + email + ' as technician?')) return;
+  const updated = TECHNICIAN_EMAILS.filter(e => e.toLowerCase() !== email.toLowerCase());
+  try {
+    await db.collection('config').doc('technicians').set({ emails: updated }, { merge: true });
+    TECHNICIAN_EMAILS = updated;
+    showToast('✅ Technician removed');
+    renderTechManagement(document.getElementById('adminOrdersContainer'));
+  } catch(e) { showToast('❌ ' + e.message); }
 }
 
 // ================================================================
@@ -2153,6 +2830,7 @@ async function renderAdminBookings(container, filterTab) {
                 ${b.createdAt ? new Date(b.createdAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short'}) : ''}
               </div>
             </div>
+            ${b.customerNote ? `<div style="padding:7px 12px;background:#e0f2fe;border-radius:8px;font-size:12px;color:#0369a1;margin-bottom:6px;border-left:3px solid #0369a1;">💬 <strong>Customer note:</strong> ${b.customerNote}</div>` : ''}
             ${b.adminNote ? `<div style="padding:7px 12px;background:#fffbeb;border-radius:8px;font-size:12px;color:#92400e;margin-bottom:8px;">📋 <strong>Note to customer:</strong> ${b.adminNote}</div>` : ''}
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
               <span style="padding:4px 12px;border-radius:50px;font-size:12px;font-weight:700;background:${sc};">${st}</span>
@@ -2294,17 +2972,19 @@ function renderCurrentTab() {
   if (!container) return;
   if (currentL1Tab === 'orders') {
     startAdminOrdersListener(container, currentL2Tab);
-  } else {
+  } else if (currentL1Tab === 'bookings') {
     renderAdminBookings(container, currentL2Tab);
+  } else if (currentL1Tab === 'technicians') {
+    renderTechManagement(container);
   }
 }
 
 function renderAdminModalTab(tab) {
-  if (tab === 'orders')   { currentL1Tab = 'orders';   currentL2Tab = 'active'; }
-  if (tab === 'bookings') { currentL1Tab = 'bookings'; currentL2Tab = 'upcoming'; }
-  // Update modal title
+  if (tab === 'orders')      { currentL1Tab = 'orders';      currentL2Tab = 'active'; }
+  if (tab === 'bookings')    { currentL1Tab = 'bookings';    currentL2Tab = 'upcoming'; }
+  if (tab === 'technicians') { currentL1Tab = 'technicians'; currentL2Tab = ''; }
   const title = document.getElementById('adminModalTitle');
-  if (title) title.textContent = tab === 'orders' ? '🛒 Orders' : '📅 Bookings';
+  if (title) title.textContent = tab === 'orders' ? '🛒 Orders' : tab === 'bookings' ? '📅 Bookings' : '👷 Team & Technicians';
   renderL2Tabs();
   renderCurrentTab();
 }
@@ -2367,6 +3047,7 @@ function startAdminOrdersListener(containerEl, filterTab) {
               </div>
             </div>
             ${o.notes ? `<div style="font-size:12px;color:var(--text-light);font-style:italic;margin-bottom:8px;">📝 ${o.notes}</div>` : ''}
+            ${o.customerNote ? `<div style="padding:7px 12px;background:#e0f2fe;border-radius:8px;font-size:12px;color:#0369a1;margin-bottom:6px;border-left:3px solid #0369a1;">💬 <strong>Customer note:</strong> ${o.customerNote}</div>` : ''}
             ${o.adminNote ? `<div style="padding:7px 12px;background:#fffbeb;border-radius:8px;font-size:12px;color:#92400e;margin-bottom:8px;">📋 <strong>Note to customer:</strong> ${o.adminNote}</div>` : ''}
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
               <span class="order-status-badge status-${st}" style="font-size:11px;">${s.icon} ${s.label}</span>
@@ -3442,6 +4123,102 @@ function saveCats() {
   if (fbReady) fbSet('config', 'categories', { value: customCategories, updatedAt: new Date().toISOString() });
 }
 
+
+// ================================================================
+// PACKAGE BOOKING — customer selects a plan, it goes to Bookings tab
+// ================================================================
+let selectedPkgId = null;
+
+function openPkgBookingModal(pkgId) {
+  // If not logged in, prompt sign in first
+  if (!currentUser && currentRole !== 'admin') {
+    showToast('⚠️ Please sign in to book a plan');
+    openAuthModal('signin');
+    return;
+  }
+
+  const pkg = packages.find(p => p.id === pkgId);
+  if (!pkg) return;
+  selectedPkgId = pkgId;
+
+  // Show plan details in modal
+  document.getElementById('pkgBookingTitle').textContent = pkg.name + ' — Selected!';
+  document.getElementById('pkgBookingCard').innerHTML = `
+    <div style="font-size:13px;font-weight:700;color:var(--green-mid);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;">${pkg.duration}</div>
+    <div style="font-family:'Playfair Display',serif;font-size:22px;color:var(--green-deep);font-weight:700;margin-bottom:8px;">${pkg.name}</div>
+    <div style="font-size:32px;font-weight:800;color:var(--green-deep);">₹${Number(pkg.price).toLocaleString('en-IN')}</div>
+    <div style="font-size:12px;color:var(--text-light);margin-bottom:12px;">${pkg.period}</div>
+    <ul style="list-style:none;text-align:left;padding:0;border-top:1.5px solid var(--green-pale);padding-top:10px;">
+      ${pkg.features.map(f => `<li style="padding:5px 0;font-size:13px;color:var(--text-mid);display:flex;gap:8px;align-items:center;"><span style="color:var(--green-mid);font-weight:800;">✓</span>${f}</li>`).join('')}
+    </ul>`;
+
+  // Pre-fill user details if logged in
+  if (currentUser) {
+    document.getElementById('pkgBookName').value = currentUser.username || '';
+    document.getElementById('pkgBookWA').value   = currentUser.whatsapp || '';
+    document.getElementById('pkgBookAddr').value = currentUser.location || '';
+  }
+  document.getElementById('pkgBookStatus').innerHTML = '';
+  document.getElementById('pkgBookBtn').disabled = false;
+  document.getElementById('pkgBookBtn').textContent = '📋 Confirm Plan Request';
+  document.getElementById('pkgBookingModal').classList.add('open');
+}
+
+function closePkgBookingModal() {
+  document.getElementById('pkgBookingModal').classList.remove('open');
+  selectedPkgId = null;
+}
+
+async function confirmPkgBooking() {
+  const pkg  = packages.find(p => p.id === selectedPkgId);
+  const name = document.getElementById('pkgBookName').value.trim();
+  const wa   = document.getElementById('pkgBookWA').value.trim();
+  const addr = document.getElementById('pkgBookAddr').value.trim();
+  const msg  = document.getElementById('pkgBookMsg').value.trim();
+
+  if (!pkg)  { showToast('⚠️ No plan selected'); return; }
+  if (!name) { showToast('⚠️ Please enter your name'); return; }
+  if (!wa)   { showToast('⚠️ Please enter your WhatsApp number'); return; }
+
+  const btn = document.getElementById('pkgBookBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Submitting…';
+
+  const booking = {
+    type:      'package',
+    pkgId:     pkg.id,
+    pkgName:   pkg.name,
+    pkgPrice:  pkg.price,
+    pkgPeriod: pkg.period,
+    name,
+    wa,
+    address:   addr,
+    message:   msg,
+    status:    'pending',
+    userId:    currentUser?.uid || null,
+    user:      currentUser?.username || name,
+    createdAt: new Date().toISOString(),
+    date:      new Date().toLocaleDateString('en-IN'),
+    slot:      'Package Request',
+    purpose:   pkg.name + ' — ₹' + Number(pkg.price).toLocaleString('en-IN') + ' ' + pkg.period,
+  };
+
+  try {
+    await fbAdd('enquiry', booking);
+    document.getElementById('pkgBookStatus').innerHTML =
+      '<div style="padding:12px;background:#d1fae5;border-radius:10px;font-size:13px;color:#065f46;font-weight:600;margin-bottom:12px;">✅ Request submitted! We\'ll WhatsApp you within 24 hours.</div>';
+    btn.textContent = '✅ Submitted!';
+    showToast('🌿 ' + pkg.name + ' request sent!');
+    updateBookingBadge(1);
+    setTimeout(closePkgBookingModal, 2500);
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = '📋 Confirm Plan Request';
+    document.getElementById('pkgBookStatus').innerHTML =
+      '<div style="padding:10px;background:#fee2e2;border-radius:10px;font-size:13px;color:#991b1b;margin-bottom:12px;">❌ ' + e.message + '</div>';
+  }
+}
+
 // ================================================================
 // PACKAGE EDIT — admin only
 // ================================================================
@@ -3720,6 +4497,36 @@ window.addEventListener('resize', () => {
   </div>
 </div>
 
+
+
+<!-- MY BOOKINGS MODAL -->
+<div class="modal-overlay" id="myBookingsModal">
+  <div class="modal" style="max-width:520px;max-height:min(85vh,680px);display:flex;flex-direction:column;overflow:hidden;">
+    <button class="modal-close" onclick="document.getElementById('myBookingsModal').classList.remove('open')">✕</button>
+    <h2 style="margin-bottom:4px;">📅 My Bookings</h2>
+    <p style="font-size:13px;color:var(--text-light);margin-bottom:16px;">Your visit bookings and maintenance plan requests.</p>
+    <div id="myBookingsModalList" style="overflow-y:auto;flex:1;"></div>
+  </div>
+</div>
+
+<!-- PACKAGE BOOKING MODAL -->
+<div class="modal-overlay" id="pkgBookingModal">
+  <div class="modal" style="max-width:460px;text-align:center;">
+    <button class="modal-close" onclick="closePkgBookingModal()">✕</button>
+    <div style="font-size:48px;margin-bottom:12px;">🌿</div>
+    <h2 style="font-family:'Playfair Display',serif;color:var(--green-deep);margin-bottom:6px;" id="pkgBookingTitle">Plan Selected!</h2>
+    <div id="pkgBookingCard" style="background:var(--green-mist);border-radius:14px;padding:20px;margin:16px 0;border:1.5px solid var(--green-pale);"></div>
+    <p style="font-size:13px;color:var(--text-light);margin-bottom:18px;">Fill in your details so we can get in touch and set up your plan.</p>
+    <div class="input-wrap"><label>Your Name</label><input type="text" id="pkgBookName" placeholder="e.g. Rajan Kumar"></div>
+    <div class="input-wrap"><label>WhatsApp Number</label><input type="text" id="pkgBookWA" placeholder="+91 98765 43210"></div>
+    <div class="input-wrap"><label>Address / Area</label><input type="text" id="pkgBookAddr" placeholder="e.g. RS Puram, Coimbatore"></div>
+    <div class="input-wrap"><label>Message (optional)</label><textarea id="pkgBookMsg" placeholder="Any specific requirements or questions..." style="width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--green-pale);background:var(--green-mist);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;min-height:70px;resize:vertical;"></textarea></div>
+    <div id="pkgBookStatus"></div>
+    <button class="btn-submit" onclick="confirmPkgBooking()" id="pkgBookBtn">📋 Confirm Plan Request</button>
+    <p style="font-size:12px;color:var(--text-light);margin-top:10px;">We'll WhatsApp you within 24 hours to confirm.</p>
+  </div>
+</div>
+
 <!-- PACKAGE EDIT MODAL -->
 <div class="modal-overlay" id="pkgModal">
   <div class="modal" style="max-width:460px;">
@@ -3754,6 +4561,24 @@ window.addEventListener('resize', () => {
   </div>
 </div>
 
+
+<!-- TECHNICIAN DASHBOARD MODAL -->
+<div class="modal-overlay" id="techDashModal">
+  <div class="modal" style="max-width:720px;max-height:min(88vh,720px);display:flex;flex-direction:column;overflow:hidden;">
+    <button class="modal-close" onclick="closeTechDashboard()">✕</button>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:28px;">🔧</span>
+      <div>
+        <h2 style="margin:0;" id="techDashTitle">Orders</h2>
+        <div style="font-size:12px;color:var(--text-light);">Technician View</div>
+      </div>
+    </div>
+    <!-- L2 sub-tabs -->
+    <div style="display:flex;gap:4px;margin-bottom:12px;flex-shrink:0;flex-wrap:wrap;" id="techL2Tabs"></div>
+    <div id="techDashContainer" style="overflow-y:auto;flex:1;padding-right:4px;"></div>
+  </div>
+</div>
+
 <!-- ADMIN ORDERS MODAL -->
 <div class="modal-overlay" id="adminModal">
   <div class="modal" style="max-width:720px;max-height:min(88vh,720px);display:flex;flex-direction:column;overflow:hidden;">
@@ -3762,6 +4587,7 @@ window.addEventListener('resize', () => {
     <div id="adminL1Tabs" style="display:none;">
       <button id="l1-orders"   onclick="switchAdminL1('orders')"   class="admin-l1-tab active-l1">🛒 Orders <span id="l1-orders-count"></span></button>
       <button id="l1-bookings" onclick="switchAdminL1('bookings')" class="admin-l1-tab">📅 Bookings <span id="l1-bookings-count"></span></button>
+      <button id="l1-technicians" onclick="switchAdminL1('technicians')" class="admin-l1-tab">👷 Technicians</button>
     </div>
     <!-- Level 2: sub-tabs (Orders: Active|Delivered|Cancelled  /  Bookings: Upcoming|Visited|Cancelled) -->
     <div style="display:flex;gap:4px;margin-bottom:12px;flex-shrink:0;flex-wrap:wrap;" id="adminL2Tabs"></div>
