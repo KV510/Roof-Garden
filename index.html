@@ -320,9 +320,11 @@
   .mobile-nav-drawer a:last-of-type { border-bottom: none; }
   .mobile-nav-drawer a:hover { background: var(--green-pale); color: var(--green-deep); }
   .mobile-nav-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1.5px solid var(--green-pale); }
-  .fade-in { opacity: 0; transform: translateY(24px); transition: all 0.6s ease; }
-  .fade-in.visible { opacity: 1; transform: translateY(0); }
+  . { opacity: 0; transform: translateY(24px); transition: all 0.6s ease; }
+  . .visible { opacity: 1; transform: translateY(0); }
   .hero-content { opacity: 1 !important; transform: none !important; }
+  /* Safety net: show all content after 2s even if observer fails */
+  @keyframes revealAll { to { opacity: 1; transform: translateY(0); } }
 
   @media (max-width: 768px) {
     .topbar { padding: 0 16px; }
@@ -358,8 +360,8 @@
     <a href="#contact">Contact</a>
   </nav>
   <div class="nav-actions" id="navActions">
-    <button class="btn-login" onclick="openAuthModal('signin')">Sign In</button>
-    <button class="btn-primary" style="padding:9px 22px;font-size:14px;" onclick="openAuthModal('register')">Register</button>
+    <button class="btn-login" onclick="try{openAuthModal('signin')}catch(e){var m=document.getElementById('loginModal');if(m){m.style.display='flex';m.classList.add('open');}}">Sign In</button>
+    <button class="btn-primary" style="padding:9px 22px;font-size:14px;" onclick="try{openAuthModal('register')}catch(e){var m=document.getElementById('loginModal');if(m){m.style.display='flex';m.classList.add('open');}}">Register</button>
   </div>
   <button class="hamburger" id="hamburgerBtn" onclick="toggleMobileNav()"><span></span><span></span><span></span></button>
 </header>
@@ -402,7 +404,7 @@
 <!-- GALLERY -->
 <section id="gallery">
   <div class="section-inner">
-    <div class="section-head fade-in">
+    <div class="section-head">
       <div class="section-tag">Our Work</div>
       <h2>Garden Gallery</h2>
       <p>Real terrace gardens we've created across Coimbatore</p>
@@ -415,16 +417,16 @@
 <!-- SERVICES -->
 <section class="services-bg" id="services">
   <div class="section-inner">
-    <div class="section-head fade-in">
+    <div class="section-head">
       <div class="section-tag">What We Do</div>
       <h2>Our Services</h2>
       <p>End-to-end terrace garden solutions for homes and offices across Coimbatore</p>
     </div>
     <div class="services-carousel-wrap"><div class="services-track" id="servicesTrack">
-      <div class="service-card fade-in"><div class="service-icon">🏠</div><h3>Terrace Garden Setup</h3><p>Complete design and installation of rooftop gardens with waterproofing, soil beds, drainage and curated plant selection.</p></div>
-      <div class="service-card fade-in"><div class="service-icon">🪴</div><h3>Balcony Garden</h3><p>Space-optimised balcony gardens with vertical planters, railing pots, and hanging gardens for apartments and villas.</p></div>
-      <div class="service-card fade-in"><div class="service-icon">🔧</div><h3>System Installation</h3><p>Drip irrigation, grow bags, raised beds, perlite &amp; cocopeat growing media and complete structural setup.</p></div>
-      <div class="service-card fade-in"><div class="service-icon">🌻</div><h3>Regular Maintenance</h3><p>Scheduled care visits, pruning, fertilising, pest control and plant replacement under our maintenance packages.</p></div>
+      <div class="service-card "><div class="service-icon">🏠</div><h3>Terrace Garden Setup</h3><p>Complete design and installation of rooftop gardens with waterproofing, soil beds, drainage and curated plant selection.</p></div>
+      <div class="service-card "><div class="service-icon">🪴</div><h3>Balcony Garden</h3><p>Space-optimised balcony gardens with vertical planters, railing pots, and hanging gardens for apartments and villas.</p></div>
+      <div class="service-card "><div class="service-icon">🔧</div><h3>System Installation</h3><p>Drip irrigation, grow bags, raised beds, perlite &amp; cocopeat growing media and complete structural setup.</p></div>
+      <div class="service-card "><div class="service-icon">🌻</div><h3>Regular Maintenance</h3><p>Scheduled care visits, pruning, fertilising, pest control and plant replacement under our maintenance packages.</p></div>
     </div></div>
     <div class="carousel-dots" id="svcDots"></div>
   </div>
@@ -433,7 +435,7 @@
 <!-- PLANTS -->
 <section id="plants">
   <div class="section-inner">
-    <div class="section-head fade-in"><div class="section-tag">Our Collection</div><h2>Plants We Install</h2><p>A curated selection of plants perfect for Coimbatore's climate</p></div>
+    <div class="section-head"><div class="section-tag">Our Collection</div><h2>Plants We Install</h2><p>A curated selection of plants perfect for Coimbatore's climate</p></div>
     <div class="plant-tabs" id="plantTabs">
       <button class="plant-tab active" onclick="setPlantTab('all')" id="tab-all">🌿 All <span class="plant-tab-count" id="cnt-all">0</span></button>
       <button class="plant-tab" onclick="setPlantTab('food')" id="tab-food">🍅 Food <span class="plant-tab-count" id="cnt-food">0</span></button>
@@ -452,7 +454,7 @@
 <!-- MATERIALS -->
 <section style="background:var(--green-mist);" id="materials">
   <div class="section-inner">
-    <div class="section-head fade-in"><div class="section-tag">Installation Materials</div><h2>Materials We Use</h2><p>High-quality components chosen for durability and plant health</p></div>
+    <div class="section-head"><div class="section-tag">Installation Materials</div><h2>Materials We Use</h2><p>High-quality components chosen for durability and plant health</p></div>
     <div class="catalog-search-wrap">
       <span>🔍</span>
       <input type="text" id="materialSearch" placeholder="Search materials..." oninput="filterMaterials()">
@@ -465,7 +467,7 @@
 <!-- PACKAGES -->
 <section class="packages-bg" id="packages">
   <div class="section-inner">
-    <div class="section-head fade-in"><div class="section-tag">Maintenance Plans</div><h2 style="color:white;">Maintenance Packages</h2><p style="color:rgba(255,255,255,0.65);">Choose a plan that fits your garden and budget</p></div>
+    <div class="section-head"><div class="section-tag">Maintenance Plans</div><h2 style="color:white;">Maintenance Packages</h2><p style="color:rgba(255,255,255,0.65);">Choose a plan that fits your garden and budget</p></div>
     <div class="packages-static-grid" id="packagesGrid"></div>
   </div>
 </section>
@@ -473,9 +475,9 @@
 <!-- VISIT BOOKING (only for logged-in users) -->
 <section class="visit-booking-section" id="visit-booking" style="display:none;">
   <div class="section-inner">
-    <div class="section-head fade-in"><div class="section-tag">Customer Care</div><h2>Book a Site Visit</h2><p>Select your preferred date and time – we'll confirm your slot</p></div>
+    <div class="section-head"><div class="section-tag">Customer Care</div><h2>Book a Site Visit</h2><p>Select your preferred date and time – we'll confirm your slot</p></div>
     <div class="visit-grid">
-      <div class="booking-card fade-in">
+      <div class="booking-card">
         <h3 style="font-family:'Playfair Display',serif;font-size:22px;color:var(--green-deep);margin-bottom:18px;">📅 Choose a Date</h3>
         <div class="booking-calendar" id="bookingCalendar"></div>
         <h3 style="font-family:'Playfair Display',serif;font-size:18px;color:var(--green-deep);margin:18px 0 10px;">⏰ Available Time Slots</h3>
@@ -489,7 +491,7 @@
         </div>
         <button class="btn-primary" style="width:100%;padding:14px;" onclick="submitVisitBooking()">📅 Confirm Booking</button>
       </div>
-      <div class="fade-in">
+      <div class="">
         <div style="background:white;border-radius:var(--radius);padding:28px;box-shadow:var(--shadow-card);border:1.5px solid var(--green-pale);margin-bottom:20px;">
           <h3 style="font-family:'Playfair Display',serif;font-size:20px;color:var(--green-deep);margin-bottom:14px;">🌿 What to Expect</h3>
           <div style="display:flex;flex-direction:column;gap:12px;">
@@ -510,9 +512,9 @@
 <!-- CONTACT -->
 <section id="contact">
   <div class="section-inner">
-    <div class="section-head fade-in"><div class="section-tag">Reach Us</div><h2>Contact Us</h2><p>Get in touch for a free site visit and quotation</p></div>
+    <div class="section-head"><div class="section-tag">Reach Us</div><h2>Contact Us</h2><p>Get in touch for a free site visit and quotation</p></div>
     <div class="contact-grid">
-      <div class="contact-info fade-in">
+      <div class="contact-info ">
         <h3>GreenTop Gardens, Coimbatore</h3>
         <div class="contact-item"><span class="contact-item-icon">📍</span><div class="contact-item-text"><strong>Address</strong><span id="ci-address">Coimbatore, Tamil Nadu – 641001</span></div></div>
         <div class="contact-item"><span class="contact-item-icon">📞</span><div class="contact-item-text"><strong>Phone</strong><span id="ci-phone">+91 98765 43210</span></div></div>
@@ -520,7 +522,7 @@
         <div class="contact-item"><span class="contact-item-icon">🕐</span><div class="contact-item-text"><strong>Working Hours</strong><span id="ci-hours">Mon – Sat, 9:00 AM – 6:00 PM</span></div></div>
         <div class="contact-item"><span class="contact-item-icon">📱</span><div class="contact-item-text"><strong>WhatsApp</strong><span id="ci-whatsapp">+91 98765 43210</span></div></div>
       </div>
-      <div id="enquiryFormWrap" class="contact-form fade-in">
+      <div id="enquiryFormWrap" class="contact-form ">
         <h3>Send an Enquiry</h3>
         <div class="form-group"><label>Your Name</label><input type="text" placeholder="Enter your name"></div>
         <div class="form-group"><label>Phone Number</label><input type="tel" placeholder="+91 XXXXX XXXXX"></div>
@@ -650,38 +652,29 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
-<!-- Supabase — used ONLY for image/video storage -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" async></script>
+
+
 
 <script>
-// FILE VERSION: GreenTop v3.0 — 2025-unified-auth
 // ================================================================
-// SUPABASE CONFIG — used ONLY for image/video storage
-// ================================================================
-// HOW TO SET UP (free, no card needed):
-// 1. Go to https://supabase.com → New Project (free)
-// 2. Project Settings → API → copy URL and anon key below
-// 3. Storage → Create bucket called "images" → set to PUBLIC
+// SUPABASE — image storage only (free, no card needed)
 // ================================================================
 const SUPABASE_URL    = 'https://yxakwaqvapbxmrtbczdo.supabase.co';
 const SUPABASE_ANON   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4YWt3YXF2YXBieG1ydGJjemRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMjExMTAsImV4cCI6MjA5NDg5NzExMH0.2TwPU1-IgmYhXNnhyqofsXq0zXcJmH_DEYwTl5oDC0c';
 const SUPABASE_BUCKET = 'images';
-
 let supabase = null;
-(function initSupabase() {
-  if (SUPABASE_URL.startsWith('YOUR_') || SUPABASE_ANON.startsWith('YOUR_')) {
-    console.warn('[Supabase] Config not set — image uploads will use base64 fallback.');
-    return;
-  }
-  try {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-    console.info('[Supabase] Storage connected:', SUPABASE_URL);
-  } catch(e) {
-    console.warn('[Supabase] Init failed:', e.message);
-  }
-})();
 
+// Global error catcher — logs JS errors without breaking the page
+window.onerror = function(msg, src, line, col, err) {
+  console.error('[GreenTop Error]', msg, 'at line', line, '|', err);
+  return false; // don't suppress default handling
+};
+window.addEventListener('unhandledrejection', e => {
+  console.error('[GreenTop Promise Error]', e.reason);
+});
+
+// FILE VERSION: GreenTop v3.0 — 2025-unified-auth
 // ================================================================
 // FIREBASE CONFIG — same project as admin.html
 // ================================================================
@@ -700,25 +693,86 @@ const ADMIN_EMAILS = [
   'at2026@gmail.com',   // 👈 your admin email
 ];
 
-let db = null, auth = null, storage = null, fbReady = false, fbAdminReady = false;
+let db = null, auth = null, fbReady = false, fbAdminReady = false;
 (function() {
   try {
     if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
     db      = firebase.firestore();
     auth    = firebase.auth();
-    storage = firebase.storage();
+    // storage handled by Supabase — Firebase Storage not needed
     fbReady = true;
 
-    // Restore admin session if Firebase Auth still has a signed-in user
-    auth.onAuthStateChanged(user => {
-      if (user && ADMIN_EMAILS.map(e => e.toLowerCase()).includes(user.email.toLowerCase())) {
-        fbAdminReady = true;
-      } else {
+    // Restore session on every page load via Firebase Auth persistence
+    auth.onAuthStateChanged(async user => {
+      if (!user) {
+        // Not signed in — show content for guests, clear any stale session
         fbAdminReady = false;
+        if (currentRole) {
+          currentRole = null; currentUser = null; currentAdminName = null;
+          clearSession();
+        }
+        updateNavActions();
+        renderAll();
+        return;
       }
+
+      const isAdmin = ADMIN_EMAILS.map(e => e.toLowerCase()).includes(user.email.toLowerCase());
+
+      if (isAdmin) {
+        // ── Restore admin session ──────────────────────────────────
+        fbAdminReady  = true;
+        currentRole   = 'admin';
+        currentUser   = null;
+        const rawName = user.displayName || user.email.split('@')[0];
+        currentAdminName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+        saveSession(currentRole, null, currentAdminName);
+        startSessionTimer();
+      } else {
+        // ── Restore customer session ───────────────────────────────
+        fbAdminReady = false;
+        let profile = {};
+        try {
+          if (db) {
+            const snap = await db.collection('users').doc(user.uid).get();
+            if (snap.exists) profile = snap.data();
+          }
+        } catch(e) {}
+        currentRole = 'user';
+        currentUser = {
+          uid:      user.uid,
+          username: user.displayName || profile.name || user.email.split('@')[0],
+          email:    user.email,
+          whatsapp: profile.whatsapp || '',
+          location: profile.location || ''
+        };
+        saveSession(currentRole, currentUser);
+        startSessionTimer();
+      }
+
+      // Update UI after session restored
+      updateNavActions();
+      renderAll();
     });
   } catch(e) { console.warn('[FB] init failed:', e.message); }
 })();
+
+// Supabase init is lazy — called only when upload is needed
+// This ensures Firebase Auth is never blocked by Supabase loading
+function initSupabaseLazy() {
+  if (supabase) return true; // already initialized
+  try {
+    if (!window.supabase) {
+      console.warn('[Supabase] SDK not loaded yet');
+      return false;
+    }
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    console.info('[Supabase] Connected:', SUPABASE_URL);
+    return true;
+  } catch(e) {
+    console.warn('[Supabase] Init failed:', e.message);
+    return false;
+  }
+}
 
 // ================================================================
 // SAFE LOCAL STORAGE
@@ -983,10 +1037,15 @@ function renderContact() {
   document.getElementById('ci-email').textContent = contactInfo.email;
   document.getElementById('ci-hours').textContent = contactInfo.hours;
   document.getElementById('ci-whatsapp').textContent = contactInfo.whatsapp;
+  // Show edit button only for admin
+  const editBtn = document.getElementById('editContactBtn');
+  if (editBtn) editBtn.style.display = currentRole === 'admin' ? 'inline-block' : 'none';
 }
 
 function renderGallery() {
   const track = document.getElementById('galleryTrack');
+  // Reset carousel before clearing track — prevents broken transform state
+  try { galCarousel.reset(); } catch(e) {}
   track.innerHTML = '';
   const sorted = [...gallery].sort((a,b) => (b.featured?1:0)-(a.featured?1:0));
   sorted.forEach(item => {
@@ -1069,14 +1128,10 @@ function applyPageContent(pg) {
 function canEdit() { return currentRole === 'admin'; }
 
 function renderAll() {
-  renderCustomTabs();
-  renderPlantsGrid();
-  renderMaterialsGrid();
-  renderPackages();
-  renderContact();
-  renderGallery();
-  renderBookingCalendar();
-  updateNavActions();
+  const fns = [renderCustomTabs, renderPlantsGrid, renderMaterialsGrid,
+               renderPackages, renderContact, renderGallery,
+               renderBookingCalendar, updateNavActions];
+  fns.forEach(fn => { try { fn(); } catch(e) { console.warn('[renderAll] ' + fn.name + ' failed:', e.message); } });
 }
 
 // ================================================================
@@ -1088,8 +1143,22 @@ function saveRegisteredUsers(users) {
   // Users now stored as individual Firestore docs under /users/{uid} via doRegister()
 }
 
-function openAuthModal(tab) { switchAuthTab(tab||'signin'); document.getElementById('loginModal').classList.add('open'); }
-function closeLogin() { document.getElementById('loginModal').classList.remove('open'); clearAuthForms(); }
+function openAuthModal(tab) {
+  try {
+    const modal = document.getElementById('loginModal');
+    if (!modal) { console.error('loginModal not found'); return; }
+    modal.style.display = 'flex';  // force display as backup
+    modal.classList.add('open');
+    switchAuthTab(tab || 'signin');
+  } catch(e) { console.error('openAuthModal error:', e); }
+}
+function closeLogin() {
+  try {
+    const modal = document.getElementById('loginModal');
+    if (modal) { modal.classList.remove('open'); modal.style.display = ''; }
+    clearAuthForms();
+  } catch(e) {}
+}
 function clearAuthForms() {
   ['siUser','siPass','regUser','regWA','regLoc','regPass','regPass2'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('siErr').style.display = 'none';
@@ -1161,7 +1230,7 @@ async function doSignIn() {
       };
       saveSession(currentRole, currentUser);
       startSessionTimer();
-      closeLogin(); updateNavActions();
+      closeLogin(); updateNavActions(); renderAll();
       addActivityLog('auth', '🔑', 'Customer signed in: ' + currentUser.username);
       const name = currentUser.username.charAt(0).toUpperCase() + currentUser.username.slice(1);
       showToast('👋 Welcome ' + name + '! ' + getGreeting() + '!');
@@ -1686,6 +1755,7 @@ function stopAdminOrdersListener() {
 }
 
 async function updateOrderStatus(fbId, newStatus) {
+  if (currentRole !== 'admin') return;
   if (!newStatus || !fbReady) return;
   try {
     await db.collection('orders').doc(fbId).update({
@@ -1700,6 +1770,7 @@ async function updateOrderStatus(fbId, newStatus) {
 }
 
 async function saveAdminNote(fbId) {
+  if (currentRole !== 'admin') return;
   const el = document.getElementById('adminNote-' + fbId);
   if (!el || !fbReady) return;
   try {
@@ -1739,20 +1810,27 @@ document.addEventListener('click', e => { const d=document.getElementById('mobil
 document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); }));
 document.getElementById('orderConfirmModal').addEventListener('click', e => { if(e.target.id==='orderConfirmModal') closeConfirmModal(); });
 
-// Scroll animation
-const observer = new IntersectionObserver(entries => entries.forEach(e => {
-  if (e.isIntersecting) e.target.classList.add('visible');
-}), { threshold: 0.05, rootMargin: '0px 0px -20px 0px' });
+// Scroll animation — show elements as they come into view
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.05 });
 
-document.querySelectorAll('.fade-in').forEach(el => {
-  // If element is already visible on page load, show it immediately
-  const rect = el.getBoundingClientRect();
-  if (rect.top < window.innerHeight && rect.bottom > 0) {
-    el.classList.add('visible');
-  } else {
-    observer.observe(el);
-  }
-});
+function initFadeIns() {
+  document.querySelectorAll('.fade-in').forEach(el => {
+    const rect = el.getBoundingClientRect();
+    // Already in viewport — show immediately
+    if (rect.top < window.innerHeight) {
+      el.classList.add('visible');
+    } else {
+      observer.observe(el);
+    }
+  });
+}
+
+// Run on load and again after a short delay (catches dynamic content)
+initFadeIns();
+setTimeout(initFadeIns, 800);
+setTimeout(initFadeIns, 2000);
 
 // ================================================================
 // CAROUSEL ENGINE
@@ -1777,7 +1855,11 @@ function makeCarousel({ trackId, dotsId, cardGap, autoDelay }) {
 
   // Track layout: [clone-of-last] [real0] [real1] ... [realN-1] [clone-of-first]
   // To show real card i → translateX = -((i+1) * cardWidth)
-  function posOf(i) { return -((i + 1) * cardWidth()); }
+  function posOf(i) {
+    const cw = cardWidth();
+    if (cw <= 0) return 0; // guard against 0 width
+    return -((i + 1) * cw);
+  }
 
   function setTranslate(px) {
     const t = getTrack(); if (t) t.style.transform = `translateX(${px}px)`;
@@ -1899,23 +1981,46 @@ function makeCarousel({ trackId, dotsId, cardGap, autoDelay }) {
     w.addEventListener('click', e => { if (dragMoved) e.stopPropagation(); }, true);
   }
 
-  function init() {
+  function doInit(attempt) {
+    attempt = attempt || 1;
+    const cw = cardWidth();
+
+    // Cards not laid out yet — retry up to 10 times (every 200ms)
+    if (cw <= 0) {
+      if (attempt < 10) setTimeout(() => doInit(attempt + 1), 200);
+      return;
+    }
+
     addClones(); buildDots();
-    enableTransition(false); idx = 0; setTranslate(posOf(0));
+    enableTransition(false); idx = 0;
+    setTranslate(posOf(0));
     startAuto();
+  }
+
+  function init() {
+    doInit();
     const t = getTrack(); if (t) attachDrag(t.parentElement);
   }
 
+  function reset() {
+    // Call this BEFORE clearing the track — resets position cleanly
+    clearInterval(timer);
+    enableTransition(false);
+    setTranslate(0);
+    idx = 0; jumping = false; paused = false;
+    const t = getTrack();
+    if (t) t.querySelectorAll('[data-clone]').forEach(c => c.remove());
+  }
+
   function reinit() {
-    setTimeout(() => {
-      addClones(); buildDots();
-      enableTransition(false); idx = 0; setTranslate(posOf(0));
-      startAuto();
-    }, 500);
+    // Reset position first, then rebuild after short delay
+    enableTransition(false);
+    setTranslate(0);
+    setTimeout(() => { doInit(); }, 300);
   }
 
   function slide(dir) { goTo(idx + dir); startAuto(); }
-  return { init, reinit, slide, goTo, buildDots };
+  return { init, reinit, reset, slide, goTo, buildDots };
 }
 
 const svcCarousel = makeCarousel({ trackId:'servicesTrack', dotsId:'svcDots', cardGap:24, autoDelay:4000 });
@@ -2041,6 +2146,7 @@ function previewEmoji(val) {
 }
 
 async function saveItem() {
+  if (currentRole !== 'admin') { showToast('⛔ Admin only'); return; }
   const name = document.getElementById('itemName').value.trim();
   if (!name) { showToast('⚠️ Please enter a name'); return; }
 
@@ -2099,6 +2205,7 @@ async function saveItem() {
 }
 
 function deleteItem(type, id) {
+  if (currentRole !== 'admin') { showToast('⛔ Admin only'); return; }
   if (!confirm('Delete this item?')) return;
   if (type === 'plant')    plants    = plants.filter(x => x.id !== id);
   else                     materials = materials.filter(x => x.id !== id);
@@ -2118,105 +2225,89 @@ function deleteItem(type, id) {
 // FIREBASE STORAGE — image / video upload helpers
 // ================================================================
 // ================================================================
-// IMAGE UPLOAD — uses Supabase Storage (free, no card needed)
-// All other data stays in Firestore.
+// ================================================================
+// IMAGE UPLOAD — Supabase Storage
+// Bucket: images (must be Public in Supabase dashboard)
 // ================================================================
 async function uploadToStorage(file, folder, progressId) {
   const progressEl = progressId ? document.getElementById(progressId) : null;
 
-  function showProgress(html) {
-    if (progressEl) progressEl.innerHTML = html;
-  }
-  function base64Fallback() {
-    return new Promise((resolve, reject) => {
+  function showMsg(html) { if (progressEl) progressEl.innerHTML = html; }
+
+  // Try to initialize Supabase lazily (CDN loads async)
+  initSupabaseLazy();
+
+  // Supabase not ready — show local preview only
+  if (!supabase) {
+    showMsg('<div style="font-size:12px;color:#f59e0b;margin-top:6px;">⚠️ Supabase not ready — use URL field to add image link.</div>');
+    return new Promise((res, rej) => {
       const r = new FileReader();
-      r.onload = e => resolve(e.target.result);
-      r.onerror = () => reject(new Error('FileReader failed'));
+      r.onload = e => res(e.target.result);
+      r.onerror = () => rej(new Error('Read failed'));
       r.readAsDataURL(file);
     });
   }
 
-  // ── Supabase not configured → base64 local preview ───────────────
-  if (!supabase) {
-    showProgress('<div style="font-size:12px;color:#f59e0b;margin-top:6px;">⚠️ Supabase not configured — using local preview. Set SUPABASE_URL and SUPABASE_ANON in the file.</div>');
-    return base64Fallback();
-  }
+  // Show progress
+  showMsg(`<div style="margin-top:8px;font-size:12px;color:var(--text-light);font-weight:600;">
+    ⬆️ Uploading… <span id="${progressId}-pct">0%</span>
+  </div>
+  <div style="height:4px;background:var(--green-pale);border-radius:4px;margin-top:4px;overflow:hidden;">
+    <div id="${progressId}-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#40916c,#2d6a4f);border-radius:4px;transition:width 0.3s;"></div>
+  </div>`);
 
-  // ── Show progress bar ─────────────────────────────────────────────
-  showProgress(`
-    <div style="margin-top:8px;font-size:12px;color:var(--text-light);font-weight:600;">
-      ⬆️ Uploading to Supabase… <span id="${progressId}-pct">0%</span>
-    </div>
-    <div style="height:4px;background:var(--green-pale);border-radius:4px;margin-top:4px;overflow:hidden;">
-      <div id="${progressId}-bar" style="height:100%;width:0%;
-        background:linear-gradient(90deg,#40916c,#2d6a4f);
-        border-radius:4px;transition:width 0.3s;"></div>
-    </div>`);
-
-  // Animate bar to show activity (Supabase doesn't report progress)
-  let fakeProgress = 0;
-  const fakeTimer = setInterval(() => {
-    fakeProgress = Math.min(fakeProgress + 10, 85);
-    const bar = document.getElementById(progressId + '-bar');
-    const pct = document.getElementById(progressId + '-pct');
-    if (bar) bar.style.width = fakeProgress + '%';
-    if (pct) pct.textContent = fakeProgress + '%';
+  // Fake progress bar (Supabase doesn't report progress)
+  let pct = 0;
+  const timer = setInterval(() => {
+    pct = Math.min(pct + 8, 85);
+    const b = document.getElementById(progressId + '-bar');
+    const p = document.getElementById(progressId + '-pct');
+    if (b) b.style.width = pct + '%';
+    if (p) p.textContent = pct + '%';
   }, 300);
 
   try {
-    const ext      = file.name.split('.').pop().toLowerCase();
-    const filename = folder + '/' + Date.now() + '_' +
-                     Math.random().toString(36).slice(2, 8) + '.' + ext;
+    const ext  = file.name.split('.').pop().toLowerCase();
+    const path = folder + '/' + Date.now() + '_' + Math.random().toString(36).slice(2,8) + '.' + ext;
 
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from(SUPABASE_BUCKET)
-      .upload(filename, file, { cacheControl: '3600', upsert: true, contentType: file.type });
+      .upload(path, file, { cacheControl: '3600', upsert: true, contentType: file.type });
 
-    clearInterval(fakeTimer);
+    clearInterval(timer);
 
     if (error) {
-      let msg = '❌ Supabase error: ' + error.message;
-      if (error.message.includes('bucket') || error.statusCode === 404)
-        msg = '❌ Bucket "images" not found — create it in Supabase → Storage → New bucket → name: images → set Public';
-      if (error.statusCode === 403 || error.message.includes('policy'))
-        msg = '❌ Permission denied — go to Supabase → Storage → Policies → allow uploads';
-      showProgress(`<div style="font-size:11px;color:#dc2626;margin-top:6px;padding:8px;background:#fef2f2;border-radius:6px;">${msg}</div>`);
-      console.warn('[Supabase] Upload error:', error);
-      return base64Fallback();
+      let msg = '❌ ' + error.message;
+      if (error.message?.includes('bucket'))   msg = '❌ Bucket "images" not found — create it in Supabase → Storage → New bucket → name: images → Public ON';
+      if (error.statusCode === 403)            msg = '❌ Permission denied — add INSERT policy for anon in Supabase → Storage → Policies';
+      showMsg(`<div style="font-size:11px;color:#dc2626;margin-top:6px;padding:8px;background:#fef2f2;border-radius:6px;">${msg}</div>`);
+      // Fallback to local preview
+      return new Promise((res, rej) => { const r = new FileReader(); r.onload = e => res(e.target.result); r.onerror = rej; r.readAsDataURL(file); });
     }
 
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from(SUPABASE_BUCKET)
-      .getPublicUrl(filename);
-
-    const bar = document.getElementById(progressId + '-bar');
-    const pct = document.getElementById(progressId + '-pct');
-    if (bar) bar.style.width = '100%';
-    if (pct) pct.textContent = '100%';
-
-    showProgress('<div style="font-size:12px;color:#1a7f5a;font-weight:600;margin-top:6px;">✅ Uploaded to Supabase</div>');
-    return urlData.publicUrl;
+    const { data } = supabase.storage.from(SUPABASE_BUCKET).getPublicUrl(path);
+    const b = document.getElementById(progressId + '-bar');
+    const p = document.getElementById(progressId + '-pct');
+    if (b) b.style.width = '100%';
+    if (p) p.textContent = '100%';
+    showMsg('<div style="font-size:12px;color:#1a7f5a;font-weight:600;margin-top:6px;">✅ Uploaded successfully</div>');
+    return data.publicUrl;
 
   } catch(err) {
-    clearInterval(fakeTimer);
-    console.warn('[Supabase] Unexpected error:', err.message || err);
-    showProgress(`<div style="font-size:11px;color:#dc2626;margin-top:6px;padding:8px;background:#fef2f2;border-radius:6px;">❌ ${err.message || 'Upload failed'}</div>`);
-    return base64Fallback();
+    clearInterval(timer);
+    showMsg(`<div style="font-size:11px;color:#dc2626;margin-top:6px;">❌ ${err.message || 'Upload failed'}</div>`);
+    return new Promise((res, rej) => { const r = new FileReader(); r.onload = e => res(e.target.result); r.onerror = rej; r.readAsDataURL(file); });
   }
 }
 
 async function deleteFromStorage(url) {
-  if (!supabase || !url || url.startsWith('data:') || !url.includes('supabase')) return;
+  if (!supabase || !url || !url.includes('supabase')) return;
   try {
     const marker = '/object/public/' + SUPABASE_BUCKET + '/';
-    const idx = url.indexOf(marker);
-    if (idx === -1) return;
-    const filePath = decodeURIComponent(url.slice(idx + marker.length));
-    await supabase.storage.from(SUPABASE_BUCKET).remove([filePath]);
-  } catch(e) {
-    console.warn('[Supabase] Delete skipped:', e.message);
-  }
+    const i = url.indexOf(marker);
+    if (i === -1) return;
+    await supabase.storage.from(SUPABASE_BUCKET).remove([decodeURIComponent(url.slice(i + marker.length))]);
+  } catch(e) { console.warn('[Supabase] Delete skipped:', e.message); }
 }
 
 
@@ -2225,7 +2316,8 @@ async function deleteFromStorage(url) {
 // INIT — load from Firebase, render
 // ================================================================
 async function initApp() {
-  renderAll(); // render immediately with localStorage data
+  // Render immediately with default/localStorage data — no waiting for Firebase
+  renderAll();
 
   if (!fbReady) return;
 
@@ -2266,13 +2358,19 @@ async function initApp() {
   fbLoader.style.opacity='0'; setTimeout(()=>{ if(fbLoader.parentNode) fbLoader.parentNode.removeChild(fbLoader); },400);
 }
 
-initApp();
+// Run renderAll immediately when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => { renderAll(); initApp(); });
+} else {
+  initApp(); // DOM already ready
+}
 
-// Boot carousels after DOM settles
-setTimeout(() => {
-  svcCarousel.init(); galCarousel.init();
-  window.addEventListener('resize', () => { svcCarousel.goTo(0); galCarousel.goTo(0); });
-}, 500);
+// Boot carousels — they retry automatically until cards have width
+try { svcCarousel.init(); } catch(e) { console.warn('svcCarousel init failed:', e.message); }
+try { galCarousel.init(); } catch(e) { console.warn('galCarousel init failed:', e.message); }
+window.addEventListener('resize', () => {
+  try { svcCarousel.reinit(); galCarousel.reinit(); } catch(e) {}
+});
 </script>
 
 
