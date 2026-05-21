@@ -2,54 +2,66 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Orders — customer sees only their own; admin sees all
+    // ── Helper functions ──────────────────────────────────────────────────
+    function isAdmin() {
+      return request.auth != null &&
+        request.auth.token.email == 'at2026@gmail.com';
+    }
+
+    function isTech() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/config/technicians) &&
+        request.auth.token.email in
+        get(/databases/$(database)/documents/config/technicians).data.emails;
+    }
+
+    // ── Orders ────────────────────────────────────────────────────────────
     match /orders/{orderId} {
       allow read: if request.auth != null && (
         request.auth.uid == resource.data.userId ||
-        request.auth.token.email == 'at2026@gmail.com'
+        isAdmin() || isTech()
       );
-      allow write: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && (
+        isAdmin() || isTech() ||
+        request.auth.uid == resource.data.userId
+      );
+      allow delete: if isAdmin();
     }
 
-    // Enquiry / Visit Bookings — any signed-in user can book; admin reads all
+    // ── Enquiry / Visit Bookings ──────────────────────────────────────────
     match /enquiry/{docId} {
       allow create: if request.auth != null;
       allow read, update: if request.auth != null && (
         request.auth.uid == resource.data.userId ||
-        request.auth.token.email == 'at2026@gmail.com'
+        isAdmin() || isTech()
       );
-      allow delete: if request.auth != null &&
-        request.auth.token.email == 'at2026@gmail.com';
+      allow delete: if isAdmin();
     }
 
-    // Config (plants, packages, gallery, contact etc) — public read, admin write only
+    // ── Config (plants, packages, gallery, contact etc) ───────────────────
     match /config/{doc} {
       allow read: if true;
-      allow write: if request.auth != null &&
-        request.auth.token.email == 'at2026@gmail.com';
+      allow write: if isAdmin();
     }
 
-    // User profiles — owner reads/writes their own; admin reads all
+    // ── User profiles ─────────────────────────────────────────────────────
     match /users/{userId} {
       allow read, write: if request.auth != null &&
         request.auth.uid == userId;
-      allow read: if request.auth != null &&
-        request.auth.token.email == 'at2026@gmail.com';
+      allow read: if isAdmin() || isTech();
     }
 
-    // Gallery — public read, admin write only
+    // ── Gallery ───────────────────────────────────────────────────────────
     match /gallery/{doc} {
       allow read: if true;
-      allow write: if request.auth != null &&
-        request.auth.token.email == 'at2026@gmail.com';
+      allow write: if isAdmin();
     }
 
-    // Logs — any signed-in user writes; admin reads
+    // ── Logs ──────────────────────────────────────────────────────────────
     match /logs/{doc} {
       allow write: if request.auth != null;
-      allow read: if request.auth != null &&
-        request.auth.token.email == 'at2026@gmail.com';
+      allow read: if isAdmin() || isTech();
     }
-
   }
 }
