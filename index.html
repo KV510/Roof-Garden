@@ -406,7 +406,7 @@
       <h2>Garden Gallery</h2>
       <p>Real terrace gardens we've created across Coimbatore</p>
     </div>
-    <div class="gallery-carousel-wrap"><div class="gallery-track" id="galleryTrack" style="display:contents;"></div></div>
+    <div class="gallery-carousel-wrap" id="galleryCarouselWrap" style="position:relative;overflow:hidden;"><div class="gallery-track" id="galleryTrack" style="display:flex;gap:20px;transition:transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94);will-change:transform;"></div></div>
     <div class="carousel-dots" id="galDots"></div>
   </div>
 </section>
@@ -650,9 +650,37 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+<!-- Supabase — used ONLY for image/video storage -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 // FILE VERSION: GreenTop v3.0 — 2025-unified-auth
+// ================================================================
+// SUPABASE CONFIG — used ONLY for image/video storage
+// ================================================================
+// HOW TO SET UP (free, no card needed):
+// 1. Go to https://supabase.com → New Project (free)
+// 2. Project Settings → API → copy URL and anon key below
+// 3. Storage → Create bucket called "images" → set to PUBLIC
+// ================================================================
+const SUPABASE_URL    = 'https://yxakwaqvapbxmrtbczdo.supabase.co';
+const SUPABASE_ANON   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4YWt3YXF2YXBieG1ydGJjemRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMjExMTAsImV4cCI6MjA5NDg5NzExMH0.2TwPU1-IgmYhXNnhyqofsXq0zXcJmH_DEYwTl5oDC0c';
+const SUPABASE_BUCKET = 'images';
+
+let supabase = null;
+(function initSupabase() {
+  if (SUPABASE_URL.startsWith('YOUR_') || SUPABASE_ANON.startsWith('YOUR_')) {
+    console.warn('[Supabase] Config not set — image uploads will use base64 fallback.');
+    return;
+  }
+  try {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    console.info('[Supabase] Storage connected:', SUPABASE_URL);
+  } catch(e) {
+    console.warn('[Supabase] Init failed:', e.message);
+  }
+})();
+
 // ================================================================
 // FIREBASE CONFIG — same project as admin.html
 // ================================================================
@@ -1718,38 +1746,164 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 // CAROUSEL ENGINE
 // ================================================================
 function makeCarousel({ trackId, dotsId, cardGap, autoDelay }) {
-  let idx=0, timer=null, paused=false, isDragging=false, dragStartX=0, dragCurrentX=0, baseTranslate=0, dragMoved=false;
-  function cards() {
-    const t=document.getElementById(trackId); if(!t) return [];
-    const r=[];
-    for(const c of t.children) { const cs=getComputedStyle(c); if(cs.display==='contents'){for(const g of c.children)r.push(g);}else r.push(c); }
-    return r;
+  let idx = 0, timer = null, paused = false, jumping = false;
+  let isDragging = false, dragStartX = 0, dragCurrentX = 0, dragMoved = false;
+
+  function getTrack() { return document.getElementById(trackId); }
+
+  // Real cards only — exclude clones
+  function realCards() {
+    const t = getTrack(); if (!t) return [];
+    return Array.from(t.children).filter(c => !c.dataset.clone);
   }
-  function cardWidth() { const a=cards(); if(!a.length) return 0; return a[0].getBoundingClientRect().width + cardGap; }
-  function track() { return document.getElementById(trackId); }
-  function setTranslate(px) { const t=track(); if(t) t.style.transform=`translateX(${px}px)`; }
-  function enableTransition(on) { const t=track(); if(t) t.style.transition=on?'transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94)':'none'; }
+
+  function cardWidth() {
+    const r = realCards();
+    if (!r.length) return 0;
+    return r[0].getBoundingClientRect().width + cardGap;
+  }
+
+  // Track layout: [clone-of-last] [real0] [real1] ... [realN-1] [clone-of-first]
+  // To show real card i → translateX = -((i+1) * cardWidth)
+  function posOf(i) { return -((i + 1) * cardWidth()); }
+
+  function setTranslate(px) {
+    const t = getTrack(); if (t) t.style.transform = `translateX(${px}px)`;
+  }
+  function enableTransition(on) {
+    const t = getTrack(); if (!t) return;
+    t.style.transition = on ? 'transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94)' : 'none';
+  }
+  function updateDots() {
+    document.querySelectorAll(`#${dotsId} .carousel-dot`)
+      .forEach((d, i) => d.classList.toggle('active', i === idx));
+  }
+
+  // Add one clone of last card at start, one clone of first card at end
+  function addClones() {
+    const t = getTrack(); if (!t) return;
+    t.querySelectorAll('[data-clone]').forEach(c => c.remove());
+    const real = realCards();
+    if (real.length < 2) return;
+    const fc = real[0].cloneNode(true);           fc.dataset.clone = 'end';   t.appendChild(fc);
+    const lc = real[real.length-1].cloneNode(true); lc.dataset.clone = 'start'; t.insertBefore(lc, real[0]);
+  }
+
   function goTo(n) {
-    const all=cards(); if(!all.length) return;
-    idx=((n%all.length)+all.length)%all.length;
-    enableTransition(true); baseTranslate=-(idx*cardWidth()); setTranslate(baseTranslate);
-    document.querySelectorAll(`#${dotsId} .carousel-dot`).forEach((d,i)=>d.classList.toggle('active',i===idx));
+    if (jumping) return;
+    const total = realCards().length;
+    if (!total) return;
+    const cw = cardWidth();
+
+    // Forward past last → animate to clone-of-first, then silently jump to real first
+    if (n >= total) {
+      jumping = true;
+      enableTransition(true);
+      setTranslate(-((total + 1) * cw)); // clone of first is at position total+1
+      idx = 0; updateDots();
+      setTimeout(() => {
+        enableTransition(false);
+        setTranslate(posOf(0));
+        jumping = false;
+      }, 650);
+      return;
+    }
+
+    // Backward before first → animate to clone-of-last, then silently jump to real last
+    if (n < 0) {
+      jumping = true;
+      enableTransition(true);
+      setTranslate(0); // clone of last is at position 0
+      idx = total - 1; updateDots();
+      setTimeout(() => {
+        enableTransition(false);
+        setTranslate(posOf(total - 1));
+        jumping = false;
+      }, 650);
+      return;
+    }
+
+    idx = n;
+    enableTransition(true);
+    setTranslate(posOf(idx));
+    updateDots();
   }
+
   function buildDots() {
-    const el=document.getElementById(dotsId); if(!el) return;
-    el.innerHTML=Array.from({length:cards().length},(_,i)=>`<button class="carousel-dot${i===0?' active':''}" onclick=""></button>`).join('');
-    el.querySelectorAll('.carousel-dot').forEach((b,i)=>b.onclick=()=>{goTo(i);startAuto();});
+    const el = document.getElementById(dotsId); if (!el) return;
+    const total = realCards().length;
+    el.innerHTML = Array.from({ length: total }, (_, i) =>
+      `<button class="carousel-dot${i === 0 ? ' active' : ''}"></button>`).join('');
+    el.querySelectorAll('.carousel-dot').forEach((b, i) =>
+      b.onclick = () => { goTo(i); startAuto(); });
   }
-  function startAuto() { clearInterval(timer); timer=setInterval(()=>{if(!paused)goTo(idx+1);},autoDelay); }
-  function getX(e){return e.touches?e.touches[0].clientX:e.clientX;}
-  function onStart(e){if(e.button&&e.button!==0)return;paused=true;isDragging=true;dragMoved=false;dragStartX=getX(e);dragCurrentX=dragStartX;baseTranslate=-(idx*cardWidth());enableTransition(false);}
-  function onMove(e){if(!isDragging)return;dragCurrentX=getX(e);const d=dragCurrentX-dragStartX;if(Math.abs(d)>5)dragMoved=true;if(dragMoved)setTranslate(baseTranslate+d);}
-  function onEnd(){if(!isDragging)return;isDragging=false;enableTransition(true);if(dragMoved){const d=dragCurrentX-dragStartX;const th=Math.max(50,cardWidth()*0.2);if(d<-th)goTo(idx+1);else if(d>th)goTo(idx-1);else setTranslate(baseTranslate);}paused=false;startAuto();}
-  function attachDrag(w){if(!w)return;w.style.cursor='grab';w.addEventListener('touchstart',onStart,{passive:true});w.addEventListener('touchmove',onMove,{passive:true});w.addEventListener('touchend',onEnd);w.addEventListener('touchcancel',onEnd);w.addEventListener('mousedown',onStart);window.addEventListener('mousemove',onMove);window.addEventListener('mouseup',onEnd);w.addEventListener('mousedown',()=>{w.style.cursor='grabbing';});window.addEventListener('mouseup',()=>{if(w)w.style.cursor='grab';});w.addEventListener('click',e=>{if(dragMoved)e.stopPropagation();},true);}
-  function init(){buildDots();goTo(0);startAuto();const t=track();if(t)attachDrag(t.parentElement);}
-  function reinit(){setTimeout(()=>{buildDots();goTo(0);startAuto();},250);}
-  function slide(dir){goTo(idx+dir);startAuto();}
-  return {init,reinit,slide,goTo,buildDots};
+
+  function startAuto() {
+    clearInterval(timer);
+    timer = setInterval(() => { if (!paused && !jumping) goTo(idx + 1); }, autoDelay);
+  }
+
+  function getX(e) { return e.touches ? e.touches[0].clientX : e.clientX; }
+
+  function onStart(e) {
+    if (e.button && e.button !== 0) return;
+    if (jumping) return;
+    paused = true; isDragging = true; dragMoved = false;
+    dragStartX = getX(e); dragCurrentX = dragStartX;
+    enableTransition(false);
+  }
+  function onMove(e) {
+    if (!isDragging) return;
+    dragCurrentX = getX(e);
+    const d = dragCurrentX - dragStartX;
+    if (Math.abs(d) > 5) dragMoved = true;
+    if (dragMoved) { const t = getTrack(); if (t) t.style.transform = `translateX(${posOf(idx) + d}px)`; }
+  }
+  function onEnd() {
+    if (!isDragging) return;
+    isDragging = false; enableTransition(true);
+    if (dragMoved) {
+      const d = dragCurrentX - dragStartX;
+      const th = Math.max(50, cardWidth() * 0.2);
+      if (d < -th)      goTo(idx + 1);
+      else if (d > th)  goTo(idx - 1);
+      else              setTranslate(posOf(idx));
+    }
+    paused = false; startAuto();
+  }
+
+  function attachDrag(w) {
+    if (!w) return;
+    w.style.cursor = 'grab';
+    w.addEventListener('touchstart',  onStart, { passive: true });
+    w.addEventListener('touchmove',   onMove,  { passive: true });
+    w.addEventListener('touchend',    onEnd);
+    w.addEventListener('touchcancel', onEnd);
+    w.addEventListener('mousedown',   onStart);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup',   onEnd);
+    w.addEventListener('mousedown', () => { w.style.cursor = 'grabbing'; });
+    window.addEventListener('mouseup', () => { if (w) w.style.cursor = 'grab'; });
+    w.addEventListener('click', e => { if (dragMoved) e.stopPropagation(); }, true);
+  }
+
+  function init() {
+    addClones(); buildDots();
+    enableTransition(false); idx = 0; setTranslate(posOf(0));
+    startAuto();
+    const t = getTrack(); if (t) attachDrag(t.parentElement);
+  }
+
+  function reinit() {
+    setTimeout(() => {
+      addClones(); buildDots();
+      enableTransition(false); idx = 0; setTranslate(posOf(0));
+      startAuto();
+    }, 500);
+  }
+
+  function slide(dir) { goTo(idx + dir); startAuto(); }
+  return { init, reinit, slide, goTo, buildDots };
 }
 
 const svcCarousel = makeCarousel({ trackId:'servicesTrack', dotsId:'svcDots', cardGap:24, autoDelay:4000 });
@@ -1951,13 +2105,17 @@ function deleteItem(type, id) {
 // ================================================================
 // FIREBASE STORAGE — image / video upload helpers
 // ================================================================
+// ================================================================
+// IMAGE UPLOAD — uses Supabase Storage (free, no card needed)
+// All other data stays in Firestore.
+// ================================================================
 async function uploadToStorage(file, folder, progressId) {
   const progressEl = progressId ? document.getElementById(progressId) : null;
 
-  if (!storage) {
-    if (progressEl) progressEl.innerHTML =
-      '<div style="font-size:12px;color:#f59e0b;margin-top:6px;">' +
-      '⚠️ Firebase Storage not ready — using local preview only</div>';
+  function showProgress(html) {
+    if (progressEl) progressEl.innerHTML = html;
+  }
+  function base64Fallback() {
     return new Promise((resolve, reject) => {
       const r = new FileReader();
       r.onload = e => resolve(e.target.result);
@@ -1966,76 +2124,90 @@ async function uploadToStorage(file, folder, progressId) {
     });
   }
 
-  if (progressEl) {
-    progressEl.innerHTML = `
-      <div style="margin-top:8px;font-size:12px;color:var(--text-light);font-weight:600;">
-        ⬆️ Uploading… <span id="${progressId}-pct">0%</span>
-      </div>
-      <div style="height:4px;background:var(--green-pale);border-radius:4px;margin-top:4px;overflow:hidden;">
-        <div id="${progressId}-bar" style="height:100%;width:0%;
-          background:linear-gradient(90deg,#40916c,#2d6a4f);
-          border-radius:4px;transition:width 0.2s;"></div>
-      </div>`;
+  // ── Supabase not configured → base64 local preview ───────────────
+  if (!supabase) {
+    showProgress('<div style="font-size:12px;color:#f59e0b;margin-top:6px;">⚠️ Supabase not configured — using local preview. Set SUPABASE_URL and SUPABASE_ANON in the file.</div>');
+    return base64Fallback();
   }
 
-  try {
-    const ext = file.name.split('.').pop().toLowerCase();
-    const filename = folder + '/' + Date.now() + '_' +
-                     Math.random().toString(36).slice(2,8) + '.' + ext;
-    const storageRef = storage.ref(filename);
-    const uploadTask = storageRef.put(file);
+  // ── Show progress bar ─────────────────────────────────────────────
+  showProgress(`
+    <div style="margin-top:8px;font-size:12px;color:var(--text-light);font-weight:600;">
+      ⬆️ Uploading to Supabase… <span id="${progressId}-pct">0%</span>
+    </div>
+    <div style="height:4px;background:var(--green-pale);border-radius:4px;margin-top:4px;overflow:hidden;">
+      <div id="${progressId}-bar" style="height:100%;width:0%;
+        background:linear-gradient(90deg,#40916c,#2d6a4f);
+        border-radius:4px;transition:width 0.3s;"></div>
+    </div>`);
 
-    return new Promise((resolve, reject) => {
-      uploadTask.on('state_changed',
-        (snapshot) => {
-          const pct = Math.round(
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-          );
-          const bar   = document.getElementById(progressId + '-bar');
-          const label = document.getElementById(progressId + '-pct');
-          if (bar)   bar.style.width    = pct + '%';
-          if (label) label.textContent  = pct + '%';
-        },
-        (error) => {
-          if (progressEl) progressEl.innerHTML =
-            '<div style="font-size:11px;color:#dc2626;margin-top:6px;">' +
-            '❌ Upload failed: ' + error.message + '</div>';
-          reject(error);
-        },
-        async () => {
-          const url = await uploadTask.snapshot.ref.getDownloadURL();
-          if (progressEl) progressEl.innerHTML =
-            '<div style="font-size:12px;color:#1a7f5a;font-weight:600;margin-top:6px;">' +
-            '✅ Uploaded to Firebase</div>';
-          resolve(url);
-        }
-      );
-    });
+  // Animate bar to show activity (Supabase doesn't report progress)
+  let fakeProgress = 0;
+  const fakeTimer = setInterval(() => {
+    fakeProgress = Math.min(fakeProgress + 10, 85);
+    const bar = document.getElementById(progressId + '-bar');
+    const pct = document.getElementById(progressId + '-pct');
+    if (bar) bar.style.width = fakeProgress + '%';
+    if (pct) pct.textContent = fakeProgress + '%';
+  }, 300);
+
+  try {
+    const ext      = file.name.split('.').pop().toLowerCase();
+    const filename = folder + '/' + Date.now() + '_' +
+                     Math.random().toString(36).slice(2, 8) + '.' + ext;
+
+    const { data, error } = await supabase.storage
+      .from(SUPABASE_BUCKET)
+      .upload(filename, file, { cacheControl: '3600', upsert: true, contentType: file.type });
+
+    clearInterval(fakeTimer);
+
+    if (error) {
+      let msg = '❌ Supabase error: ' + error.message;
+      if (error.message.includes('bucket') || error.statusCode === 404)
+        msg = '❌ Bucket "images" not found — create it in Supabase → Storage → New bucket → name: images → set Public';
+      if (error.statusCode === 403 || error.message.includes('policy'))
+        msg = '❌ Permission denied — go to Supabase → Storage → Policies → allow uploads';
+      showProgress(`<div style="font-size:11px;color:#dc2626;margin-top:6px;padding:8px;background:#fef2f2;border-radius:6px;">${msg}</div>`);
+      console.warn('[Supabase] Upload error:', error);
+      return base64Fallback();
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from(SUPABASE_BUCKET)
+      .getPublicUrl(filename);
+
+    const bar = document.getElementById(progressId + '-bar');
+    const pct = document.getElementById(progressId + '-pct');
+    if (bar) bar.style.width = '100%';
+    if (pct) pct.textContent = '100%';
+
+    showProgress('<div style="font-size:12px;color:#1a7f5a;font-weight:600;margin-top:6px;">✅ Uploaded to Supabase</div>');
+    return urlData.publicUrl;
 
   } catch(err) {
-    console.warn('[Firebase Storage] Upload error:', err.message || err);
-    if (progressEl) progressEl.innerHTML =
-      '<div style="font-size:11px;color:#dc2626;margin-top:6px;">' +
-      '❌ Error: ' + (err.message || JSON.stringify(err)) + '</div>';
-    return new Promise((resolve, reject) => {
-      const r = new FileReader();
-      r.onload = e => resolve(e.target.result);
-      r.onerror = () => reject(err);
-      r.readAsDataURL(file);
-    });
+    clearInterval(fakeTimer);
+    console.warn('[Supabase] Unexpected error:', err.message || err);
+    showProgress(`<div style="font-size:11px;color:#dc2626;margin-top:6px;padding:8px;background:#fef2f2;border-radius:6px;">❌ ${err.message || 'Upload failed'}</div>`);
+    return base64Fallback();
   }
 }
 
 async function deleteFromStorage(url) {
-  if (!storage || !url || url.startsWith('data:')
-      || !url.includes('firebasestorage')) return;
+  if (!supabase || !url || url.startsWith('data:') || !url.includes('supabase')) return;
   try {
-    const fileRef = storage.refFromURL(url);
-    await fileRef.delete();
+    const marker = '/object/public/' + SUPABASE_BUCKET + '/';
+    const idx = url.indexOf(marker);
+    if (idx === -1) return;
+    const filePath = decodeURIComponent(url.slice(idx + marker.length));
+    await supabase.storage.from(SUPABASE_BUCKET).remove([filePath]);
   } catch(e) {
-    console.warn('[Firebase Storage] Delete skipped:', e.message);
+    console.warn('[Supabase] Delete skipped:', e.message);
   }
 }
+
+
 
 // ================================================================
 // INIT — load from Firebase, render
