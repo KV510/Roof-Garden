@@ -721,12 +721,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" async
-  onerror="console.warn('[Supabase] jsdelivr failed, trying unpkg...');
-    var s=document.createElement('script');
-    s.src='https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js';
-    document.head.appendChild(s);">
-</script>
+<!-- Supabase SDK not needed — using REST API directly -->
 
 
 
@@ -737,7 +732,7 @@
 const SUPABASE_URL    = 'https://yxakwaqvapbxmrtbczdo.supabase.co';
 const SUPABASE_ANON   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4YWt3YXF2YXBieG1ydGJjemRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMjExMTAsImV4cCI6MjA5NDg5NzExMH0.2TwPU1-IgmYhXNnhyqofsXq0zXcJmH_DEYwTl5oDC0c';
 const SUPABASE_BUCKET = 'images';
-let supabase = null;
+// Supabase uses REST API directly — no SDK needed
 
 // Global error catcher — logs JS errors without breaking the page
 window.onerror = function(msg, src, line, col, err) {
@@ -832,44 +827,7 @@ let db = null, auth = null, fbReady = false, fbAdminReady = false;
 
 // Supabase init is lazy — called only when upload is needed
 // This ensures Firebase Auth is never blocked by Supabase loading
-// Waits up to 8 seconds for Supabase SDK to load (it loads async)
-async function initSupabaseLazy() {
-  if (supabase) return true;
-
-  // Try to create client from any known global
-  function tryCreate() {
-    // supabase-js v2 UMD exposes window.supabase = { createClient, ... }
-    const lib = window.supabase || window.supabaseJs;
-    if (!lib || !lib.createClient) return false;
-    try {
-      supabase = lib.createClient(SUPABASE_URL, SUPABASE_ANON);
-      console.info('[Supabase] Connected ✅');
-      return true;
-    } catch(e) {
-      console.warn('[Supabase] createClient failed:', e.message);
-      return false;
-    }
-  }
-
-  // Try immediately
-  if (tryCreate()) return true;
-
-  // Poll every 300ms for up to 8 seconds
-  return new Promise(resolve => {
-    let attempts = 0;
-    const timer = setInterval(() => {
-      attempts++;
-      if (tryCreate()) {
-        clearInterval(timer);
-        resolve(true);
-      } else if (attempts >= 27) {
-        clearInterval(timer);
-        console.warn('[Supabase] SDK did not load after 8s. Check network/CDN.');
-        resolve(false);
-      }
-    }, 300);
-  });
-}
+// Supabase REST API used directly — no SDK init needed
 
 // ================================================================
 // SAFE LOCAL STORAGE
@@ -2670,85 +2628,82 @@ async function uploadToStorage(file, folder, progressId) {
 
   function showMsg(html) { if (progressEl) progressEl.innerHTML = html; }
 
-  // Show connecting message while waiting for Supabase SDK
-  showMsg('<div style="font-size:12px;color:var(--text-light);margin-top:6px;">⏳ Connecting to storage…</div>');
+  // Show progress bar
+  showMsg(`
+    <div style="margin-top:8px;font-size:12px;color:var(--text-light);font-weight:600;">
+      ⬆️ Uploading… <span id="${progressId}-pct">0%</span>
+    </div>
+    <div style="height:4px;background:var(--green-pale);border-radius:4px;margin-top:4px;overflow:hidden;">
+      <div id="${progressId}-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#40916c,#2d6a4f);border-radius:4px;transition:width 0.2s;"></div>
+    </div>`);
 
-  // Wait for Supabase SDK to load (async CDN)
-  const ready = await initSupabaseLazy();
-
-  if (!ready || !supabase) {
-    showMsg('<div style="font-size:12px;color:#dc2626;margin-top:6px;padding:8px;background:#fef2f2;border-radius:6px;">' +
-      '❌ Supabase SDK failed to load.<br>' +
-      '💡 Check your internet connection or disable any ad-blockers.<br>' +
-      'Alternatively paste an image URL in the field below.' +
-      '</div>');
-    return new Promise((res, rej) => {
-      const r = new FileReader();
-      r.onload = e => res(e.target.result);
-      r.onerror = () => rej(new Error('Read failed'));
-      r.readAsDataURL(file);
-    });
-  }
-
-  // Show progress
-  showMsg(`<div style="margin-top:8px;font-size:12px;color:var(--text-light);font-weight:600;">
-    ⬆️ Uploading… <span id="${progressId}-pct">0%</span>
-  </div>
-  <div style="height:4px;background:var(--green-pale);border-radius:4px;margin-top:4px;overflow:hidden;">
-    <div id="${progressId}-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#40916c,#2d6a4f);border-radius:4px;transition:width 0.3s;"></div>
-  </div>`);
-
-  // Fake progress bar (Supabase doesn't report progress)
+  // Animate bar (Supabase REST doesn't report progress)
   let pct = 0;
   const timer = setInterval(() => {
     pct = Math.min(pct + 8, 85);
     const b = document.getElementById(progressId + '-bar');
     const p = document.getElementById(progressId + '-pct');
     if (b) b.style.width = pct + '%';
-    if (p) p.textContent = pct + '%';
+    if (p) p.textContent  = pct + '%';
   }, 300);
 
   try {
     const ext  = file.name.split('.').pop().toLowerCase();
     const path = folder + '/' + Date.now() + '_' + Math.random().toString(36).slice(2,8) + '.' + ext;
 
-    const { error } = await supabase.storage
-      .from(SUPABASE_BUCKET)
-      .upload(path, file, { cacheControl: '3600', upsert: true, contentType: file.type });
+    // Upload via Supabase Storage REST API — no SDK needed
+    const uploadUrl = SUPABASE_URL + '/storage/v1/object/' + SUPABASE_BUCKET + '/' + path;
+    const res = await fetch(uploadUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + SUPABASE_ANON,
+        'Content-Type': file.type || 'application/octet-stream',
+        'x-upsert': 'true'
+      },
+      body: file
+    });
 
     clearInterval(timer);
 
-    if (error) {
-      let msg = '❌ ' + error.message;
-      if (error.message?.includes('bucket'))   msg = '❌ Bucket "images" not found — create it in Supabase → Storage → New bucket → name: images → Public ON';
-      if (error.statusCode === 403)            msg = '❌ Permission denied — add INSERT policy for anon in Supabase → Storage → Policies';
+    if (!res.ok) {
+      let errText = await res.text();
+      let msg = '❌ Upload failed (' + res.status + ')';
+      if (res.status === 404) msg = '❌ Bucket "images" not found — create it in Supabase → Storage → New bucket → name: images → Public ON';
+      if (res.status === 403) msg = '❌ Permission denied — add INSERT policy for anon role in Supabase → Storage → Policies';
       showMsg(`<div style="font-size:11px;color:#dc2626;margin-top:6px;padding:8px;background:#fef2f2;border-radius:6px;">${msg}</div>`);
-      // Fallback to local preview
-      return new Promise((res, rej) => { const r = new FileReader(); r.onload = e => res(e.target.result); r.onerror = rej; r.readAsDataURL(file); });
+      console.warn('[Supabase REST] Upload error:', res.status, errText);
+      // Fallback: local base64 preview
+      return new Promise((res2, rej) => { const r = new FileReader(); r.onload = e => res2(e.target.result); r.onerror = rej; r.readAsDataURL(file); });
     }
 
-    const { data } = supabase.storage.from(SUPABASE_BUCKET).getPublicUrl(path);
+    // Build public URL
+    const publicUrl = SUPABASE_URL + '/storage/v1/object/public/' + SUPABASE_BUCKET + '/' + path;
     const b = document.getElementById(progressId + '-bar');
     const p = document.getElementById(progressId + '-pct');
     if (b) b.style.width = '100%';
-    if (p) p.textContent = '100%';
+    if (p) p.textContent  = '100%';
     showMsg('<div style="font-size:12px;color:#1a7f5a;font-weight:600;margin-top:6px;">✅ Uploaded successfully</div>');
-    return data.publicUrl;
+    return publicUrl;
 
   } catch(err) {
     clearInterval(timer);
-    showMsg(`<div style="font-size:11px;color:#dc2626;margin-top:6px;">❌ ${err.message || 'Upload failed'}</div>`);
-    return new Promise((res, rej) => { const r = new FileReader(); r.onload = e => res(e.target.result); r.onerror = rej; r.readAsDataURL(file); });
+    showMsg(`<div style="font-size:11px;color:#dc2626;margin-top:6px;padding:8px;background:#fef2f2;border-radius:6px;">❌ Network error: ${err.message}</div>`);
+    return new Promise((res2, rej) => { const r = new FileReader(); r.onload = e => res2(e.target.result); r.onerror = rej; r.readAsDataURL(file); });
   }
 }
 
+
 async function deleteFromStorage(url) {
-  if (!supabase || !url || !url.includes('supabase')) return;
+  if (!url || !url.includes('supabase')) return;
   try {
     const marker = '/object/public/' + SUPABASE_BUCKET + '/';
     const i = url.indexOf(marker);
     if (i === -1) return;
-    await supabase.storage.from(SUPABASE_BUCKET).remove([decodeURIComponent(url.slice(i + marker.length))]);
+    const path = decodeURIComponent(url.slice(i + marker.length));
+    await fetch(SUPABASE_URL + '/storage/v1/object/' + SUPABASE_BUCKET + '/' + path, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + SUPABASE_ANON }
+    });
   } catch(e) { console.warn('[Supabase] Delete skipped:', e.message); }
 }
 
