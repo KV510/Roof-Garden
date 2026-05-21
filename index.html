@@ -102,6 +102,75 @@
   .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
   .catalog-card { background: white; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-card); border: 1.5px solid var(--green-pale); transition: all 0.3s; position: relative; }
   .catalog-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(45,106,79,0.18); }
+
+  /* Admin edit/delete buttons on catalog cards */
+  .catalog-actions {
+    position: absolute; top: 8px; right: 8px;
+    display: none; gap: 4px; z-index: 5;
+  }
+  .catalog-card:hover .catalog-actions { display: flex; }
+  .btn-edit-sm, .btn-del-sm {
+    width: 30px; height: 30px; border-radius: 50%; border: none; cursor: pointer;
+    font-size: 14px; display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(8px); transition: all 0.2s;
+  }
+  .btn-edit-sm { background: rgba(255,255,255,0.9); color: var(--green-mid); }
+  .btn-del-sm  { background: rgba(255,80,80,0.85); color: white; }
+  .btn-edit-sm:hover { background: var(--green-mid); color: white; }
+
+  /* Add plant/material card */
+  .add-card {
+    background: white; border: 2px dashed var(--green-light);
+    border-radius: var(--radius); display: flex; flex-direction: column;
+    align-items: center; justify-content: center; min-height: 196px;
+    cursor: pointer; transition: all 0.3s; color: var(--green-mid);
+    font-size: 14px; font-weight: 600; box-shadow: var(--shadow-card);
+    overflow: hidden; position: relative;
+  }
+  .add-card:hover { background: var(--green-pale); border-color: var(--green-mid); transform: translateY(-4px); }
+  .add-card-img {
+    width: 100%; height: 150px; background: var(--green-mist);
+    display: flex; align-items: center; justify-content: center;
+    border-bottom: 1.5px dashed var(--green-light); transition: background 0.2s;
+  }
+  .add-card:hover .add-card-img { background: var(--green-pale); }
+  .add-icon {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--green-deep), var(--green-mid));
+    color: white; font-size: 28px; display: flex; align-items: center;
+    justify-content: center; box-shadow: 0 4px 16px rgba(45,106,79,0.35);
+    transition: transform 0.2s;
+  }
+  .add-card:hover .add-icon { transform: scale(1.12) rotate(90deg); }
+  .add-card-label { padding: 12px 14px 14px; font-size: 14px; font-weight: 600; color: var(--green-deep); }
+
+  /* Contact edit button */
+  /* Page editor tabs */
+  .pe-tab { flex:1; min-width:60px; padding:9px 6px; border:none; background:transparent; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:600; color:var(--text-light); cursor:pointer; transition:all 0.2s; }
+  .pe-tab.active { background:var(--green-deep); color:white; }
+  /* Edit field */
+  .pe-field { background:var(--green-mist); border-radius:10px; padding:14px; margin-bottom:12px; border:1.5px solid var(--green-pale); }
+  .pe-field label { font-size:11px; font-weight:700; color:var(--text-mid); text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:6px; }
+  .pe-field input, .pe-field textarea { width:100%; padding:9px 12px; border-radius:8px; border:1.5px solid var(--green-pale); background:white; font-family:'DM Sans',sans-serif; font-size:14px; color:var(--text-dark); outline:none; }
+  .pe-field textarea { min-height:70px; resize:vertical; }
+  .pe-save-btn { padding:11px 24px; border-radius:50px; border:none; background:linear-gradient(135deg,var(--green-deep),var(--green-mid)); color:white; font-size:14px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; box-shadow:0 6px 20px rgba(45,106,79,0.3); width:100%; margin-top:6px; }
+  .pe-save-btn:hover { transform:translateY(-1px); }
+
+  .contact-edit-btn {
+    background: var(--green-pale); border: none; border-radius: 50px;
+    padding: 6px 14px; font-size: 12px; color: var(--green-mid); font-weight: 600;
+    cursor: pointer; margin-left: 8px; font-family: 'DM Sans', sans-serif; transition: all 0.2s;
+  }
+  .contact-edit-btn:hover { background: var(--green-mid); color: white; }
+
+  /* Package edit button */
+  .pkg-edit-btn {
+    position: absolute; bottom: 12px; right: 12px;
+    background: rgba(255,255,255,0.2); border: none; border-radius: 50px;
+    padding: 5px 12px; font-size: 12px; color: white; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; display: none;
+  }
+  .pkg-card.featured .pkg-edit-btn { color: var(--green-deep); background: var(--green-pale); }
   .catalog-img { width: 100%; height: 150px; display: flex; align-items: center; justify-content: center; font-size: 64px; background: var(--green-mist); overflow: hidden; }
   .catalog-img img { width: 100%; height: 100%; object-fit: cover; }
   .catalog-name { padding: 12px 14px 14px; text-align: center; }
@@ -404,10 +473,10 @@
 <!-- GALLERY -->
 <section id="gallery">
   <div class="section-inner">
-    <div class="section-head">
-      <div class="section-tag">Our Work</div>
-      <h2>Garden Gallery</h2>
-      <p>Real terrace gardens we've created across Coimbatore</p>
+    <div class="section-head" id="sechead-gallery">
+      <div class="section-tag" id="sec-gallery-tag">Our Work</div>
+      <h2 id="sec-gallery-h2">Garden Gallery</h2>
+      <p id="sec-gallery-p">Real terrace gardens we've created across Coimbatore</p>
     </div>
     <div class="gallery-carousel-wrap" id="galleryCarouselWrap" style="position:relative;overflow:hidden;"><div class="gallery-track" id="galleryTrack" style="display:flex;gap:20px;transition:transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94);will-change:transform;"></div></div>
     <div class="carousel-dots" id="galDots"></div>
@@ -417,10 +486,10 @@
 <!-- SERVICES -->
 <section class="services-bg" id="services">
   <div class="section-inner">
-    <div class="section-head">
-      <div class="section-tag">What We Do</div>
-      <h2>Our Services</h2>
-      <p>End-to-end terrace garden solutions for homes and offices across Coimbatore</p>
+    <div class="section-head" id="sechead-services">
+      <div class="section-tag" id="sec-services-tag">What We Do</div>
+      <h2 id="sec-services-h2">Our Services</h2>
+      <p id="sec-services-p">End-to-end terrace garden solutions for homes and offices across Coimbatore</p>
     </div>
     <div class="services-carousel-wrap"><div class="services-track" id="servicesTrack">
       <div class="service-card "><div class="service-icon">🏠</div><h3>Terrace Garden Setup</h3><p>Complete design and installation of rooftop gardens with waterproofing, soil beds, drainage and curated plant selection.</p></div>
@@ -516,7 +585,7 @@
     <div class="contact-grid">
       <div class="contact-info ">
         <h3>GreenTop Gardens, Coimbatore</h3>
-        <div class="contact-item"><span class="contact-item-icon">📍</span><div class="contact-item-text"><strong>Address</strong><span id="ci-address">Coimbatore, Tamil Nadu – 641001</span></div></div>
+        <div class="contact-item"><span class="contact-item-icon">📍</span><div class="contact-item-text"><strong>Address</strong><span id="ci-address">Coimbatore, Tamil Nadu – 641001</span><button class="contact-edit-btn" id="editContactBtn" onclick="editContact()" style="display:none;">✏️ Edit</button></div></div>
         <div class="contact-item"><span class="contact-item-icon">📞</span><div class="contact-item-text"><strong>Phone</strong><span id="ci-phone">+91 98765 43210</span></div></div>
         <div class="contact-item"><span class="contact-item-icon">📧</span><div class="contact-item-text"><strong>Email</strong><span id="ci-email">hello@greentopgardens.in</span></div></div>
         <div class="contact-item"><span class="contact-item-icon">🕐</span><div class="contact-item-text"><strong>Working Hours</strong><span id="ci-hours">Mon – Sat, 9:00 AM – 6:00 PM</span></div></div>
@@ -758,20 +827,36 @@ let db = null, auth = null, fbReady = false, fbAdminReady = false;
 
 // Supabase init is lazy — called only when upload is needed
 // This ensures Firebase Auth is never blocked by Supabase loading
-function initSupabaseLazy() {
-  if (supabase) return true; // already initialized
-  try {
-    if (!window.supabase) {
-      console.warn('[Supabase] SDK not loaded yet');
-      return false;
-    }
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-    console.info('[Supabase] Connected:', SUPABASE_URL);
-    return true;
-  } catch(e) {
-    console.warn('[Supabase] Init failed:', e.message);
-    return false;
+// Waits up to 5 seconds for Supabase SDK to load (it loads async)
+async function initSupabaseLazy() {
+  if (supabase) return true;
+  // Try immediately first
+  if (window.supabase) {
+    try {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+      console.info('[Supabase] Connected');
+      return true;
+    } catch(e) { console.warn('[Supabase] Init failed:', e.message); return false; }
   }
+  // SDK not loaded yet — poll every 200ms for up to 5s
+  return new Promise(resolve => {
+    let attempts = 0;
+    const timer = setInterval(() => {
+      attempts++;
+      if (window.supabase) {
+        clearInterval(timer);
+        try {
+          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+          console.info('[Supabase] Connected after', attempts * 200, 'ms');
+          resolve(true);
+        } catch(e) { resolve(false); }
+      } else if (attempts >= 25) { // 5 seconds max
+        clearInterval(timer);
+        console.warn('[Supabase] SDK did not load after 5s');
+        resolve(false);
+      }
+    }, 200);
+  });
 }
 
 // ================================================================
@@ -1028,6 +1113,7 @@ function renderPackages() {
       <div class="pkg-period">${pkg.period}</div>
       <ul class="pkg-features">${pkg.features.map(f=>`<li>${f}</li>`).join('')}</ul>
       <button class="btn-pkg" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'});showToast('📋 ${pkg.name} selected – fill the form below!')">Book This Plan</button>
+      ${currentRole === 'admin' ? `<button class="pkg-edit-btn" style="display:block;" onclick="openPkgEdit(${pkg.id})">✏️ Edit</button>` : ''}
     </div>`).join('');
 }
 
@@ -1099,29 +1185,61 @@ function simulateGalleryUnlock() {
 
 function applyPageContent(pg) {
   if (!pg) return;
-  if (pg.heroTag) document.getElementById('heroTag').textContent = pg.heroTag;
-  if (pg.heroH1) document.getElementById('heroH1').innerHTML = pg.heroH1;
-  if (pg.heroP) document.getElementById('heroP').textContent = pg.heroP;
+  // Hero
+  if (pg.heroTag) { const e = document.getElementById('heroTag'); if(e) e.textContent = pg.heroTag; }
+  if (pg.heroH1)  { const e = document.getElementById('heroH1');  if(e) e.innerHTML  = pg.heroH1; }
+  if (pg.heroP)   { const e = document.getElementById('heroP');   if(e) e.textContent = pg.heroP; }
+  if (pg.heroBtnPrimary)   { const b = document.querySelector('.hero-btns .btn-primary');   if(b) b.textContent = pg.heroBtnPrimary; }
+  if (pg.heroBtnSecondary) { const b = document.querySelector('.hero-btns .btn-secondary'); if(b) b.textContent = pg.heroBtnSecondary; }
+  // Stats
   if (pg.stats) {
     pg.stats.forEach((s,i) => {
-      const n = document.getElementById('stat'+i+'num'); const l = document.getElementById('stat'+i+'lbl');
+      const n = document.getElementById('stat'+i+'num');
+      const l = document.getElementById('stat'+i+'lbl');
       if (n) n.textContent = s.num; if (l) l.textContent = s.lbl;
     });
   }
-  if (pg.footerLogo) document.getElementById('footerLogo').textContent = pg.footerLogo;
-  if (pg.footerText) document.getElementById('footerText').textContent = pg.footerText;
-  if (pg.footerCopy) document.getElementById('footerCopy').textContent = pg.footerCopy;
-  if (pg.logoText) document.querySelector('.logo-text').textContent = pg.logoText;
-  if (pg.logoSub) document.querySelector('.logo-sub').textContent = pg.logoSub;
-  if (pg.logoEmoji && !pg.logoImgSrc) document.querySelector('.logo-icon').textContent = pg.logoEmoji;
-  if (pg.logoImgSrc) document.querySelector('.logo-icon').innerHTML = `<img src="${pg.logoImgSrc}" style="height:36px;width:36px;object-fit:contain;border-radius:6px;">`;
+  // Footer
+  if (pg.footerLogo) { const e=document.getElementById('footerLogo'); if(e) e.textContent=pg.footerLogo; }
+  if (pg.footerText) { const e=document.getElementById('footerText'); if(e) e.textContent=pg.footerText; }
+  if (pg.footerCopy) { const e=document.getElementById('footerCopy'); if(e) e.textContent=pg.footerCopy; }
+  // Logo
+  if (pg.logoText)  { const e=document.querySelector('.logo-text'); if(e) e.textContent=pg.logoText; }
+  if (pg.logoSub)   { const e=document.querySelector('.logo-sub');  if(e) e.textContent=pg.logoSub; }
+  if (pg.logoEmoji && !pg.logoImgSrc) { const e=document.querySelector('.logo-icon'); if(e) e.textContent=pg.logoEmoji; }
+  if (pg.logoImgSrc) { const e=document.querySelector('.logo-icon'); if(e) e.innerHTML=`<img src="${pg.logoImgSrc}" style="height:36px;width:36px;object-fit:contain;border-radius:6px;">`; }
+  // Nav links
   if (pg.navLinks) {
-    document.getElementById('mainNav').innerHTML = pg.navLinks.map(l => `<a href="${l.href}">${l.label}</a>`).join('');
-    document.getElementById('mobileNavDrawer').querySelectorAll('a').forEach((a,i) => { if(pg.navLinks[i]){ a.textContent = pg.navLinks[i].label; a.href = pg.navLinks[i].href; } });
+    const nav = document.getElementById('mainNav');
+    if (nav) nav.innerHTML = pg.navLinks.map(l=>`<a href="${l.href}">${l.label}</a>`).join('');
+    document.querySelectorAll('#mobileNavDrawer a').forEach((a,i) => {
+      if (pg.navLinks[i]) { a.textContent=pg.navLinks[i].label; a.href=pg.navLinks[i].href; }
+    });
   }
+  // Services
   if (pg.services) {
     const cards = document.querySelectorAll('.service-card');
-    pg.services.forEach((s,i) => { if (cards[i]) { cards[i].querySelector('.service-icon').textContent = s.icon; cards[i].querySelector('h3').textContent = s.title; cards[i].querySelector('p').textContent = s.desc; } });
+    pg.services.forEach((s,i) => {
+      if (!cards[i]) return;
+      const icon = cards[i].querySelector('.service-icon');
+      const h3   = cards[i].querySelector('h3');
+      const p    = cards[i].querySelector('p');
+      if (icon) icon.textContent = s.icon;
+      if (h3)   h3.textContent   = s.title;
+      if (p)    p.textContent    = s.desc;
+    });
+  }
+  // Section headings
+  if (pg.sectionHeads) {
+    Object.entries(pg.sectionHeads).forEach(([id, s]) => {
+      const section = document.getElementById(id);
+      if (!section) return;
+      const head = section.querySelector('.section-head');
+      if (!head) return;
+      if (s.tag) { const t=head.querySelector('.section-tag'); if(t) t.textContent=s.tag; }
+      if (s.h2)  { const h=head.querySelector('h2');           if(h) h.textContent=s.h2; }
+      if (s.p)   { const p=head.querySelector('p');            if(p) p.textContent=s.p; }
+    });
   }
 }
 
@@ -1362,10 +1480,12 @@ function updateNavActions() {
     el.innerHTML  = `
       <span class="role-badge role-admin">⚙️ ${name}</span>
       <button class="btn-primary" style="padding:9px 16px;font-size:13px;" onclick="openAdminModal()">📋 Orders</button>
+      <button class="btn-primary" style="padding:9px 16px;font-size:13px;background:linear-gradient(135deg,#059669,#10b981);" onclick="openPageEditor()">✏️ Edit Site</button>
       <button class="btn-logout" onclick="doLogout()">Sign Out</button>`;
     mel.innerHTML = `
       <span class="role-badge role-admin" style="text-align:center;">⚙️ ${name}</span>
       <button class="btn-primary" style="padding:9px 16px;font-size:13px;" onclick="closeMobileNav();openAdminModal()">📋 Orders</button>
+      <button class="btn-primary" style="padding:9px 16px;font-size:13px;background:linear-gradient(135deg,#059669,#10b981);" onclick="closeMobileNav();openPageEditor()">✏️ Edit Site</button>
       <button class="btn-logout" onclick="doLogout()">Sign Out</button>`;
     if (fab) fab.style.display = 'none';
     if (visitSection) visitSection.style.display = '';
@@ -2225,6 +2345,310 @@ function deleteItem(type, id) {
 // FIREBASE STORAGE — image / video upload helpers
 // ================================================================
 // ================================================================
+
+
+// ================================================================
+// PAGE EDITOR — admin only, edits all page content live
+// ================================================================
+let pageContent = JSON.parse(ls.get('gt_page_content')) || {};
+let currentPETab = 'logo';
+
+function openPageEditor() {
+  if (currentRole !== 'admin') return;
+  document.getElementById('pageEditorModal').classList.add('open');
+  showPETab('logo');
+}
+function closePageEditor() {
+  document.getElementById('pageEditorModal').classList.remove('open');
+}
+
+function showPETab(tab) {
+  currentPETab = tab;
+  document.querySelectorAll('.pe-tab').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('pe-tab-' + tab);
+  if (btn) btn.classList.add('active');
+  renderPETab(tab);
+}
+
+function renderPETab(tab) {
+  const el = document.getElementById('peContent');
+  if (!el) return;
+  const pc = pageContent;
+
+  if (tab === 'logo') {
+    el.innerHTML = `
+      <div class="pe-field"><label>Brand Name</label><input id="pe-logoText" value="${pc.logoText||'GreenTop Gardens'}"></div>
+      <div class="pe-field"><label>Tagline (below name)</label><input id="pe-logoSub" value="${pc.logoSub||'Coimbatore'}"></div>
+      <div class="pe-field"><label>Logo Emoji</label><input id="pe-logoEmoji" value="${pc.logoEmoji||'🌿'}" style="width:80px;"></div>
+      <button class="pe-save-btn" onclick="savePESection('logo')">💾 Save Logo</button>`;
+
+  } else if (tab === 'hero') {
+    el.innerHTML = `
+      <div class="pe-field"><label>Badge Text</label><input id="pe-heroTag" value="${(pc.heroTag||'🌿 Coimbatore\'s #1 Terrace Garden Experts').replace(/"/g,'&quot;')}"></div>
+      <div class="pe-field"><label>Main Headline (use &lt;em&gt; for italic)</label><textarea id="pe-heroH1">${pc.heroH1||'Transform Your Terrace into a <em>Green Paradise</em>'}</textarea></div>
+      <div class="pe-field"><label>Sub-headline</label><textarea id="pe-heroP">${pc.heroP||'Professional terrace & balcony garden setup, installation and maintenance services in Coimbatore.'}</textarea></div>
+      <div class="pe-field"><label>Primary Button Text</label><input id="pe-heroBtnPrimary" value="${pc.heroBtnPrimary||'View Packages'}"></div>
+      <div class="pe-field"><label>Secondary Button Text</label><input id="pe-heroBtnSecondary" value="${pc.heroBtnSecondary||'Get a Free Quote'}"></div>
+      <button class="pe-save-btn" onclick="savePESection('hero')">💾 Save Hero</button>`;
+
+  } else if (tab === 'stats') {
+    const stats = pc.stats || [{num:'200+',lbl:'Gardens Created'},{num:'150+',lbl:'Happy Clients'},{num:'5+',lbl:'Years Experience'}];
+    el.innerHTML = `
+      ${stats.map((s,i) => `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <div class="pe-field"><label>Stat ${i+1} Number</label><input id="pe-stat${i}num" value="${s.num}"></div>
+          <div class="pe-field"><label>Stat ${i+1} Label</label><input id="pe-stat${i}lbl" value="${s.lbl}"></div>
+        </div>`).join('')}
+      <button class="pe-save-btn" onclick="savePESection('stats')">💾 Save Stats</button>`;
+
+  } else if (tab === 'services') {
+    const cards = Array.from(document.querySelectorAll('.service-card'));
+    const svcs  = pc.services || cards.map(c => ({
+      icon: c.querySelector('.service-icon')?.textContent || '🌿',
+      title: c.querySelector('h3')?.textContent || '',
+      desc:  c.querySelector('p')?.textContent  || ''
+    }));
+    el.innerHTML = `
+      <div id="pe-svc-list">
+        ${svcs.map((s,i) => `
+          <div class="pe-field" style="position:relative;" id="pe-svc-${i}">
+            <button onclick="document.getElementById('pe-svc-${i}').remove()" style="position:absolute;top:8px;right:8px;background:#fee2e2;border:none;color:#dc2626;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:12px;">✕</button>
+            <div style="display:grid;grid-template-columns:60px 1fr;gap:8px;margin-bottom:8px;">
+              <div><label>Icon</label><input value="${s.icon}" id="pe-svc${i}-icon" style="width:100%;font-size:20px;text-align:center;"></div>
+              <div><label>Title</label><input value="${s.title}" id="pe-svc${i}-title"></div>
+            </div>
+            <label>Description</label><textarea id="pe-svc${i}-desc">${s.desc}</textarea>
+          </div>`).join('')}
+      </div>
+      <button onclick="addPESvc()" style="width:100%;padding:10px;border-radius:50px;background:var(--green-pale);border:1.5px dashed var(--green-mid);color:var(--green-mid);font-size:13px;font-weight:600;cursor:pointer;margin-bottom:10px;">+ Add Service</button>
+      <button class="pe-save-btn" onclick="savePESection('services')">💾 Save Services</button>`;
+
+  } else if (tab === 'sections') {
+    el.innerHTML = `
+      <p style="font-size:13px;color:var(--text-light);margin-bottom:14px;">Edit the heading and description of each section.</p>
+      ${[
+        {id:'gallery',  tag:'Our Work',           h2:'Garden Gallery',     p:"Real terrace gardens we've created across Coimbatore"},
+        {id:'services', tag:'What We Do',          h2:'Our Services',       p:'End-to-end terrace garden solutions for homes and offices'},
+        {id:'plants',   tag:'Our Collection',      h2:'Plants We Install',  p:"A curated selection of plants perfect for Coimbatore's climate"},
+        {id:'materials',tag:'Installation Materials',h2:'Materials We Use', p:'High-quality components chosen for durability and plant health'},
+        {id:'packages', tag:'Maintenance Plans',   h2:'Maintenance Packages',p:'Choose a plan that fits your garden and budget'},
+        {id:'contact',  tag:'Reach Us',            h2:'Contact Us',         p:'Get in touch for a free site visit and quotation'},
+      ].map(s => {
+        const saved = (pc.sectionHeads||{})[s.id] || {};
+        return `<div class="pe-field">
+          <label>${s.h2}</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px;">
+            <input id="pe-sec-${s.id}-tag" placeholder="Tag" value="${saved.tag||s.tag}">
+            <input id="pe-sec-${s.id}-h2"  placeholder="Heading" value="${saved.h2||s.h2}">
+          </div>
+          <input id="pe-sec-${s.id}-p" placeholder="Description" value="${saved.p||s.p}" style="width:100%;margin-top:4px;">
+        </div>`;
+      }).join('')}
+      <button class="pe-save-btn" onclick="savePESection('sections')">💾 Save Section Headings</button>`;
+
+  } else if (tab === 'nav') {
+    const navLinks = pc.navLinks || [
+      {label:'Home',href:'#home'},{label:'Gallery',href:'#gallery'},
+      {label:'Services',href:'#services'},{label:'Plants',href:'#plants'},
+      {label:'Materials',href:'#materials'},{label:'Packages',href:'#packages'},
+      {label:'Book Visit',href:'#visit-booking'},{label:'Contact',href:'#contact'}
+    ];
+    el.innerHTML = `
+      <div id="pe-nav-list">
+        ${navLinks.map((l,i) => `
+          <div class="pe-field" style="display:flex;gap:8px;align-items:center;" id="pe-nav-${i}">
+            <input value="${l.label}" id="pe-nav${i}-label" placeholder="Label" style="width:130px;">
+            <input value="${l.href}"  id="pe-nav${i}-href"  placeholder="#section" style="flex:1;">
+            <button onclick="document.getElementById('pe-nav-${i}').remove()" style="background:#fee2e2;border:none;color:#dc2626;border-radius:50%;width:28px;height:28px;cursor:pointer;">✕</button>
+          </div>`).join('')}
+      </div>
+      <button onclick="addPENav()" style="width:100%;padding:10px;border-radius:50px;background:var(--green-pale);border:1.5px dashed var(--green-mid);color:var(--green-mid);font-size:13px;font-weight:600;cursor:pointer;margin-bottom:10px;">+ Add Link</button>
+      <button class="pe-save-btn" onclick="savePESection('nav')">💾 Save Navigation</button>`;
+
+  } else if (tab === 'footer') {
+    el.innerHTML = `
+      <div class="pe-field"><label>Footer Brand Name</label><input id="pe-footerLogo" value="${pc.footerLogo||'🌿 GreenTop Gardens'}"></div>
+      <div class="pe-field"><label>Footer Tagline</label><input id="pe-footerText" value="${(pc.footerText||'Coimbatore\'s trusted terrace & balcony garden specialists').replace(/"/g,'&quot;')}"></div>
+      <div class="pe-field"><label>Copyright Text</label><input id="pe-footerCopy" value="${(pc.footerCopy||'© 2025 GreenTop Gardens, Coimbatore. All rights reserved.').replace(/"/g,'&quot;')}"></div>
+      <button class="pe-save-btn" onclick="savePESection('footer')">💾 Save Footer</button>`;
+  }
+}
+
+function addPESvc() {
+  const list = document.getElementById('pe-svc-list');
+  const i = list.children.length;
+  const div = document.createElement('div');
+  div.className = 'pe-field'; div.style.position = 'relative'; div.id = 'pe-svc-' + i;
+  div.innerHTML = `<button onclick="this.parentElement.remove()" style="position:absolute;top:8px;right:8px;background:#fee2e2;border:none;color:#dc2626;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:12px;">✕</button>
+    <div style="display:grid;grid-template-columns:60px 1fr;gap:8px;margin-bottom:8px;">
+      <div><label>Icon</label><input value="🌿" id="pe-svc${i}-icon" style="width:100%;font-size:20px;text-align:center;"></div>
+      <div><label>Title</label><input value="" id="pe-svc${i}-title" placeholder="Service name"></div>
+    </div>
+    <label>Description</label><textarea id="pe-svc${i}-desc" placeholder="Describe this service..."></textarea>`;
+  list.appendChild(div);
+}
+
+function addPENav() {
+  const list = document.getElementById('pe-nav-list');
+  const i = list.children.length;
+  const div = document.createElement('div');
+  div.className = 'pe-field'; div.style.cssText = 'display:flex;gap:8px;align-items:center;'; div.id = 'pe-nav-' + i;
+  div.innerHTML = `<input value="" id="pe-nav${i}-label" placeholder="Label" style="width:130px;">
+    <input value="#" id="pe-nav${i}-href" placeholder="#section" style="flex:1;">
+    <button onclick="this.parentElement.remove()" style="background:#fee2e2;border:none;color:#dc2626;border-radius:50%;width:28px;height:28px;cursor:pointer;">✕</button>`;
+  list.appendChild(div);
+}
+
+function savePESection(tab) {
+  if (currentRole !== 'admin') return;
+
+  if (tab === 'logo') {
+    pageContent.logoText  = document.getElementById('pe-logoText').value.trim();
+    pageContent.logoSub   = document.getElementById('pe-logoSub').value.trim();
+    pageContent.logoEmoji = document.getElementById('pe-logoEmoji').value.trim();
+
+  } else if (tab === 'hero') {
+    pageContent.heroTag          = document.getElementById('pe-heroTag').value.trim();
+    pageContent.heroH1           = document.getElementById('pe-heroH1').value.trim();
+    pageContent.heroP            = document.getElementById('pe-heroP').value.trim();
+    pageContent.heroBtnPrimary   = document.getElementById('pe-heroBtnPrimary').value.trim();
+    pageContent.heroBtnSecondary = document.getElementById('pe-heroBtnSecondary').value.trim();
+
+  } else if (tab === 'stats') {
+    pageContent.stats = [0,1,2].map(i => ({
+      num: (document.getElementById('pe-stat'+i+'num')||{}).value || '',
+      lbl: (document.getElementById('pe-stat'+i+'lbl')||{}).value || ''
+    }));
+
+  } else if (tab === 'services') {
+    const items = document.querySelectorAll('#pe-svc-list .pe-field');
+    pageContent.services = Array.from(items).map((_, i) => ({
+      icon:  (document.getElementById('pe-svc'+i+'-icon') ||{}).value || '🌿',
+      title: (document.getElementById('pe-svc'+i+'-title')||{}).value || '',
+      desc:  (document.getElementById('pe-svc'+i+'-desc') ||{}).value || ''
+    }));
+
+  } else if (tab === 'sections') {
+    if (!pageContent.sectionHeads) pageContent.sectionHeads = {};
+    ['gallery','services','plants','materials','packages','contact'].forEach(id => {
+      pageContent.sectionHeads[id] = {
+        tag: (document.getElementById('pe-sec-'+id+'-tag')||{}).value || '',
+        h2:  (document.getElementById('pe-sec-'+id+'-h2') ||{}).value || '',
+        p:   (document.getElementById('pe-sec-'+id+'-p')  ||{}).value || ''
+      };
+    });
+
+  } else if (tab === 'nav') {
+    const items = document.querySelectorAll('#pe-nav-list .pe-field');
+    pageContent.navLinks = Array.from(items).map((_,i) => ({
+      label: (document.getElementById('pe-nav'+i+'-label')||{}).value || '',
+      href:  (document.getElementById('pe-nav'+i+'-href') ||{}).value || '#'
+    }));
+
+  } else if (tab === 'footer') {
+    pageContent.footerLogo = document.getElementById('pe-footerLogo').value.trim();
+    pageContent.footerText = document.getElementById('pe-footerText').value.trim();
+    pageContent.footerCopy = document.getElementById('pe-footerCopy').value.trim();
+  }
+
+  // Save and apply
+  ls.set('gt_page_content', JSON.stringify(pageContent));
+  if (fbReady) fbSet('config', 'page', { value: pageContent, updatedAt: new Date().toISOString() });
+  applyPageContent(pageContent);
+  showToast('✅ ' + tab.charAt(0).toUpperCase() + tab.slice(1) + ' updated!');
+}
+
+// Additional page content fields handled by applyPageContentExtra
+// (called from applyPageContent below — no duplicate function needed)
+
+// ================================================================
+// PACKAGE EDIT — admin only
+// ================================================================
+let editingPkgId = null;
+
+function openPkgEdit(id) {
+  if (currentRole !== 'admin') return;
+  editingPkgId = id;
+  const pkg = packages.find(x => x.id === id);
+  if (!pkg) return;
+  document.getElementById('pkgName').value     = pkg.name;
+  document.getElementById('pkgDuration').value = pkg.duration;
+  document.getElementById('pkgPrice').value    = pkg.price;
+  document.getElementById('pkgPeriod').value   = pkg.period;
+  // Render feature fields
+  const ul = document.getElementById('featureListEdit');
+  ul.innerHTML = '';
+  pkg.features.forEach(f => {
+    const li = document.createElement('li');
+    li.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;align-items:center;';
+    li.innerHTML = `<input type="text" value="${f}" placeholder="Feature..." style="flex:1;padding:8px 12px;border-radius:8px;border:1.5px solid var(--green-pale);font-family:'DM Sans',sans-serif;font-size:13px;background:var(--green-mist);">
+      <button onclick="this.parentElement.remove()" style="background:#fee2e2;color:#dc2626;border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:14px;">✕</button>`;
+    ul.appendChild(li);
+  });
+  document.getElementById('pkgModal').classList.add('open');
+}
+
+function closePkgModal() {
+  document.getElementById('pkgModal').classList.remove('open');
+}
+
+function addFeatureField() {
+  const ul = document.getElementById('featureListEdit');
+  const li = document.createElement('li');
+  li.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;align-items:center;';
+  li.innerHTML = `<input type="text" placeholder="New feature..." style="flex:1;padding:8px 12px;border-radius:8px;border:1.5px solid var(--green-pale);font-family:'DM Sans',sans-serif;font-size:13px;background:var(--green-mist);">
+    <button onclick="this.parentElement.remove()" style="background:#fee2e2;color:#dc2626;border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:14px;">✕</button>`;
+  ul.appendChild(li);
+}
+
+function savePkg() {
+  if (currentRole !== 'admin') return;
+  const pkg = packages.find(x => x.id === editingPkgId);
+  if (!pkg) return;
+  pkg.name     = document.getElementById('pkgName').value.trim();
+  pkg.duration = document.getElementById('pkgDuration').value.trim();
+  pkg.price    = parseInt(document.getElementById('pkgPrice').value) || pkg.price;
+  pkg.period   = document.getElementById('pkgPeriod').value.trim();
+  pkg.features = Array.from(document.querySelectorAll('#featureListEdit input'))
+                   .map(i => i.value.trim()).filter(Boolean);
+  ls.set('gt_packages', JSON.stringify(packages));
+  if (fbReady) fbSet('config', 'packages', { value: packages, updatedAt: new Date().toISOString() });
+  closePkgModal();
+  renderPackages();
+  showToast('✅ Package updated!');
+}
+
+// ================================================================
+// CONTACT EDIT — admin only
+// ================================================================
+function editContact() {
+  if (currentRole !== 'admin') return;
+  document.getElementById('ceAddress').value  = contactInfo.address;
+  document.getElementById('cePhone').value    = contactInfo.phone;
+  document.getElementById('ceEmail').value    = contactInfo.email;
+  document.getElementById('ceHours').value    = contactInfo.hours;
+  document.getElementById('ceWhatsapp').value = contactInfo.whatsapp;
+  document.getElementById('contactModal').classList.add('open');
+}
+
+function closeContactModal() {
+  document.getElementById('contactModal').classList.remove('open');
+}
+
+function saveContact() {
+  if (currentRole !== 'admin') return;
+  contactInfo.address  = document.getElementById('ceAddress').value.trim();
+  contactInfo.phone    = document.getElementById('cePhone').value.trim();
+  contactInfo.email    = document.getElementById('ceEmail').value.trim();
+  contactInfo.hours    = document.getElementById('ceHours').value.trim();
+  contactInfo.whatsapp = document.getElementById('ceWhatsapp').value.trim();
+  ls.set('gt_contact', JSON.stringify(contactInfo));
+  if (fbReady) fbSet('config', 'contact', { value: contactInfo, updatedAt: new Date().toISOString() });
+  closeContactModal();
+  renderContact();
+  showToast('✅ Contact info updated!');
+}
+
 // ================================================================
 // IMAGE UPLOAD — Supabase Storage
 // Bucket: images (must be Public in Supabase dashboard)
@@ -2234,12 +2658,14 @@ async function uploadToStorage(file, folder, progressId) {
 
   function showMsg(html) { if (progressEl) progressEl.innerHTML = html; }
 
-  // Try to initialize Supabase lazily (CDN loads async)
-  initSupabaseLazy();
+  // Show connecting message while waiting for Supabase SDK
+  showMsg('<div style="font-size:12px;color:var(--text-light);margin-top:6px;">⏳ Connecting to storage…</div>');
 
-  // Supabase not ready — show local preview only
-  if (!supabase) {
-    showMsg('<div style="font-size:12px;color:#f59e0b;margin-top:6px;">⚠️ Supabase not ready — use URL field to add image link.</div>');
+  // Wait for Supabase SDK to load (async CDN)
+  const ready = await initSupabaseLazy();
+
+  if (!ready || !supabase) {
+    showMsg('<div style="font-size:12px;color:#dc2626;margin-top:6px;">❌ Storage not available. Paste an image URL instead.</div>');
     return new Promise((res, rej) => {
       const r = new FileReader();
       r.onload = e => res(e.target.result);
@@ -2373,6 +2799,62 @@ window.addEventListener('resize', () => {
 });
 </script>
 
+
+
+
+<!-- PAGE EDITOR MODAL -->
+<div class="modal-overlay" id="pageEditorModal">
+  <div class="modal" style="max-width:680px;max-height:min(88vh,720px);display:flex;flex-direction:column;overflow:hidden;">
+    <button class="modal-close" onclick="closePageEditor()">✕</button>
+    <h2 style="margin-bottom:4px;">✏️ Edit Site Content</h2>
+    <p style="font-size:13px;color:var(--text-light);margin-bottom:16px;">Changes are saved instantly and visible to all visitors.</p>
+    <!-- Tabs -->
+    <div style="display:flex;gap:0;flex-wrap:wrap;border-radius:10px;overflow:hidden;border:1.5px solid var(--green-pale);margin-bottom:18px;flex-shrink:0;">
+      <button class="pe-tab active" id="pe-tab-logo"     onclick="showPETab('logo')">🌿 Logo</button>
+      <button class="pe-tab"        id="pe-tab-hero"     onclick="showPETab('hero')">🏠 Hero</button>
+      <button class="pe-tab"        id="pe-tab-stats"    onclick="showPETab('stats')">📊 Stats</button>
+      <button class="pe-tab"        id="pe-tab-services" onclick="showPETab('services')">🔧 Services</button>
+      <button class="pe-tab"        id="pe-tab-sections" onclick="showPETab('sections')">📑 Sections</button>
+      <button class="pe-tab"        id="pe-tab-nav"      onclick="showPETab('nav')">🔗 Nav</button>
+      <button class="pe-tab"        id="pe-tab-footer"   onclick="showPETab('footer')">📄 Footer</button>
+    </div>
+    <div id="peContent" style="overflow-y:auto;flex:1;padding-right:4px;"></div>
+  </div>
+</div>
+
+<!-- PACKAGE EDIT MODAL -->
+<div class="modal-overlay" id="pkgModal">
+  <div class="modal" style="max-width:460px;">
+    <button class="modal-close" onclick="closePkgModal()">✕</button>
+    <h2>✏️ Edit Package</h2>
+    <p style="font-size:13px;color:var(--text-light);margin-bottom:18px;">Update pricing and features for this plan.</p>
+    <div class="input-wrap"><label>Package Name</label><input type="text" id="pkgName" placeholder="e.g. Silver Plan"></div>
+    <div class="input-wrap"><label>Duration Label</label><input type="text" id="pkgDuration" placeholder="e.g. 3 Months"></div>
+    <div class="input-wrap"><label>Price (₹)</label><input type="number" id="pkgPrice" placeholder="e.g. 2999"></div>
+    <div class="input-wrap"><label>Period Note</label><input type="text" id="pkgPeriod" placeholder="e.g. for 3 months"></div>
+    <div style="margin-bottom:14px;">
+      <label style="font-size:12px;color:var(--text-light);font-weight:600;display:block;margin-bottom:8px;">Features</label>
+      <ul id="featureListEdit" style="list-style:none;padding:0;margin-bottom:10px;"></ul>
+      <button onclick="addFeatureField()" style="padding:7px 16px;border-radius:50px;background:var(--green-pale);border:1.5px dashed var(--green-mid);color:var(--green-mid);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">+ Add Feature</button>
+    </div>
+    <button class="btn-submit" onclick="savePkg()">💾 Save Package</button>
+  </div>
+</div>
+
+<!-- CONTACT EDIT MODAL -->
+<div class="modal-overlay" id="contactModal">
+  <div class="modal" style="max-width:460px;">
+    <button class="modal-close" onclick="closeContactModal()">✕</button>
+    <h2>✏️ Edit Contact Info</h2>
+    <p style="font-size:13px;color:var(--text-light);margin-bottom:18px;">Update your business contact details.</p>
+    <div class="input-wrap"><label>Address</label><input type="text" id="ceAddress"></div>
+    <div class="input-wrap"><label>Phone</label><input type="text" id="cePhone"></div>
+    <div class="input-wrap"><label>Email</label><input type="text" id="ceEmail"></div>
+    <div class="input-wrap"><label>Working Hours</label><input type="text" id="ceHours"></div>
+    <div class="input-wrap"><label>WhatsApp</label><input type="text" id="ceWhatsapp"></div>
+    <button class="btn-submit" onclick="saveContact()">💾 Save Contact Info</button>
+  </div>
+</div>
 
 <!-- ADMIN ORDERS MODAL -->
 <div class="modal-overlay" id="adminModal">
