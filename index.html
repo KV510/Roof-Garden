@@ -122,6 +122,72 @@
 
   /* CATALOG GRID */
   .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
+
+  /* Plants per-category carousel */
+  .plant-cat-section { margin-bottom: 44px; }
+  .plant-cat-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px; padding-bottom: 10px;
+    border-bottom: 2px solid var(--green-pale);
+  }
+  .plant-cat-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px; font-weight: 700; color: var(--green-deep);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .plant-cat-count {
+    font-size: 12px; color: var(--green-mid); font-weight: 600;
+    background: var(--green-pale); padding: 2px 10px; border-radius: 50px;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .plant-carousel-outer { position: relative; overflow: hidden; }
+  .plant-carousel-track {
+    display: flex; gap: 20px; transition: transform 0.5s cubic-bezier(0.4,0,0.2,1);
+    will-change: transform;
+  }
+  .plant-card-slide {
+    flex: 0 0 220px; background: white; border-radius: 18px;
+    border: 1.5px solid var(--green-pale);
+    box-shadow: 0 4px 20px rgba(45,106,79,0.10);
+    overflow: hidden; cursor: pointer; position: relative;
+    transition: transform 0.3s, box-shadow 0.3s;
+    display: flex; flex-direction: column;
+  }
+  .plant-card-slide:hover { transform: translateY(-8px); box-shadow: 0 16px 40px rgba(45,106,79,0.20); }
+  .plant-card-img {
+    width: 100%; height: 170px; background: var(--green-mist);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; flex-shrink: 0;
+  }
+  .plant-card-img img { width: 100%; height: 100%; object-fit: cover; }
+  .plant-card-img .emoji-lg { font-size: 72px; line-height: 1; }
+  .plant-card-body { padding: 14px 16px 16px; flex: 1; }
+  .plant-card-name { font-weight: 700; font-size: 15px; color: var(--text-dark); margin-bottom: 3px; }
+  .plant-card-sci  { font-size: 12px; color: var(--text-light); font-style: italic; margin-bottom: 8px; }
+  .plant-card-link { font-size: 13px; color: var(--green-mid); font-weight: 600; }
+  .plant-card-admin-btns {
+    position: absolute; top: 8px; right: 8px;
+    display: none; gap: 4px;
+  }
+  .plant-card-slide:hover .plant-card-admin-btns { display: flex; }
+  /* Carousel nav arrows */
+  .plant-nav-btn {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 34px; height: 34px; border-radius: 50%; border: none;
+    background: white; box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    cursor: pointer; font-size: 14px; z-index: 10;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .plant-nav-btn:hover { background: var(--green-deep); color: white; transform: translateY(-50%) scale(1.1); }
+  .plant-nav-btn.prev { left: -14px; }
+  .plant-nav-btn.next { right: -14px; }
+  .plant-carousel-dots { display: flex; gap: 6px; justify-content: center; margin-top: 14px; }
+  .plant-carousel-dots span {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--green-pale); cursor: pointer; transition: all 0.3s;
+  }
+  .plant-carousel-dots span.active { background: var(--green-mid); width: 20px; border-radius: 4px; }
   .catalog-card { background: white; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-card); border: 1.5px solid var(--green-pale); transition: all 0.3s; position: relative; }
   .catalog-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(45,106,79,0.18); }
 
@@ -176,16 +242,18 @@
   }
   .admin-l1-tab.active-l1 { background: var(--green-deep); color: white; border-color: var(--green-deep); }
   .admin-l2-tab {
-    padding: 6px 14px; border-radius: 50px; border: 1.5px solid var(--green-pale);
+    padding: 5px 12px; border-radius: 50px; border: 1.5px solid var(--green-pale);
     background: white; color: var(--text-mid); font-size: 12px; font-weight: 600;
     cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s;
-    display: flex; align-items: center; gap: 4px;
+    display: flex; align-items: center; gap: 4px; white-space: nowrap; flex-shrink: 0;
   }
   .admin-l2-tab.active-l2 { background: var(--green-mid); color: white; border-color: var(--green-mid); }
   .admin-l2-tab .tab-count {
     background: rgba(255,255,255,0.3); border-radius: 50px;
-    padding: 1px 6px; font-size: 10px;
+    padding: 1px 6px; font-size: 10px; min-width: 0;
+    display: inline;
   }
+  .admin-l2-tab .tab-count:empty { display: none; }
   .admin-l2-tab:not(.active-l2) .tab-count { background: var(--green-pale); color: var(--green-mid); }
 
   .edit-page-fab {
@@ -248,7 +316,7 @@
   .plant-tab:not(.active) .cat-edit-btn { background:var(--green-pale);color:var(--green-mid); }
   .plant-tab:not(.active) .cat-del-btn-sm { background:#fee2e2;color:#dc2626; }
   /* Add category button */
-  .cat-add-btn { padding:10px 16px;border-radius:50px;border:2px dashed var(--green-light);background:white;color:var(--green-mid);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.25s;display:none;align-items:center;gap:6px; }
+  .cat-add-btn { padding:10px 16px;border-radius:50px;border:2px dashed var(--green-light);background:white;color:var(--green-mid);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.25s;display:flex;align-items:center;gap:6px; }
   .cat-add-btn:hover { border-color:var(--green-mid);background:var(--green-pale); }
 
   /* SEARCH */
@@ -628,20 +696,18 @@
 <!-- PLANTS -->
 <section id="plants">
   <div class="section-inner">
-    <div class="section-head"><div class="section-tag">Our Collection</div><h2>Plants We Install</h2><p>A curated selection of plants perfect for Coimbatore's climate</p></div>
-    <div class="plant-tabs" id="plantTabs">
-      <button class="plant-tab active" onclick="setPlantTab('all')" id="tab-all">🌿 All <span class="plant-tab-count" id="cnt-all">0</span></button>
-      <button class="plant-tab" onclick="setPlantTab('food')" id="tab-food">🍅 Food <span class="plant-tab-count" id="cnt-food">0</span></button>
-      <button class="plant-tab" onclick="setPlantTab('ornamental')" id="tab-ornamental">🌸 Ornamental <span class="plant-tab-count" id="cnt-ornamental">0</span></button>
-      <button class="plant-tab" onclick="setPlantTab('indoor')" id="tab-indoor">🪴 Indoor <span class="plant-tab-count" id="cnt-indoor">0</span></button>
-      <button class="cat-add-btn" id="addCategoryBtnPlaceholder" onclick="openAddCategoryModal()">＋ Add Category</button>
+    <div class="section-head">
+      <div class="section-tag">Our Collection</div>
+      <h2>Plants We Install</h2>
+      <p>A curated selection of plants perfect for Coimbatore's climate</p>
     </div>
-    <div class="catalog-search-wrap">
-      <span>🔍</span>
-      <input type="text" id="plantSearch" placeholder="Search plants..." oninput="filterPlants()">
-      <button class="search-clear" id="plantSearchClear" onclick="clearPlantSearch()">✕</button>
+    <!-- Admin add category + add plant -->
+    <div id="plantAdminBar" style="display:none;justify-content:center;gap:8px;margin-bottom:16px;">
+      <button class="cat-add-btn" onclick="openAddCategoryModal()">＋ Add Category</button>
+      <button class="cat-add-btn" onclick="openItemEdit('plant',null)" style="background:var(--green-mid);color:white;border-color:var(--green-mid);">＋ Add Plant</button>
     </div>
-    <div class="catalog-grid" id="plantsGrid"></div>
+    <!-- Per-category carousels — one row per category -->
+    <div id="plantsCarouselsWrap"></div>
   </div>
 </section>
 
@@ -976,7 +1042,9 @@ let db = null, auth = null, fbReady = false, fbAdminReady = false;
         currentAdminName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
         saveSession(currentRole, null, currentAdminName);
         startSessionTimer();
-        setTimeout(setupAdminNotifications, 1500);
+        setupUnreadBadges();
+        setTimeout(setupAdminNotifications, 800);
+        setTimeout(() => { const b=document.getElementById('plantAdminBar'); if(b) b.style.display='flex'; }, 500);
       } else if (isTech) {
         // ── Restore technician session ─────────────────────────────
         fbAdminReady  = false;
@@ -986,6 +1054,9 @@ let db = null, auth = null, fbReady = false, fbAdminReady = false;
         currentAdminName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
         saveSession(currentRole, null, currentAdminName);
         startSessionTimer();
+        setupUnreadBadges();
+        setTimeout(setupAdminNotifications, 800);
+        setTimeout(() => { const b=document.getElementById('plantAdminBar'); if(b) b.style.display='flex'; }, 500);
       } else {
         // ── Restore customer session ───────────────────────────────
         fbAdminReady = false;
@@ -1006,11 +1077,19 @@ let db = null, auth = null, fbReady = false, fbAdminReady = false;
         };
         saveSession(currentRole, currentUser);
         startSessionTimer();
+        setupUnreadBadges();
       }
 
       // Update UI after session restored
       updateNavActions();
       renderAll();
+      // Explicitly show plant admin bar after role is confirmed
+      setTimeout(() => {
+        const bar = document.getElementById('plantAdminBar');
+        if (bar) bar.style.display = canEdit() ? 'flex' : 'none';
+        // Re-render plant cards so edit/delete buttons appear
+        renderPlantsGrid();
+      }, 300);
     });
   } catch(e) { console.warn('[FB] init failed:', e.message); }
 })();
@@ -1173,6 +1252,8 @@ function getTypeBadge(type) {
 }
 
 function renderCustomTabs() {
+  // No-op — tabs removed, using per-category carousels
+  return;
   const tabs    = document.getElementById('plantTabs');
   const addBtn  = document.getElementById('addCategoryBtnPlaceholder');
   const isAdmin = currentRole === 'admin';
@@ -1233,54 +1314,216 @@ function setPlantTab(tab) {
   renderPlantsGrid();
 }
 
-function renderPlantsGrid() {
-  const grid = document.getElementById('plantsGrid');
-  const q = (document.getElementById('plantSearch').value || '').toLowerCase();
-  let sorted = [...plants].sort((a,b) => a.name.localeCompare(b.name));
-  if (activePlantTab !== 'all') sorted = sorted.filter(p => p.type === activePlantTab);
-  if (q) sorted = sorted.filter(p => p.name.toLowerCase().includes(q) || (p.sci||'').toLowerCase().includes(q));
+// Track active plant carousels for cleanup
+const _plantCarouselTimers = {};
 
-  // counts
-  const allCats = [{ key:'food' }, { key:'ornamental' }, { key:'indoor' }, ...customCategories];
-  const el = document.getElementById('cnt-all'); if (el) el.textContent = plants.length;
-  allCats.forEach(c => { const el = document.getElementById('cnt-' + c.key); if (el) el.textContent = plants.filter(p => p.type === c.key).length; });
+function renderPlantsGrid() { renderPlantCarousels(); }
+function filterPlants()     { renderPlantCarousels(); }
+function clearPlantSearch() { renderPlantCarousels(); }
 
-  grid.innerHTML = sorted.length === 0
-    ? `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-light);">${q ? `No plants found for "${q}"` : 'No plants in this category.'}</div>`
-    : sorted.map(item => `
-      <div class="catalog-card">
-        ${getTypeBadge(item.type)}
-        <div class="catalog-img" onclick="openItemDetail('plant',${item.id})" style="cursor:pointer;">
-          ${item.img ? `<img src="${item.img}" alt="${item.name}" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><span style="display:none;font-size:64px;align-items:center;justify-content:center;">${item.emoji}</span>` : `<span style="font-size:64px;">${item.emoji}</span>`}
+function renderPlantCarousels() {
+  const wrap = document.getElementById('plantsCarouselsWrap');
+  if (!wrap) return;
+
+  // Show admin bar
+  const adminBar = document.getElementById('plantAdminBar');
+  if (adminBar) adminBar.style.display = canEdit() ? 'flex' : 'none';
+
+  // Clear old timers
+  Object.values(_plantCarouselTimers).forEach(clearInterval);
+  Object.keys(_plantCarouselTimers).forEach(k => delete _plantCarouselTimers[k]);
+
+  // Build category list (built-in + custom)
+  const builtIn = [
+    { key: 'food',       label: 'Food Plants',      emoji: '🍅' },
+    { key: 'ornamental', label: 'Ornamental Plants', emoji: '🌸' },
+    { key: 'indoor',     label: 'Indoor Plants',     emoji: '🪴' },
+  ];
+  const allCats = [...builtIn, ...customCategories.map(c => ({ key: c.key, label: c.label, emoji: c.emoji || '🌿' }))];
+
+  // Only show categories that have plants
+  const activeCats = allCats.filter(cat => plants.some(p => (p.type||p.category) === cat.key));
+  if (!activeCats.length) {
+    wrap.innerHTML = '<p style="text-align:center;padding:40px;color:var(--text-light);">No plants added yet.</p>';
+    return;
+  }
+
+  wrap.innerHTML = activeCats.map(cat => {
+    const catPlants = [...plants]
+      .filter(p => (p.type||p.category) === cat.key)
+      .sort((a,b) => a.name.localeCompare(b.name));
+    const trackId = 'ptrack-' + cat.key;
+    const dotsId  = 'pdots-'  + cat.key;
+    return `
+      <div class="plant-cat-section" data-cat="${cat.key}">
+        <div class="plant-cat-header">
+          <div class="plant-cat-title">
+            <span>${cat.emoji}</span> ${cat.label}
+            <span class="plant-cat-count">${catPlants.length}</span>
+          </div>
+          ${canEdit() ? `<div style="display:flex;gap:6px;">
+            <button class="btn-edit-sm" onclick="openEditCategoryModal('${cat.key}')" title="Edit category">✏️</button>
+          </div>` : ''}
         </div>
-        <div class="catalog-name" onclick="openItemDetail('plant',${item.id})" style="cursor:pointer;">
-          <span class="catalog-plant-name">${item.name}</span>
-          ${item.sci ? `<span class="catalog-plant-sci">${item.sci}</span>` : ''}
-          ${item.desc ? `<span style="display:block;font-size:11px;color:var(--text-light);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px;">${item.desc.slice(0,40)}${item.desc.length>40?'…':''}</span>` : ''}
-          <span style="display:inline-block;margin-top:6px;font-size:11px;color:var(--green-mid);font-weight:600;">View Details →</span>
+        <div class="plant-carousel-outer" id="pouter-${cat.key}">
+          <button class="plant-nav-btn prev" onclick="plantCarouselManualNav('${cat.key}',-1)">‹</button>
+          <div class="plant-carousel-track" id="${trackId}">
+            ${catPlants.map(item => `
+              <div class="plant-card-slide" onclick="openItemDetail('plant',${item.id})">
+                <div class="plant-card-img">
+                  ${item.img
+                    ? `<img src="${item.img}" alt="${item.name}" loading="lazy" onerror="this.style.display='none';this.nextSibling.style.display='flex'">
+                       <span class="emoji-lg" style="display:none;">${item.emoji}</span>`
+                    : `<span class="emoji-lg">${item.emoji}</span>`}
+                </div>
+                <div class="plant-card-body">
+                  <div class="plant-card-name">${item.name}</div>
+                  ${item.sci ? `<div class="plant-card-sci">${item.sci}</div>` : ''}
+                  <div class="plant-card-link">View Details →</div>
+                </div>
+                ${canEdit() ? `<div class="plant-card-admin-btns">
+                  <button class="btn-edit-sm" onclick="event.stopPropagation();openItemEdit('plant',${item.id})">✏️</button>
+                  <button class="btn-del-sm" onclick="event.stopPropagation();deleteItem('plant',${item.id})">🗑</button>
+                </div>` : ''}
+              </div>`).join('')}
+          </div>
+          <button class="plant-nav-btn next" onclick="plantCarouselManualNav('${cat.key}',1)">›</button>
         </div>
-        ${canEdit() ? `<div class="catalog-actions">
-          <button class="btn-edit-sm" onclick="event.stopPropagation();openItemEdit('plant',${item.id})">✏️</button>
-          <button class="btn-del-sm" onclick="event.stopPropagation();deleteItem('plant',${item.id})">🗑</button>
-        </div>` : ''}
-      </div>`).join('');
+        <div class="plant-carousel-dots" id="${dotsId}"></div>
+      </div>`;
+  }).join('');
 
-  if (canEdit()) {
-    const addBtn = document.createElement('div');
-    addBtn.className = 'add-card';
-    addBtn.title = 'Add a new plant';
-    addBtn.innerHTML = `<div class="add-card-img"><span class="add-icon">＋</span></div><div class="add-card-label">Add Plant</div>`;
-    addBtn.onclick = () => openItemEdit('plant', null);
-    grid.appendChild(addBtn);
+  // Init each carousel
+  activeCats.forEach(cat => {
+    const catPlants = plants.filter(p => (p.type||p.category) === cat.key);
+    if (catPlants.length > 1) initPlantCarousel(cat.key, catPlants.length);
+  });
+}
+
+function initPlantCarousel(catKey, total) {
+  const outerEl = document.getElementById('pouter-' + catKey);
+  const trackEl = document.getElementById('ptrack-' + catKey);
+  const dotsEl  = document.getElementById('pdots-'  + catKey);
+  if (!outerEl || !trackEl) return;
+
+  // Clear any existing listeners by replacing the element
+  const newOuter = outerEl.cloneNode(false);
+  while (outerEl.firstChild) newOuter.appendChild(outerEl.firstChild);
+  outerEl.parentNode.replaceChild(newOuter, outerEl);
+  const outer = newOuter;
+
+  const CARD_W  = 240;  // card width 220 + gap 20
+  const outerW  = outer.offsetWidth || 900;
+  const visible = Math.max(1, Math.floor(outerW / CARD_W));
+
+  // Clone cards enough to fill (3 full sets minimum, no empty space)
+  const origCards = Array.from(trackEl.children);
+  if (!origCards.length) return;
+  const sets = Math.max(3, Math.ceil((visible * 3) / total));
+  for (let s = 1; s < sets; s++) {
+    origCards.forEach(c => trackEl.appendChild(c.cloneNode(true)));
+  }
+
+  let offset   = 0;
+  let paused   = false;
+  const resetAt = total * CARD_W;
+
+  trackEl.style.transform  = 'translateX(0px)';
+  trackEl.style.transition = 'none';
+
+  function slide() {
+    if (paused) return;
+    offset += CARD_W;
+    trackEl.style.transition = 'transform 0.65s cubic-bezier(0.4,0,0.2,1)';
+    trackEl.style.transform  = `translateX(-${offset}px)`;
+    setTimeout(() => {
+      if (offset >= resetAt) {
+        offset -= resetAt;
+        trackEl.style.transition = 'none';
+        trackEl.style.transform  = `translateX(-${offset}px)`;
+      }
+      const dotIdx = Math.round(offset / CARD_W) % total;
+      if (dotsEl) dotsEl.querySelectorAll('span').forEach((d,i) => d.classList.toggle('active', i===dotIdx));
+    }, 680);
+  }
+
+  _plantCarouselTimers[catKey] = setInterval(slide, 3000);
+
+  // ── Hover: pause / resume ────────────────────────────────────────────────
+  outer.addEventListener('mouseenter', () => { paused = true; outer.style.cursor = 'grab'; });
+  outer.addEventListener('mouseleave', () => { paused = false; outer.style.cursor = ''; });
+
+  // ── Mouse drag: left/right ───────────────────────────────────────────────
+  let dragStart   = null;
+  let dragOffset  = 0;
+  let isDragging  = false;
+
+  outer.addEventListener('mousedown', e => {
+    dragStart  = e.clientX;
+    dragOffset = offset;
+    isDragging = false;
+    outer.style.cursor = 'grabbing';
+    trackEl.style.transition = 'none';
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (dragStart === null) return;
+    const diff = dragStart - e.clientX;
+    if (Math.abs(diff) > 5) isDragging = true;
+    if (!isDragging) return;
+    let newOffset = dragOffset + diff;
+    // Keep in valid range (allow wrap)
+    if (newOffset < 0) newOffset = resetAt + newOffset;
+    if (newOffset >= resetAt * 2) newOffset = newOffset % resetAt;
+    offset = newOffset;
+    trackEl.style.transform = `translateX(-${offset}px)`;
+  });
+
+  window.addEventListener('mouseup', e => {
+    if (dragStart === null) return;
+    dragStart = null;
+    outer.style.cursor = 'grab';
+    // Snap to nearest card
+    const snapped = Math.round(offset / CARD_W) * CARD_W;
+    trackEl.style.transition = 'transform 0.3s ease';
+    offset = ((snapped % resetAt) + resetAt) % resetAt;
+    trackEl.style.transform = `translateX(-${offset}px)`;
+    setTimeout(() => { if (dotsEl) {
+      const dotIdx = Math.round(offset / CARD_W) % total;
+      dotsEl.querySelectorAll('span').forEach((d,i) => d.classList.toggle('active', i===dotIdx));
+    }}, 320);
+    // Block card click if dragged
+    if (isDragging) {
+      isDragging = false;
+      e.stopPropagation();
+    }
+  });
+
+  // Build dots
+  if (dotsEl && total > 1) {
+    dotsEl.innerHTML = Array.from({length:total}, (_,i) =>
+      `<span class="${i===0?'active':''}"></span>`).join('');
   }
 }
 
-function filterPlants() {
-  const v = document.getElementById('plantSearch').value;
-  document.getElementById('plantSearchClear').style.display = v ? 'flex' : 'none';
-  renderPlantsGrid();
+function plantCarouselManualNav(catKey, dir) {
+  const outerEl = document.getElementById('pouter-' + catKey);
+  const trackEl = document.getElementById('ptrack-' + catKey);
+  if (!trackEl) return;
+  clearInterval(_plantCarouselTimers[catKey]);
+  const CARD_W  = 240;
+  const total   = plants.filter(p=>(p.type||p.category)===catKey).length;
+  const resetAt = total * CARD_W;
+  let offset = parseFloat((trackEl.style.transform||'translateX(0)').replace(/[^0-9.-]/g,''))||0;
+  offset = Math.abs(offset);
+  offset = dir === -1 ? offset - CARD_W : offset + CARD_W;
+  offset = ((offset % (resetAt * 3)) + resetAt * 3) % (resetAt * 3);
+  trackEl.style.transition = 'transform 0.5s cubic-bezier(0.4,0,0.2,1)';
+  trackEl.style.transform  = `translateX(-${offset}px)`;
+  _plantCarouselTimers[catKey] = setTimeout(() => initPlantCarousel(catKey, total), 4000);
 }
-function clearPlantSearch() { document.getElementById('plantSearch').value = ''; document.getElementById('plantSearchClear').style.display = 'none'; renderPlantsGrid(); }
+function plantCarouselNav(catKey, dir) { plantCarouselManualNav(catKey, dir); }
+function goPlantDot(catKey, idx) { }
 
 function renderMaterialsGrid() {
   const grid = document.getElementById('materialsGrid');
@@ -1490,12 +1733,12 @@ function applyPageContent(pg) {
   }
 }
 
-function canEdit() { return currentRole === 'admin'; }
+function canEdit() { return currentRole === 'admin' || currentRole === 'technician'; }
 
 function renderAll() {
-  const fns = [renderCustomTabs, renderPlantsGrid, renderMaterialsGrid,
+  const fns = [renderPlantsGrid, renderMaterialsGrid,
                renderPackages, renderContact, renderGallery,
-               renderBookingCalendar, updateNavActions];
+               renderBookingCalendar, updateNavActions, prefillBookingForm];
   fns.forEach(fn => { try { fn(); } catch(e) { console.warn('[renderAll] ' + fn.name + ' failed:', e.message); } });
   // Add/remove inline edit buttons based on admin status
   renderAdminEditBtns();
@@ -1608,6 +1851,15 @@ async function doSignIn() {
     const fbUser = result.user;
     const isAdmin = ADMIN_EMAILS.map(e => e.toLowerCase()).includes(fbUser.email.toLowerCase());
 
+    // Load technician list if not already loaded
+    if (TECHNICIAN_EMAILS.length === 0 && db) {
+      try {
+        const tsnap = await db.collection('config').doc('technicians').get();
+        if (tsnap.exists) TECHNICIAN_EMAILS = tsnap.data().emails || [];
+      } catch(e) {}
+    }
+    const isTech = TECHNICIAN_EMAILS.map(e => e.toLowerCase()).includes(fbUser.email.toLowerCase());
+
     if (isAdmin) {
       // ── Admin ──────────────────────────────────────────────────────
       fbAdminReady     = true;
@@ -1620,7 +1872,24 @@ async function doSignIn() {
       closeLogin(); updateNavActions(); renderAll();
       addActivityLog('auth', '🔑', 'Admin signed in: ' + fbUser.email);
       showToast('✅ ' + getGreeting() + ', ' + currentAdminName + '!');
-      setTimeout(setupAdminNotifications, 1000);
+      setupUnreadBadges();
+      setTimeout(setupAdminNotifications, 500);
+
+    } else if (isTech) {
+      // ── Technician ─────────────────────────────────────────────────
+      fbAdminReady     = false;
+      currentRole      = 'technician';
+      currentUser      = null;
+      const rawName    = fbUser.displayName || fbUser.email.split('@')[0];
+      currentAdminName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+      saveSession(currentRole, null, currentAdminName);
+      startSessionTimer();
+      closeLogin(); updateNavActions(); renderAll();
+      addActivityLog('auth', '🔑', 'Technician signed in: ' + fbUser.email);
+      showToast('🔧 ' + getGreeting() + ', ' + currentAdminName + '!');
+      setupUnreadBadges();
+      setTimeout(setupAdminNotifications, 500);
+      setTimeout(() => { const b=document.getElementById('plantAdminBar'); if(b) b.style.display='flex'; }, 500);
 
     } else {
       // ── Customer ───────────────────────────────────────────────────
@@ -1644,6 +1913,7 @@ async function doSignIn() {
       addActivityLog('auth', '🔑', 'Customer signed in: ' + currentUser.username);
       const name = currentUser.username.charAt(0).toUpperCase() + currentUser.username.slice(1);
       showToast('👋 Welcome ' + name + '! ' + getGreeting() + '!');
+      setupUnreadBadges();
     }
 
   } catch(e) {
@@ -1781,14 +2051,14 @@ function updateNavActions() {
     const name = currentAdminName || 'Admin';
     setGreeting(name, 'admin');
     el.innerHTML = `
-      <button class="btn-primary" style="position:relative;background:linear-gradient(135deg,#065f46,#047857);" onclick="openAdminModal('technicians')">👷 Team</button>
+      <button class="btn-primary" style="position:relative;background:linear-gradient(135deg,#065f46,#047857);" onclick="openAdminModal('technicians')">Team</button>
       <button class="btn-primary" style="position:relative;" onclick="openAdminModal('orders');clearOrdersBadge()">
         🛒 Orders
-        <span id="ordersBadge" style="display:none;position:absolute;top:-5px;right:-5px;background:#ef4444;color:white;border-radius:50%;min-width:16px;height:16px;font-size:9px;font-weight:700;align-items:center;justify-content:center;border:2px solid white;padding:0 3px;"></span>
+        <span id="ordersBadge" style="display:none;position:absolute;top:-3px;right:-3px;width:10px;height:10px;background:#ef4444;border-radius:50%;border:2px solid white;"></span>
       </button>
       <button class="btn-primary" style="position:relative;" onclick="openAdminModal('bookings');clearBookingsBadge()">
         📅 Bookings
-        <span id="bookingsBadge" style="display:none;position:absolute;top:-5px;right:-5px;background:#ef4444;color:white;border-radius:50%;min-width:16px;height:16px;font-size:9px;font-weight:700;align-items:center;justify-content:center;border:2px solid white;padding:0 3px;"></span>
+        <span id="bookingsBadge" style="display:none;position:absolute;top:-3px;right:-3px;width:10px;height:10px;background:#ef4444;border-radius:50%;border:2px solid white;"></span>
       </button>
       <button class="btn-logout" onclick="doLogout()" style="font-size:12px;padding:7px 12px;">Sign Out</button>`;
     if (fab) fab.style.display = 'none';
@@ -1801,12 +2071,12 @@ function updateNavActions() {
     setGreeting(name, 'technician');
     el.innerHTML = `
       <button class="btn-primary" style="position:relative;" onclick="openTechDashboard('orders')">
-        🔧 Orders
-        <span id="ordersBadge" style="display:none;position:absolute;top:-5px;right:-5px;background:#ef4444;color:white;border-radius:50%;min-width:16px;height:16px;font-size:9px;font-weight:700;align-items:center;justify-content:center;border:2px solid white;padding:0 3px;"></span>
+        🛒 Orders
+        <span id="ordersBadge" style="display:none;position:absolute;top:-3px;right:-3px;width:10px;height:10px;background:#ef4444;border-radius:50%;border:2px solid white;"></span>
       </button>
-      <button class="btn-primary" style="position:relative;" onclick="openTechDashboard('bookings')">
+      <button class="btn-primary" style="position:relative;background:linear-gradient(135deg,#0369a1,#0284c7);" onclick="openTechDashboard('bookings')">
         📅 Bookings
-        <span id="bookingsBadge" style="display:none;position:absolute;top:-5px;right:-5px;background:#ef4444;color:white;border-radius:50%;min-width:16px;height:16px;font-size:9px;font-weight:700;align-items:center;justify-content:center;border:2px solid white;padding:0 3px;"></span>
+        <span id="bookingsBadge" style="display:none;position:absolute;top:-3px;right:-3px;width:10px;height:10px;background:#ef4444;border-radius:50%;border:2px solid white;"></span>
       </button>
       <button class="btn-logout" onclick="doLogout()" style="font-size:12px;padding:7px 12px;">Sign Out</button>`;
     if (fab) fab.style.display = 'none';
@@ -1821,10 +2091,19 @@ function updateNavActions() {
       : 'Guest';
     setGreeting(name, 'user');
     el.innerHTML = `
-      <button class="btn-login" style="padding:9px 16px;font-size:13px;" onclick="openMyOrdersModal()">📦 My Orders</button>
-      <button class="btn-login" style="padding:9px 16px;font-size:13px;" onclick="openMyBookingsModal()">📅 My Bookings</button>
+      <button class="btn-login" style="padding:9px 16px;font-size:13px;position:relative;" onclick="openMyOrdersModal()">
+        📦 My Orders
+        <span id="ordersBadge" style="display:none;position:absolute;top:-3px;right:-3px;width:10px;height:10px;background:#ef4444;border-radius:50%;border:2px solid white;"></span>
+      </button>
+      <button class="btn-login" style="padding:9px 16px;font-size:13px;position:relative;" onclick="openMyBookingsModal()">
+        📅 My Bookings
+        <span id="bookingsBadge" style="display:none;position:absolute;top:-3px;right:-3px;width:10px;height:10px;background:#ef4444;border-radius:50%;border:2px solid white;"></span>
+      </button>
       <button class="btn-logout" onclick="doLogout()">Sign Out</button>`;
     // cart fab hidden — order via My Orders button
+  // Always sync plant admin bar visibility with current role
+  const _pBar = document.getElementById('plantAdminBar');
+  if (_pBar) _pBar.style.display = canEdit() ? 'flex' : 'none';
     if (visitSection) visitSection.style.display = '';
     if (enquiryWrap)  enquiryWrap.style.display  = 'none';
     renderMyBookings();
@@ -1982,7 +2261,8 @@ async function confirmAndPlaceOrder() {
     user:     currentUser.username,
     whatsapp: currentUser.whatsapp||'',
     location: currentUser.location||'',
-    products: [...selectedPlants,...selectedMats], notes, time: new Date().toISOString(), status: 'pending'
+    products: [...selectedPlants,...selectedMats], notes, time: new Date().toISOString(), status: 'pending',
+    adminSeen: false
   };
   // Save directly to Firestore only (no localStorage)
   if (!fbReady) { showToast('❌ No connection. Please try again.'); return; }
@@ -2056,8 +2336,12 @@ async function openMyBookingsModal() {
         + '</div>'
         + '<span style="padding:4px 12px;border-radius:50px;font-size:11px;font-weight:700;background:' + sc + ';white-space:nowrap;">' + st + '</span>'
         + '</div>'
-        + (b.adminNote ? '<div style="padding:8px 12px;background:var(--green-mist);border-radius:8px;border-left:3px solid var(--green-mid);font-size:12px;color:var(--text-mid);margin-top:6px;">💬 <strong>Note from GreenTop:</strong> ' + b.adminNote + '</div>' : '')
-        + bkNoteHtml(b._id||b.id, b.customerNote||'')
+        + (b.adminNote ? '<div style="padding:8px 12px;background:var(--green-mist);border-radius:8px;border-left:3px solid var(--green-mid);font-size:12px;color:var(--text-mid);margin-top:6px;">💬 <strong>' + (b.noteBy || 'GreenTop Gardens') + ':</strong> ' + b.adminNote + '</div>' : '')
+        + `<button onclick="openMsgThread('booking','${b._id||b.id}','You','Booking Messages')"
+            style="width:100%;padding:9px 14px;border-radius:10px;border:1.5px solid var(--green-pale);background:var(--green-mist);color:var(--green-deep);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;">
+            💬 Messages with GreenTop
+            ${(b.messages||[]).length ? '<span style=\"background:var(--green-mid);color:white;border-radius:50px;padding:1px 8px;font-size:11px;\">' + (b.messages||[]).length + '</span>' : '<span style=\"font-size:11px;color:var(--text-light);">Ask a question</span>'}
+          </button>`
         + '</div>';
     }).join('');
   } catch(e) { list.innerHTML = '<p style="color:#dc2626;text-align:center;padding:20px;">❌ ' + e.message + '</p>'; }
@@ -2123,22 +2407,14 @@ async function renderMyOrders() {
           </div>
           ${o.notes ? `<div style="font-size:13px;color:var(--text-light);font-style:italic;margin-top:6px;">📝 ${o.notes}</div>` : ''}
           ${o.adminNote ? `<div style="margin:8px 0;padding:8px 12px;background:#fffbeb;border-radius:8px;border-left:3px solid #f59e0b;font-size:12px;color:#92400e;">
-            📋 <strong>Update from GreenTop:</strong> ${o.adminNote}</div>` : ''}
+            📋 <strong>${o.noteBy || 'GreenTop Gardens'}:</strong> ${o.adminNote}</div>` : ''}
           ${trackBar(o.status || 'pending')}
-          <!-- Per-order customer note -->
-          <div style="margin-top:12px;border:1.5px solid var(--green-pale);border-radius:10px;overflow:hidden;">
-            <div style="background:var(--green-mist);padding:6px 12px;font-size:10px;font-weight:700;color:var(--green-mid);text-transform:uppercase;letter-spacing:1px;">My Note for this Order</div>
-            ${o.customerNote ? `<div style="padding:8px 12px;font-size:13px;color:var(--text-dark);background:white;border-bottom:1px solid var(--green-pale);">${o.customerNote}</div>` : ''}
-            <div style="display:flex;gap:6px;padding:7px 10px;background:white;">
-              <input type="text" id="cnote-${o._fbId}"
-                value="${(o.customerNote||'').replace(/"/g,'&quot;')}"
-                placeholder="Add a note for this order…"
-                style="flex:1;padding:6px 10px;border-radius:50px;border:1.5px solid var(--green-pale);font-size:12px;font-family:'DM Sans',sans-serif;outline:none;background:#f9fdf9;"
-                onkeydown="if(event.key==='Enter')saveItemNote('order','${o._fbId}',this.value)">
-              <button onclick="saveItemNote('order','${o._fbId}',document.getElementById('cnote-${o._fbId}').value)"
-                style="padding:6px 14px;border-radius:50px;border:none;background:var(--green-mid);color:white;font-size:12px;font-weight:600;cursor:pointer;">Save</button>
-            </div>
-          </div>
+          <!-- Messages thread with GreenTop -->
+          <button onclick="openMsgThread('order','${o._fbId}','You','Order Messages')"
+            style="width:100%;padding:9px 14px;border-radius:10px;border:1.5px solid var(--green-pale);background:var(--green-mist);color:var(--green-deep);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;">
+            💬 Messages with GreenTop
+            ${(() => { const unread=(o.messages||[]).filter(m=>m.unreadBy&&m.unreadBy.includes('customer')).length; const total=(o.messages||[]).length; return unread>0?`<span style="background:#ef4444;color:white;border-radius:50px;padding:1px 8px;font-size:11px;font-weight:700;">${unread} new</span>`:total>0?`<span style="background:var(--green-mid);color:white;border-radius:50px;padding:1px 8px;font-size:11px;">${total}</span>`:'<span style="font-size:11px;color:var(--text-light);">Ask a question</span>'; })()}
+          </button>
         </div>`).join('');
 
   }, err => {
@@ -2146,6 +2422,240 @@ async function renderMyOrders() {
   });
 }
 
+
+
+// ================================================================
+// MESSAGE THREAD — per order / per booking
+// ================================================================
+let _msgThreadType  = null; // 'order' or 'booking'
+let _msgThreadDocId = null;
+let _msgThreadUnsub = null;
+
+function openMsgThread(type, docId, customerName, subInfo) {
+  _msgThreadType  = type;
+  _msgThreadDocId = docId;
+  document.getElementById('msgThreadTitle').textContent = '💬 ' + (customerName || 'Customer');
+  document.getElementById('msgThreadSub').textContent   = subInfo || (type === 'order' ? 'Order thread' : 'Booking thread');
+  document.getElementById('msgThreadInput').value = '';
+  const modal = document.getElementById('msgThreadModal');
+  modal.style.removeProperty('display');
+  modal.classList.add('open');
+  // Immediately hide red dot when thread is opened
+  hideDot(type === 'order' ? 'orders' : 'bookings');
+  loadMsgThread(type, docId);
+}
+
+function closeMsgThread() {
+  const modal = document.getElementById('msgThreadModal');
+  modal.classList.remove('open');
+  modal.style.removeProperty('display');
+  if (_msgThreadUnsub) { _msgThreadUnsub(); _msgThreadUnsub = null; }
+  _msgThreadType = _msgThreadDocId = null;
+}
+
+function loadMsgThread(type, docId) {
+  if (_msgThreadUnsub) { _msgThreadUnsub(); _msgThreadUnsub = null; }
+  const col = type === 'order' ? 'orders' : 'enquiry';
+  const list = document.getElementById('msgThreadList');
+  if (!fbReady || !docId) return;
+
+  // Show loading state
+  list.innerHTML = '<div style="text-align:center;color:var(--text-light);font-size:13px;padding:20px;">⏳ Loading…</div>';
+
+  _msgThreadUnsub = db.collection(col).doc(docId).onSnapshot(snap => {
+    if (!snap.exists) {
+      list.innerHTML = '<div style="text-align:center;color:var(--text-light);font-size:13px;padding:20px;">No messages yet. Start the conversation!</div>';
+      return;
+    }
+    // Normalise old messages where role was saved as 'user' instead of 'customer'
+    const msgs = (snap.data().messages || []).map(m => ({
+      ...m,
+      role: (m.role === 'user') ? 'customer' : m.role,
+      from: (m.from === 'user') ? 'customer' : m.from
+    }));
+    if (!msgs.length) {
+      list.innerHTML = '<div style="text-align:center;color:var(--text-light);font-size:13px;padding:20px;">No messages yet. Start the conversation! 👋</div>';
+      return;
+    }
+    // Mark messages as read for current role
+    markMessagesRead(_msgThreadType, docId, snap.data());
+
+    list.innerHTML = msgs.map(m => {
+      const viewerIsStaff = currentRole === 'admin' || currentRole === 'technician';
+      const msgIsStaff    = m.role === 'admin' || m.role === 'technician';
+      const isCust        = m.role === 'customer' || m.role === 'user'; // 'user' = customer
+
+      // "My message" = sent by same side as viewer
+      const isMyMsg = viewerIsStaff ? msgIsStaff : isCust;
+
+      // Alignment: MY messages → right, THEIR messages → left
+      const align     = isMyMsg ? 'flex-end'   : 'flex-start';
+      const bg        = isMyMsg ? 'linear-gradient(135deg,var(--green-deep),var(--green-mid))' : 'white';
+      const textColor = isMyMsg ? 'white'       : 'var(--text-dark)';
+      const radius    = isMyMsg ? '18px 18px 4px 18px' : '4px 18px 18px 18px';
+      const border    = isMyMsg ? 'none'        : '1.5px solid var(--green-pale)';
+
+      // Sender label
+      const showFullName = viewerIsStaff;
+      // Show WHO actually sent the message — not who is logged in
+      const senderLabel = isCust
+        ? (isMyMsg ? 'You' : (m.byName || 'Customer'))
+        : showFullName
+          // Staff viewers see exact sender name (e.g. AT2026 ⚙️ or Tech1 🔧)
+          ? (m.byName || 'Staff') + (m.role === 'technician' ? ' 🔧' : ' ⚙️')
+          // Customer viewers see "GreenTop Gardens" for any staff message
+          : 'GreenTop Gardens 🌿';
+
+      // Unread indicator
+      const unread = !isMyMsg && m.unreadBy && m.unreadBy.includes(viewerIsStaff ? 'staff' : 'customer');
+      const time = m.time ? new Date(m.time).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true}) + ', ' + new Date(m.time).toLocaleDateString('en-IN',{day:'2-digit',month:'short'}) : '';
+
+      return `<div style="display:flex;flex-direction:column;align-items:${align};gap:3px;">
+        <div style="font-size:10px;color:var(--text-light);padding:0 6px;">${senderLabel} · ${time}</div>
+        <div style="max-width:82%;padding:10px 14px;border-radius:${radius};background:${bg};color:${textColor};border:${border};font-size:13px;line-height:1.5;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+          ${sanitiseHTML(m.text)}
+        </div>
+      </div>`;
+    }).join('');
+    list.scrollTop = list.scrollHeight;
+  });
+}
+
+async function sendThreadMsg() {
+  const input = document.getElementById('msgThreadInput');
+  const text  = (input?.value || '').trim();
+  if (!text || !_msgThreadDocId || !fbReady) return;
+
+  const col  = _msgThreadType === 'order' ? 'orders' : 'enquiry';
+  const role = currentRole || 'customer';
+  const isStaffRole = currentRole === 'admin' || currentRole === 'technician';
+  const name = isStaffRole
+    ? (currentAdminName || 'Staff')
+    : (currentUser?.username || currentUser?.name || 'Customer');
+
+  const isCustomerRole = (role === 'customer' || role === 'user');
+  const senderSide = isCustomerRole ? 'customer' : 'staff';
+  const otherSide  = senderSide === 'customer' ? 'staff' : 'customer';
+
+  const msg = {
+    text,
+    role:     isCustomerRole ? 'customer' : role,  // normalise 'user' → 'customer'
+    byName:   name,
+    time:     new Date().toISOString(),
+    from:     senderSide,
+    unreadBy: [otherSide]
+  };
+
+  try {
+    const ref  = db.collection(col).doc(_msgThreadDocId);
+    const snap = await ref.get();
+    const existing = (snap.exists && snap.data().messages) || [];
+    await ref.update({ messages: [...existing, msg] });
+    input.value = '';
+  } catch(e) { showToast('❌ ' + e.message); }
+}
+
+
+// Mark all unread messages as read for current viewer
+async function markMessagesRead(type, docId, data) {
+  if (!fbReady || !docId || !data) return;
+  const msgs = data.messages || [];
+  const viewerSide = (currentRole === 'admin' || currentRole === 'technician') ? 'staff' : 'customer';
+  const hasUnread = msgs.some(m => m.unreadBy && m.unreadBy.includes(viewerSide));
+  if (!hasUnread) return;
+
+  // Hide dot immediately for this viewer
+  const section = type === 'order' ? 'orders' : 'bookings';
+  hideDot(section);
+
+  // Remove unreadBy for BOTH staff members (admin + tech see same messages)
+  // So if admin reads it, tech's dot goes off too — they share 'staff' side
+  const updated = msgs.map(m => ({
+    ...m,
+    unreadBy: (m.unreadBy || []).filter(s => s !== viewerSide)
+  }));
+
+  const col = type === 'order' ? 'orders' : 'enquiry';
+  try {
+    await db.collection(col).doc(docId).update({ messages: updated });
+    // After Firestore update, the setupUnreadBadges listener on the OTHER
+    // admin/tech device will also fire → their dot goes off automatically
+  } catch(e) { console.warn('markRead error:', e.message); }
+}
+
+// Count unread messages across all orders/bookings for current user
+let _unsubBadgeOrders = null, _unsubBadgeBookings = null;
+
+function setupUnreadBadges() {
+  if (!fbReady || !auth?.currentUser) return;
+
+  // Clean up old listeners
+  if (_unsubBadgeOrders)   { _unsubBadgeOrders();   _unsubBadgeOrders   = null; }
+  if (_unsubBadgeBookings) { _unsubBadgeBookings(); _unsubBadgeBookings = null; }
+
+  const isStaff    = currentRole === 'admin' || currentRole === 'technician';
+  const viewerSide = isStaff ? 'staff' : 'customer';
+  const uid        = auth.currentUser.uid;
+
+  const ordersQ  = isStaff ? db.collection('orders')
+                            : db.collection('orders').where('userId','==',uid);
+  const enquiryQ = isStaff ? db.collection('enquiry')
+                            : db.collection('enquiry').where('userId','==',uid);
+
+  _unsubBadgeOrders = ordersQ.onSnapshot(snap => {
+    let count = 0;
+    snap.docs.forEach(d => {
+      const data = d.data();
+      // Unread messages
+      (data.messages || []).forEach(m => {
+        if (m.unreadBy && m.unreadBy.includes(viewerSide)) count++;
+      });
+      // New unseen orders — catch both false and missing field (old orders)
+      if (isStaff && !data.adminSeen) count++;
+    });
+    if (count > 0) showDot('orders'); else hideDot('orders');
+  }, e => console.warn('badge orders err:', e.message));
+
+  _unsubBadgeBookings = enquiryQ.onSnapshot(snap => {
+    let count = 0;
+    snap.docs.forEach(d => {
+      const data = d.data();
+      // Unread messages
+      (data.messages || []).forEach(m => {
+        if (m.unreadBy && m.unreadBy.includes(viewerSide)) count++;
+      });
+      // New unseen bookings — catch both false and missing field
+      if (isStaff && !data.adminSeen) count++;
+    });
+    if (count > 0) showDot('bookings'); else hideDot('bookings');
+  }, e => console.warn('badge bookings error:', e.message));
+}
+
+function updateUnreadBadge(section, count) {
+  const ob = document.getElementById('ordersBadge');
+  const bb = document.getElementById('bookingsBadge');
+
+  if (section === 'orders' && ob) {
+    if (count > 0) {
+      ob.textContent = count;
+      ob.style.display = 'flex';
+      ob.style.background = '#ef4444';
+    } else {
+      ob.textContent = '';
+      ob.style.display = 'none';
+    }
+  }
+  if (section === 'bookings' && bb) {
+    if (count > 0) {
+      bb.textContent = count;
+      bb.style.display = 'flex';
+      bb.style.background = '#ef4444';
+    } else {
+      bb.textContent = '';
+      bb.style.display = 'none';
+    }
+  }
+}
 
 // ================================================================
 // TECHNICIAN DASHBOARD
@@ -2157,9 +2667,12 @@ let _unsubTechBookings = null;
 
 function openTechDashboard(section) {
   techL1Tab = section || 'orders';
-  techL2Tab = section === 'bookings' ? 'upcoming' : 'active';
+  techL2Tab = section === 'bookings' ? 'upcoming' : 'all';
   document.getElementById('techDashTitle').textContent = section === 'bookings' ? 'Bookings' : 'Orders';
   document.getElementById('techDashModal').classList.add('open');
+  // Mark all as seen — hides dot for ALL staff via Firestore
+  if (section === 'bookings') markAllSeenInFirestore('enquiry');
+  if (section === 'orders')   markAllSeenInFirestore('orders');
   renderTechL2Tabs();
   renderTechContent();
 }
@@ -2174,13 +2687,27 @@ function renderTechL2Tabs() {
   const el = document.getElementById('techL2Tabs');
   if (!el) return;
   const tabs = techL1Tab === 'orders'
-    ? [{ key:'active', icon:'🔧', label:'Active' }, { key:'delivered', icon:'✅', label:'Delivered' }, { key:'cancelled', icon:'❌', label:'Cancelled' }]
-    : [{ key:'upcoming', icon:'📅', label:'Upcoming' }, { key:'visited', icon:'✅', label:'Visited' }, { key:'cancelled', icon:'❌', label:'Cancelled' }];
-  el.innerHTML = tabs.map(t =>
-    `<button class="admin-l2-tab${techL2Tab===t.key?' active-l2':''}" onclick="techL2Tab='${t.key}';renderTechL2Tabs();renderTechContent()">
-      ${t.icon} ${t.label} <span id="tech-count-${t.key}" class="tab-count"></span>
-    </button>`
-  ).join('');
+    ? [
+        { key:'all',        icon:'📋', label:'All'        },
+        { key:'pending',    icon:'⏳', label:'Pending'    },
+        { key:'confirmed',  icon:'✅', label:'Confirmed'  },
+        { key:'processing', icon:'🔄', label:'Processing' },
+        { key:'dispatched', icon:'🚚', label:'Dispatched' },
+        { key:'delivered',  icon:'🎉', label:'Delivered'  },
+        { key:'cancelled',  icon:'❌', label:'Cancelled'  },
+      ]
+    : [
+        { key:'upcoming',   icon:'📅', label:'Upcoming'   },
+        { key:'confirmed',  icon:'✅', label:'Confirmed'  },
+        { key:'visited',    icon:'🏡', label:'Visited'    },
+        { key:'cancelled',  icon:'❌', label:'Cancelled'  },
+      ];
+  el.innerHTML = tabs.map(t => {
+    const n = _tabCounts['tech-'+t.key] || '';
+    return `<button class="admin-l2-tab${techL2Tab===t.key?' active-l2':''}" onclick="techL2Tab='${t.key}';renderTechL2Tabs();renderTechContent()">
+      ${t.icon} ${t.label} <span id="tech-count-${t.key}" class="tab-count">${n}</span>
+    </button>`;
+  }).join('');
 }
 
 function renderTechContent() {
@@ -2199,17 +2726,17 @@ function renderTechOrders(container) {
     let all = snap.docs.map(d => ({ _fbId: d.id, ...d.data() }))
       .sort((a,b) => new Date(b.time||0) - new Date(a.time||0));
 
-    // Update tab counts
-    ['active','delivered','cancelled'].forEach(k => {
-      const el = document.getElementById('tech-count-' + k);
-      if (el) el.textContent = k==='active' ? all.filter(o=>!['delivered','cancelled'].includes(o.status)).length
-        : all.filter(o=>o.status===k).length;
+    // Count from FULL list before filtering — so all tabs show correct totals
+    ['all','pending','confirmed','processing','dispatched','delivered','cancelled'].forEach(k => {
+      const n = k === 'all' ? all.length : all.filter(o=>(o.status||'pending')===k).length;
+      _tabCounts['tech-'+k] = n > 0 ? n : '';
+      const el = document.getElementById('tech-count-'+k);
+      if (el) el.textContent = _tabCounts['tech-'+k];
     });
+    renderTechL2Tabs(); // refresh tab labels with updated counts
 
-    // Filter
-    if (techL2Tab === 'delivered') all = all.filter(o => o.status === 'delivered');
-    else if (techL2Tab === 'cancelled') all = all.filter(o => o.status === 'cancelled');
-    else all = all.filter(o => !['delivered','cancelled'].includes(o.status));
+    // NOW filter for display
+    if (techL2Tab && techL2Tab !== 'all') all = all.filter(o => (o.status||'pending') === techL2Tab);
 
     if (!all.length) { container.innerHTML = '<p style="text-align:center;padding:30px;color:var(--text-light);">No orders in this category.</p>'; return; }
 
@@ -2245,8 +2772,9 @@ function renderTechOrders(container) {
                 📅 ${o.time ? new Date(o.time).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '—'}
               </div>
             </div>
+            ${o.notes ? `<div style="padding:6px 10px;background:#f0fdf4;border-radius:7px;font-size:12px;color:#166534;margin-bottom:8px;border-left:3px solid var(--green-mid);">📝 <strong>Order note:</strong> ${sanitiseHTML(o.notes)}</div>` : ''}
             ${o.customerNote ? `<div style="padding:6px 10px;background:#e0f2fe;border-radius:7px;font-size:12px;color:#0369a1;margin-bottom:8px;border-left:3px solid #0369a1;">💬 Customer: ${o.customerNote}</div>` : ''}
-            ${o.adminNote ? `<div style="padding:6px 10px;background:#fffbeb;border-radius:7px;font-size:12px;color:#92400e;margin-bottom:8px;">📋 Admin note: ${o.adminNote}</div>` : ''}
+            ${o.adminNote ? `<div style="padding:6px 10px;background:#fffbeb;border-radius:7px;font-size:12px;color:#92400e;margin-bottom:8px;">📋 <strong>${o.noteBy||'GreenTop Gardens'}${o.noteRole==='technician'?' 🔧':''}:</strong> ${o.adminNote}</div>` : ''}
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
               <span class="order-status-badge status-${st}" style="font-size:11px;">${s.icon} ${s.label}</span>
               <select onchange="updateOrderStatus('${o._fbId}',this.value)" style="padding:5px 10px;border-radius:8px;border:1.5px solid var(--green-pale);font-size:12px;font-family:'DM Sans',sans-serif;background:var(--green-mist);outline:none;cursor:pointer;">
@@ -2255,13 +2783,11 @@ function renderTechOrders(container) {
                 <option value="cancelled" ${st==='cancelled'?'selected':''}>❌ Cancelled</option>
               </select>
             </div>
-            <div style="display:flex;gap:6px;">
-              <input type="text" id="tnote-${o._fbId}" placeholder="✏️ Add note for customer…"
-                value="${(o.adminNote||'').replace(/"/g,'&quot;')}"
-                style="flex:1;padding:7px 12px;border-radius:8px;border:1.5px solid var(--green-pale);font-size:12px;font-family:'DM Sans',sans-serif;background:var(--green-mist);"
-                onkeydown="if(event.key==='Enter')saveAdminNote('${o._fbId}')">
-              <button onclick="saveTechNote('order','${o._fbId}')" style="padding:7px 14px;border-radius:8px;border:none;background:var(--green-mid);color:white;font-size:12px;font-weight:600;cursor:pointer;">💾</button>
-            </div>
+            <button onclick="openMsgThread('order','${o._fbId}','${(o.user||'').replace(/'/g,'')}','Order')"
+              style="width:100%;padding:9px 14px;border-radius:10px;border:1.5px solid var(--green-pale);background:var(--green-mist);color:var(--green-deep);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;">
+              💬 Messages
+              ${(o.messages||[]).length ? `<span style="background:var(--green-mid);color:white;border-radius:50px;padding:1px 8px;font-size:11px;">${(o.messages||[]).length}</span>` : '<span style="font-size:11px;color:var(--text-light);">Start chat</span>'}
+            </button>
           </div>`;
         }).join('')}
       </div>`).join('');
@@ -2279,15 +2805,19 @@ function renderTechBookings(container) {
       .sort((a,b) => new Date(b.createdAt||b.time||0) - new Date(a.createdAt||a.time||0));
 
     // Tab counts
-    ['upcoming','visited','cancelled'].forEach(k => {
-      const el = document.getElementById('tech-count-' + k);
-      if (el) el.textContent = k==='upcoming' ? all.filter(b=>!['visited','cancelled'].includes(b.status)).length
+    ['upcoming','confirmed','visited','cancelled'].forEach(k => {
+      const n = k === 'upcoming'
+        ? all.filter(b=>!['confirmed','visited','cancelled'].includes(b.status)).length
         : all.filter(b=>b.status===k).length;
+      _tabCounts['tech-'+k] = n > 0 ? n : '';
+      const el = document.getElementById('tech-count-' + k);
+      if (el) el.textContent = _tabCounts['tech-'+k];
     });
 
-    if (techL2Tab === 'visited')   all = all.filter(b => b.status === 'visited');
+    if (techL2Tab === 'upcoming')       all = all.filter(b => !['confirmed','visited','cancelled'].includes(b.status));
+    else if (techL2Tab === 'confirmed') all = all.filter(b => b.status === 'confirmed');
+    else if (techL2Tab === 'visited')   all = all.filter(b => b.status === 'visited');
     else if (techL2Tab === 'cancelled') all = all.filter(b => b.status === 'cancelled');
-    else all = all.filter(b => !['visited','cancelled'].includes(b.status));
 
     if (!all.length) { container.innerHTML = '<p style="text-align:center;padding:30px;color:var(--text-light);">No bookings in this category.</p>'; return; }
 
@@ -2321,19 +2851,17 @@ function renderTechBookings(container) {
               <span style="padding:4px 12px;border-radius:50px;font-size:11px;font-weight:700;background:${sc};">${st}</span>
             </div>
             ${b.customerNote ? `<div style="padding:6px 10px;background:#e0f2fe;border-radius:7px;font-size:12px;color:#0369a1;margin-bottom:8px;border-left:3px solid #0369a1;">💬 Customer: ${b.customerNote}</div>` : ''}
-            ${b.adminNote ? `<div style="padding:6px 10px;background:#fffbeb;border-radius:7px;font-size:12px;color:#92400e;margin-bottom:8px;">📋 Admin note: ${b.adminNote}</div>` : ''}
+            ${b.adminNote ? `<div style="padding:6px 10px;background:#fffbeb;border-radius:7px;font-size:12px;color:#92400e;margin-bottom:8px;">📋 <strong>${b.noteBy||'GreenTop Gardens'}${b.noteRole==='technician'?' 🔧':''}:</strong> ${b.adminNote}</div>` : ''}
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
               <button onclick="updateBookingStatus('${b._id}','confirmed')" style="padding:5px 12px;border-radius:50px;border:none;background:#d1fae5;color:#065f46;font-size:11px;font-weight:700;cursor:pointer;">✅ Confirm</button>
               <button onclick="updateBookingStatus('${b._id}','visited')" style="padding:5px 12px;border-radius:50px;border:none;background:#dbeafe;color:#1e40af;font-size:11px;font-weight:700;cursor:pointer;">🏡 Visited</button>
               <button onclick="updateBookingStatus('${b._id}','cancelled')" style="padding:5px 12px;border-radius:50px;border:none;background:#fee2e2;color:#991b1b;font-size:11px;font-weight:700;cursor:pointer;">❌ Cancel</button>
             </div>
-            <div style="display:flex;gap:6px;">
-              <input type="text" id="tbnote-${b._id}" placeholder="✏️ Add note for customer…"
-                value="${(b.adminNote||'').replace(/"/g,'&quot;')}"
-                style="flex:1;padding:7px 12px;border-radius:8px;border:1.5px solid var(--green-pale);font-size:12px;font-family:'DM Sans',sans-serif;background:var(--green-mist);"
-                onkeydown="if(event.key==='Enter')saveTechNote('booking','${b._id}')">
-              <button onclick="saveTechNote('booking','${b._id}')" style="padding:7px 14px;border-radius:8px;border:none;background:#0284c7;color:white;font-size:12px;font-weight:600;cursor:pointer;">💾</button>
-            </div>
+            <button onclick="openMsgThread('booking','${b._id}','${(b.name||'').replace(/'/g,'')}','${(b.purpose||b.pkgName||'Booking').replace(/'/g,'')}')"
+              style="width:100%;padding:9px 14px;border-radius:10px;border:1.5px solid #bae6fd;background:#e0f2fe;color:#0369a1;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;">
+              💬 Messages
+              ${(() => { const unread = (b.messages||[]).filter(m => m.unreadBy && m.unreadBy.includes('staff')).length; const total = (b.messages||[]).length; return unread > 0 ? `<span style="background:#ef4444;color:white;border-radius:50px;padding:1px 8px;font-size:11px;font-weight:700;">${unread} new</span>` : total > 0 ? `<span style="background:#0284c7;color:white;border-radius:50px;padding:1px 8px;font-size:11px;">${total}</span>` : '<span style="font-size:11px;color:#0369a1;opacity:.6;">Start chat</span>'; })()}
+            </button>
           </div>`;
         }).join('')}
       </div>`).join('');
@@ -2345,10 +2873,19 @@ async function saveTechNote(type, docId) {
   const prefix = type === 'order' ? 'tnote-' : 'tbnote-';
   const el = document.getElementById(prefix + docId);
   if (!el) return;
-  const note = el.value.trim();
-  const col  = type === 'order' ? 'orders' : 'enquiry';
+  const noteText = el.value.trim();
+  if (!noteText) return;
+  const col = type === 'order' ? 'orders' : 'enquiry';
+  // Attribute note with technician name
+  const authorName = currentAdminName || 'Technician';
+  const authorLabel = authorName + ' · GreenTop Gardens';
   try {
-    await db.collection(col).doc(docId).update({ adminNote: note });
+    await db.collection(col).doc(docId).update({
+      adminNote:     noteText,
+      noteBy:        authorLabel,
+      noteRole:      'technician',
+      noteUpdatedAt: new Date().toISOString()
+    });
     showToast('✅ Note saved — customer will see this');
   } catch(e) { showToast('❌ ' + e.message); }
 }
@@ -2364,6 +2901,20 @@ async function getSlotConfig() {
   return d || JSON.parse(ls.get('gt_slots')) || {};
 }
 function getBookings() { return JSON.parse(ls.get('gt_bookings')) || []; }
+
+function prefillBookingForm() {
+  if (!currentUser) return;
+  const nameEl = document.getElementById('visitName');
+  const waEl   = document.getElementById('visitWA');
+  if (nameEl && !nameEl.value) {
+    nameEl.value = currentUser.username
+      ? currentUser.username.charAt(0).toUpperCase() + currentUser.username.slice(1)
+      : '';
+  }
+  if (waEl && !waEl.value) {
+    waEl.value = currentUser.whatsapp || '';
+  }
+}
 
 function renderBookingCalendar() {
   const cal = document.getElementById('bookingCalendar'); if (!cal) return;
@@ -2445,7 +2996,7 @@ let _unsubBookings = null;
 let _unsubOrders   = null;
 
 function setupAdminNotifications() {
-  if (currentRole !== 'admin' || !fbReady) return;
+  if ((currentRole !== 'admin' && currentRole !== 'technician') || !fbReady) return;
 
   // Unsubscribe any existing listeners first
   if (_unsubBookings) { _unsubBookings(); _unsubBookings = null; }
@@ -2460,9 +3011,8 @@ function setupAdminNotifications() {
   _unsubBookings = db.collection('enquiry').onSnapshot(snap => {
     if (!bookingsLoaded) {
       bookingsLoaded = true;
-      // Show badge for unread bookings
-      const unread = snap.docs.filter(d => !d.data().adminSeen).length;
-      if (unread > 0) updateBookingBadge(unread);
+      const unseen = snap.docs.filter(d => !d.data().adminSeen).length;
+      if (unseen > 0) showDot('bookings');
       return;
     }
     snap.docChanges().forEach(change => {
@@ -2473,7 +3023,7 @@ function setupAdminNotifications() {
         (b.name||'Someone') + ' booked for ' + (b.date||'') + ' at ' + (b.slot||'')
       );
       showToast('📅 New booking from ' + (b.name||'customer') + '!');
-      updateBookingBadge(1);
+      showDot('bookings');
     });
   }, err => console.warn('[Notify] Bookings error:', err.message));
 
@@ -2485,22 +3035,27 @@ function setupAdminNotifications() {
       const o = change.doc.data();
       sendAdminNotification('🛒 New Order', (o.user||'Customer') + ' placed an order');
       showToast('🛒 New order from ' + (o.user||'customer') + '!');
-      updateOrderBadge();
+      showDot('orders');
     });
   }, err => {});
 }
 
-function updateBookingBadge(count) {
-  const badge = document.getElementById('bookingsBadge');
-  if (badge) { const cur=parseInt(badge.textContent)||0; badge.textContent=cur+count; badge.style.display='flex'; }
-  updateDashBadge();
+// ── Simple red dot badge system ──────────────────────────────────────────
+function showDot(section) {
+  const id = section === 'orders' ? 'ordersBadge' : 'bookingsBadge';
+  const el = document.getElementById(id);
+  if (el) { el.style.display = 'flex'; el.textContent = ''; }
 }
-
-function updateOrderBadge() {
-  const badge = document.getElementById('ordersBadge');
-  if (badge) { const cur=parseInt(badge.textContent)||0; badge.textContent=cur+1; badge.style.display='flex'; }
-  updateDashBadge();
+function hideDot(section) {
+  const id = section === 'orders' ? 'ordersBadge' : 'bookingsBadge';
+  const el = document.getElementById(id);
+  if (el) { el.style.display = 'none'; el.textContent = ''; }
 }
+function refreshBadge(section) { /* kept for compatibility */ }
+function updateUnreadBadge(section, count) { if (count > 0) showDot(section); else hideDot(section); }
+function updateBookingBadge(count) { if (count > 0) showDot('bookings'); updateDashBadge(); }
+function updateOrderBadge()        { showDot('orders'); updateDashBadge(); }
+function setBadge(section, count)  { if (count > 0) showDot(section); else hideDot(section); }
 
 
 // ================================================================
@@ -2557,6 +3112,16 @@ async function loadGeneralNotes() {
 }
 
 
+// ── HTML sanitiser — strips tags from user input before rendering ────────
+function sanitiseHTML(str) {
+  return String(str||'')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
 // ── Per-item customer notes (saved to Firestore order/booking doc) ────────
 async function saveItemNote(type, docId, note) {
   if (!fbReady || !docId) return;
@@ -2597,6 +3162,7 @@ async function submitVisitBooking() {
   addActivityLog('order','📅',`Visit booking: ${name} on ${selectedBookingDate} at ${selectedBookingSlot}`);
   showToast(`✅ Booking confirmed for ${selectedBookingDate} at ${selectedBookingSlot}!`);
   document.getElementById('visitName').value=''; document.getElementById('visitWA').value='';
+  setTimeout(prefillBookingForm, 200);
   selectedBookingSlot=null; selectedBookingDate=null;
   renderBookingCalendar(); renderTimeSlots(); renderMyBookings();
 }
@@ -2726,6 +3292,7 @@ async function renderTechManagement(container) {
 }
 
 async function addTechnician() {
+  if (currentRole !== 'admin') { showToast('⛔ Admin only'); return; }
   const emailEl = document.getElementById('newTechEmail');
   const statusEl = document.getElementById('techAddStatus');
   const email = (emailEl?.value || '').trim().toLowerCase();
@@ -2739,10 +3306,11 @@ async function addTechnician() {
     if(statusEl) statusEl.innerHTML = '<span style="color:#166534;">✅ Technician added!</span>';
     if(emailEl) emailEl.value = '';
     setTimeout(() => renderTechManagement(document.getElementById('adminOrdersContainer')), 500);
-  } catch(e) { if(statusEl) statusEl.innerHTML = `<span style="color:#dc2626;">❌ ${e.message}</span>`; }
+  } catch(e) { if(statusEl) statusEl.innerHTML = `<span style="color:#dc2626;">❌ ${e.message.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>`; }
 }
 
 async function removeTechnician(email) {
+  if (currentRole !== 'admin' && currentRole !== 'technician') { showToast('⛔ Admin or Technician only'); return; }
   if (!confirm('Remove ' + email + ' as technician?')) return;
   const updated = TECHNICIAN_EMAILS.filter(e => e.toLowerCase() !== email.toLowerCase());
   try {
@@ -2764,10 +3332,7 @@ let adminOrdersListener = null;
 
 
 
-function clearBookingsBadge() {
-  const badge = document.getElementById('bookingsBadge');
-  if (badge) { badge.textContent = '0'; badge.style.display = 'none'; }
-}
+function clearBookingsBadge() { hideDot('bookings'); }
 
 let _unsubBookingsList = null;
 async function renderAdminBookings(container, filterTab) {
@@ -2788,9 +3353,10 @@ async function renderAdminBookings(container, filterTab) {
 
     // Filter by tab
     const ft = filterTab || currentL2Tab || 'upcoming';
-    if (ft === 'visited')   bookings = bookings.filter(b => b.status === 'visited');
+    if (ft === 'upcoming')  bookings = bookings.filter(b => !['confirmed','visited','cancelled'].includes(b.status));
+    else if (ft === 'confirmed') bookings = bookings.filter(b => b.status === 'confirmed');
+    else if (ft === 'visited')   bookings = bookings.filter(b => b.status === 'visited');
     else if (ft === 'cancelled') bookings = bookings.filter(b => b.status === 'cancelled');
-    else bookings = bookings.filter(b => !['visited','cancelled'].includes(b.status));
 
     if (!bookings.length) {
       container.innerHTML = '<p style="text-align:center;padding:40px;color:var(--text-light);">No bookings yet.</p>';
@@ -2838,13 +3404,11 @@ async function renderAdminBookings(container, filterTab) {
               <button onclick="updateBookingStatus('${b._id}','visited')" style="padding:5px 12px;border-radius:50px;border:none;background:#f0fdf4;color:#166534;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid #bbf7d0;">🏡 Visited</button>
               <button onclick="updateBookingStatus('${b._id}','cancelled')" style="padding:5px 12px;border-radius:50px;border:none;background:#fee2e2;color:#991b1b;font-size:11px;font-weight:700;cursor:pointer;">❌ Cancel</button>
             </div>
-            <div style="display:flex;gap:6px;align-items:center;">
-              <input type="text" id="bNote-${b._id}" placeholder="✏️ Add note for customer (they will see this)…"
-                value="${(b.adminNote||'').replace(/"/g,'&quot;')}"
-                style="flex:1;padding:7px 12px;border-radius:8px;border:1.5px solid var(--green-pale);font-size:12px;font-family:'DM Sans',sans-serif;background:var(--green-mist);"
-                onkeydown="if(event.key==='Enter')saveBookingNote('${b._id}')">
-              <button onclick="saveBookingNote('${b._id}')" style="padding:7px 14px;border-radius:8px;border:none;background:#0284c7;color:white;font-size:12px;font-weight:600;cursor:pointer;">💾</button>
-            </div>
+            <button onclick="openMsgThread('booking','${b._id}','${(b.name||'').replace(/'/g,'')}','${(b.purpose||b.pkgName||'Booking').replace(/'/g,'')}')"
+              style="width:100%;padding:9px 14px;border-radius:10px;border:1.5px solid #bae6fd;background:#e0f2fe;color:#0369a1;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;">
+              💬 Messages
+              ${(b.messages||[]).length ? `<span style="background:#0284c7;color:white;border-radius:50px;padding:1px 8px;font-size:11px;">${(b.messages||[]).length}</span>` : '<span style="font-size:11px;color:#0369a1;opacity:.6;">Start chat</span>'}
+            </button>
           </div>`;
         }).join('')}
       </div>`).join('');
@@ -2855,7 +3419,7 @@ async function renderAdminBookings(container, filterTab) {
 
 
 async function saveBookingNote(docId) {
-  if (currentRole !== 'admin' || !fbReady) return;
+  if ((currentRole !== 'admin' && currentRole !== 'technician') || !fbReady) return;
   const el = document.getElementById('bNote-' + docId);
   if (!el) return;
   const note = el.value.trim();
@@ -2866,28 +3430,24 @@ async function saveBookingNote(docId) {
 }
 
 async function updateBookingStatus(docId, status) {
-  if (!fbReady) return;
+  if (!fbReady || (currentRole !== 'admin' && currentRole !== 'technician')) return;
   try {
     await db.collection('enquiry').doc(docId).update({ status, adminSeen: true });
     const labels = { confirmed:'Confirmed ✅', visited:'Marked as Visited 🏡', cancelled:'Cancelled ❌' };
     showToast('✅ Booking ' + (labels[status]||status));
     // Switch to the correct tab to show the moved booking
-    if (status === 'visited')   { currentL2Tab = 'visited';   renderL2Tabs(); renderCurrentTab(); }
-    if (status === 'cancelled') { currentL2Tab = 'cancelled'; renderL2Tabs(); renderCurrentTab(); }
+    if (['confirmed','visited','cancelled'].includes(status)) { currentL2Tab = status; renderL2Tabs(); renderCurrentTab(); }
   } catch(e) { showToast('❌ ' + e.message); }
 }
 
-function clearOrdersBadge() {
-  const badge = document.getElementById('ordersBadge');
-  if (badge) { badge.textContent = '0'; badge.style.display = 'none'; }
-}
+function clearOrdersBadge() { hideDot('orders'); }
 
 function clearAllBadges() {
   clearOrdersBadge();
   clearBookingsBadge();
 }
 
-function updateDashBadge() { /* no-op — using separate badges */ }
+function updateDashBadge() { /* no-op */ }
 
 function openAdminModal(tab) {
   if (currentRole !== 'admin') return;
@@ -2902,7 +3462,7 @@ function closeAdminModal() {
 }
 let currentAdminTab = 'orders';
 let currentL1Tab = 'orders';
-let currentL2Tab = 'active';
+let currentL2Tab = 'all';
 
 function switchAdminL1(l1) {
   currentL1Tab = l1;
@@ -2921,46 +3481,56 @@ function switchAdminL2(l2) {
   renderCurrentTab();
 }
 
+const _tabCounts = {};
+
 function renderL2Tabs() {
   const el = document.getElementById('adminL2Tabs');
   if (!el) return;
   const tabs = currentL1Tab === 'orders'
     ? [
-        { key:'active',    icon:'🛒', label:'Active'    },
-        { key:'delivered', icon:'✅', label:'Delivered'  },
-        { key:'cancelled', icon:'❌', label:'Cancelled'  },
+        { key:'all',        icon:'📋', label:'All'        },
+        { key:'pending',    icon:'⏳', label:'Pending'    },
+        { key:'confirmed',  icon:'✅', label:'Confirmed'  },
+        { key:'processing', icon:'🔄', label:'Processing' },
+        { key:'dispatched', icon:'🚚', label:'Dispatched' },
+        { key:'delivered',  icon:'🎉', label:'Delivered'  },
+        { key:'cancelled',  icon:'❌', label:'Cancelled'  },
       ]
     : [
         { key:'upcoming',  icon:'📅', label:'Upcoming'   },
-        { key:'visited',   icon:'✅', label:'Visited'    },
+        { key:'confirmed', icon:'✅', label:'Confirmed'  },
+        { key:'visited',   icon:'🏡', label:'Visited'    },
         { key:'cancelled', icon:'❌', label:'Cancelled'  },
       ];
-  el.innerHTML = tabs.map(t =>
-    `<button class="admin-l2-tab${currentL2Tab===t.key?' active-l2':''}"
+  el.innerHTML = tabs.map(t => {
+    const n = _tabCounts[t.key] !== undefined ? _tabCounts[t.key] : '';
+    return `<button class="admin-l2-tab${currentL2Tab===t.key?' active-l2':''}"
       onclick="switchAdminL2('${t.key}')" id="l2-tab-${t.key}">
       ${t.icon} ${t.label}
-      <span id="l2-count-${t.key}" class="tab-count"></span>
-    </button>`
-  ).join('');
+      <span id="l2-count-${t.key}" class="tab-count">${n}</span>
+    </button>`;
+  }).join('');
 }
 
 // Update L2 tab counts from snapshot data
 function updateL2Counts(allItems, isOrders) {
   if (isOrders) {
-    document.getElementById('l2-count-active')?.setAttribute('data-n',    allItems.filter(o=>!['delivered','cancelled'].includes(o.status)).length);
-    document.getElementById('l2-count-delivered')?.setAttribute('data-n', allItems.filter(o=>o.status==='delivered').length);
-    document.getElementById('l2-count-cancelled')?.setAttribute('data-n', allItems.filter(o=>o.status==='cancelled').length);
-    ['active','delivered','cancelled'].forEach(k => {
+    const statusKeys = ['all','pending','confirmed','processing','dispatched','delivered','cancelled'];
+    statusKeys.forEach(k => {
+      const n = k === 'all' ? allItems.length : allItems.filter(o=>(o.status||'pending')===k).length;
+      _tabCounts[k] = n > 0 ? n : '';
       const el = document.getElementById('l2-count-'+k);
-      if (el) el.textContent = el.getAttribute('data-n')||'';
+      if (el) el.textContent = _tabCounts[k];
     });
   } else {
-    document.getElementById('l2-count-upcoming')?.setAttribute('data-n',  allItems.filter(b=>!['visited','cancelled'].includes(b.status)).length);
-    document.getElementById('l2-count-visited')?.setAttribute('data-n',   allItems.filter(b=>b.status==='visited').length);
-    document.getElementById('l2-count-cancelled')?.setAttribute('data-n', allItems.filter(b=>b.status==='cancelled').length);
-    ['upcoming','visited','cancelled'].forEach(k => {
+    const bkKeys = ['upcoming','confirmed','visited','cancelled'];
+    bkKeys.forEach(k => {
+      const n = k === 'upcoming'
+        ? allItems.filter(b=>!['confirmed','visited','cancelled'].includes(b.status)).length
+        : allItems.filter(b=>b.status===k).length;
+      _tabCounts[k] = n > 0 ? n : '';
       const el = document.getElementById('l2-count-'+k);
-      if (el) el.textContent = el.getAttribute('data-n')||'';
+      if (el) el.textContent = _tabCounts[k];
     });
   }
 }
@@ -2980,13 +3550,33 @@ function renderCurrentTab() {
 }
 
 function renderAdminModalTab(tab) {
-  if (tab === 'orders')      { currentL1Tab = 'orders';      currentL2Tab = 'active'; }
+  if (tab === 'orders')      { currentL1Tab = 'orders';      currentL2Tab = 'all'; }
   if (tab === 'bookings')    { currentL1Tab = 'bookings';    currentL2Tab = 'upcoming'; }
   if (tab === 'technicians') { currentL1Tab = 'technicians'; currentL2Tab = ''; }
   const title = document.getElementById('adminModalTitle');
   if (title) title.textContent = tab === 'orders' ? '🛒 Orders' : tab === 'bookings' ? '📅 Bookings' : '👷 Team & Technicians';
+  // Mark all unseen bookings/orders as seen — hides dot for ALL staff via Firestore
+  if (tab === 'bookings') markAllSeenInFirestore('enquiry');
+  if (tab === 'orders')   markAllSeenInFirestore('orders');
   renderL2Tabs();
   renderCurrentTab();
+}
+
+async function markAllSeenInFirestore(collection) {
+  if (!fbReady) return;
+  try {
+    // Get all docs and mark unseen ones (catches both false and undefined)
+    const snap = await db.collection(collection).get();
+    const batch = db.batch();
+    let changed = false;
+    snap.docs.forEach(d => {
+      if (!d.data().adminSeen) {
+        batch.update(d.ref, { adminSeen: true });
+        changed = true;
+      }
+    });
+    if (changed) await batch.commit();
+  } catch(e) { console.warn('markAllSeen error:', e.message); }
 }
 
 function startAdminOrdersListener(containerEl, filterTab) {
@@ -2998,16 +3588,15 @@ function startAdminOrdersListener(containerEl, filterTab) {
     let orders = snap.docs.map(d => ({ _fbId: d.id, ...d.data() }))
       .sort((a,b) => new Date(b.time||0) - new Date(a.time||0));
 
-    // Update L1 + L2 counts
+    // Count from FULL list before filtering
     const countEl = document.getElementById('l1-orders-count');
     if (countEl) countEl.textContent = orders.length;
-    updateL2Counts(orders, true);
+    updateL2Counts(orders, true); // uses full orders list
+    renderL2Tabs(); // refresh tabs with updated counts
 
-    // Filter by tab
-    const ft = filterTab || currentL2Tab || 'active';
-    if (ft === 'delivered') orders = orders.filter(o => o.status === 'delivered');
-    else if (ft === 'cancelled') orders = orders.filter(o => o.status === 'cancelled');
-    else orders = orders.filter(o => !['delivered','cancelled'].includes(o.status));
+    // NOW filter for display
+    const ft = filterTab || currentL2Tab || 'all';
+    if (ft !== 'all') orders = orders.filter(o => (o.status||'pending') === ft);
 
     if (!orders.length) { containerEl.innerHTML = '<p style="text-align:center;padding:30px;color:var(--text-light);">No orders yet.</p>'; return; }
 
@@ -3047,8 +3636,11 @@ function startAdminOrdersListener(containerEl, filterTab) {
               </div>
             </div>
             ${o.notes ? `<div style="font-size:12px;color:var(--text-light);font-style:italic;margin-bottom:8px;">📝 ${o.notes}</div>` : ''}
+            ${o.notes ? `<div style="padding:7px 12px;background:#f0fdf4;border-radius:8px;font-size:12px;color:#166534;margin-bottom:6px;border-left:3px solid var(--green-mid);">📝 <strong>Order note:</strong> ${sanitiseHTML(o.notes)}</div>` : ''}
             ${o.customerNote ? `<div style="padding:7px 12px;background:#e0f2fe;border-radius:8px;font-size:12px;color:#0369a1;margin-bottom:6px;border-left:3px solid #0369a1;">💬 <strong>Customer note:</strong> ${o.customerNote}</div>` : ''}
-            ${o.adminNote ? `<div style="padding:7px 12px;background:#fffbeb;border-radius:8px;font-size:12px;color:#92400e;margin-bottom:8px;">📋 <strong>Note to customer:</strong> ${o.adminNote}</div>` : ''}
+            ${o.adminNote ? `<div style="padding:7px 12px;background:#fffbeb;border-radius:8px;font-size:12px;color:#92400e;margin-bottom:8px;">
+              📋 <strong>${o.noteBy||'GreenTop Gardens'}${o.noteRole==='technician'?' 🔧':''}:</strong> ${o.adminNote}
+            </div>` : ''}
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
               <span class="order-status-badge status-${st}" style="font-size:11px;">${s.icon} ${s.label}</span>
               <select onchange="updateOrderStatus('${o._fbId}',this.value)" style="padding:5px 10px;border-radius:8px;border:1.5px solid var(--green-pale);font-size:12px;font-family:'DM Sans',sans-serif;background:var(--green-mist);outline:none;cursor:pointer;">
@@ -3057,13 +3649,11 @@ function startAdminOrdersListener(containerEl, filterTab) {
                 <option value="cancelled" ${st==='cancelled'?'selected':''}>❌ Cancelled</option>
               </select>
             </div>
-            <div style="display:flex;gap:6px;align-items:center;margin-top:8px;">
-              <input type="text" id="adminNote-${o._fbId}" placeholder="✏️ Add note for customer (they will see this)…"
-                value="${(o.adminNote||'').replace(/"/g,'&quot;')}"
-                style="flex:1;padding:7px 12px;border-radius:8px;border:1.5px solid var(--green-pale);font-size:12px;font-family:'DM Sans',sans-serif;background:var(--green-mist);"
-                onkeydown="if(event.key==='Enter')saveAdminNote('${o._fbId}')">
-              <button onclick="saveAdminNote('${o._fbId}')" style="padding:7px 14px;border-radius:8px;border:none;background:var(--green-mid);color:white;font-size:12px;font-weight:600;cursor:pointer;">💾</button>
-            </div>
+            <button onclick="openMsgThread('order','${o._fbId}','${(o.user||'').replace(/'/g,'')}','Order')"
+              style="width:100%;padding:9px 14px;border-radius:10px;border:1.5px solid var(--green-pale);background:var(--green-mist);color:var(--green-deep);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;">
+              💬 Messages
+              ${(() => { const unread = (o.messages||[]).filter(m => m.unreadBy && m.unreadBy.includes('staff')).length; const total = (o.messages||[]).length; return unread > 0 ? `<span style="background:#ef4444;color:white;border-radius:50px;padding:1px 8px;font-size:11px;font-weight:700;">${unread} new</span>` : total > 0 ? `<span style="background:var(--green-mid);color:white;border-radius:50px;padding:1px 8px;font-size:11px;">${total}</span>` : '<span style="font-size:11px;color:var(--text-light);">Start chat</span>'; })()}
+            </button>
           </div>`;
         }).join('')}
       </div>`).join('');
@@ -3075,7 +3665,7 @@ function stopAdminOrdersListener() {
 }
 
 async function updateOrderStatus(fbId, newStatus) {
-  if (currentRole !== 'admin') return;
+  if (currentRole !== 'admin' && currentRole !== 'technician') return;
   if (!newStatus || !fbReady) return;
   try {
     await db.collection('orders').doc(fbId).update({
@@ -3085,15 +3675,15 @@ async function updateOrderStatus(fbId, newStatus) {
     showToast(`✅ Order marked as ${newStatus}`);
     addActivityLog('admin', '📦', `Order status updated → ${newStatus}`);
     // Auto-switch to correct tab
-    if (newStatus === 'delivered') { currentL2Tab = 'delivered'; renderL2Tabs(); renderCurrentTab(); }
-    if (newStatus === 'cancelled') { currentL2Tab = 'cancelled'; renderL2Tabs(); renderCurrentTab(); }
+    // Switch to the specific status tab after update
+    currentL2Tab = newStatus; renderL2Tabs(); renderCurrentTab();
   } catch(e) {
     showToast('❌ Failed to update: ' + e.message);
   }
 }
 
 async function saveAdminNote(fbId) {
-  if (currentRole !== 'admin') return;
+  if (currentRole !== 'admin' && currentRole !== 'technician') return;
   const el = document.getElementById('adminNote-' + fbId);
   if (!el || !fbReady) return;
   try {
@@ -3130,7 +3720,12 @@ function closeMobileNav() { document.getElementById('mobileNavDrawer').classList
 document.addEventListener('click', e => { const d=document.getElementById('mobileNavDrawer'); const b=document.getElementById('hamburgerBtn'); if(d.classList.contains('open')&&!d.contains(e.target)&&!b.contains(e.target)) closeMobileNav(); });
 
 // Close modals on overlay click
-document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); }));
+document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => {
+  if (e.target === o) {
+    if (o.id === 'msgThreadModal') { closeMsgThread(); }
+    else { o.classList.remove('open'); }
+  }
+}));
 document.getElementById('orderConfirmModal').addEventListener('click', e => { if(e.target.id==='orderConfirmModal') closeConfirmModal(); });
 
 // Scroll animation — show elements as they come into view
@@ -3404,7 +3999,7 @@ function openItemDetail(type, id) {
 }
 
 function openItemEdit(type, id) {
-  if (currentRole !== 'admin') return;
+  if (currentRole !== 'admin' && currentRole !== 'technician') return;
   editingType = type;
   editingId   = id;
   const isNew = id === null;
@@ -3515,7 +4110,7 @@ function previewEmoji(val) {
 }
 
 async function saveItem() {
-  if (currentRole !== 'admin') { showToast('⛔ Admin only'); return; }
+  if (currentRole !== 'admin' && currentRole !== 'technician') { showToast('⛔ Admin or Technician only'); return; }
   const name = document.getElementById('itemName').value.trim();
   if (!name) { showToast('⚠️ Please enter a name'); return; }
 
@@ -3576,7 +4171,7 @@ async function saveItem() {
 }
 
 function deleteItem(type, id) {
-  if (currentRole !== 'admin') { showToast('⛔ Admin only'); return; }
+  if (currentRole !== 'admin' && currentRole !== 'technician') { showToast('⛔ Admin or Technician only'); return; }
   if (!confirm('Delete this item?')) return;
   if (type === 'plant')    plants    = plants.filter(x => x.id !== id);
   else                     materials = materials.filter(x => x.id !== id);
@@ -3994,8 +4589,14 @@ const BUILTIN_CATS = {
 };
 
 function openAddCategoryModal() {
-  if (currentRole !== 'admin') return;
+  if (currentRole !== 'admin' && currentRole !== 'technician') return;
   document.getElementById('newCatEmoji').value = '';
+  const prev = document.getElementById('newCatImgPreview');
+  if (prev) prev.innerHTML = '🌿';
+  const fi = document.getElementById('newCatImgFile');
+  if (fi) fi.value = '';
+  const prog = document.getElementById('newCatImgProgress');
+  if (prog) prog.textContent = '';
   document.getElementById('newCatName').value  = '';
   document.getElementById('newCatKeyPreview').textContent = '';
   document.getElementById('addCategoryModal').classList.add('open');
@@ -4007,26 +4608,44 @@ function previewNewCatKey() {
   document.getElementById('newCatKeyPreview').textContent = key ? 'Key: "' + key + '"' : '';
 }
 
-function saveNewCategoryAdmin() {
-  if (currentRole !== 'admin') return;
-  const emoji = document.getElementById('newCatEmoji').value.trim() || '🌿';
+function previewNewCatImg(input) {
+  const file = input.files[0]; if (!file) return;
+  const prev = document.getElementById('newCatImgPreview');
+  if (prev) prev.innerHTML = `<img src="${URL.createObjectURL(file)}" style="width:100%;height:100%;object-fit:cover;">`;
+  // Clear emoji when photo selected
+  const emojiEl = document.getElementById('newCatEmoji');
+  if (emojiEl) emojiEl.value = '';
+}
+
+async function saveNewCategoryAdmin() {
+  if (currentRole !== 'admin' && currentRole !== 'technician') return;
+  const emoji = document.getElementById('newCatEmoji').value.trim() || '';
+  // Upload photo if provided
+  let imgSrc = '';
+  const fileInput = document.getElementById('newCatImgFile');
+  if (fileInput?.files?.[0]) {
+    const progressEl = document.getElementById('newCatImgProgress');
+    if (progressEl) progressEl.textContent = '⏳ Uploading…';
+    imgSrc = await uploadToStorage(fileInput.files[0], 'categories', null) || '';
+    if (progressEl) progressEl.textContent = imgSrc ? '✅ Uploaded' : '';
+  }
   const name  = document.getElementById('newCatName').value.trim();
   if (!name) { showToast('⚠️ Please enter a category name'); return; }
   const key = name.toLowerCase().replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'');
   if (!key) { showToast('⚠️ Invalid name'); return; }
   const allKeys = Object.keys(BUILTIN_CATS).concat(customCategories.map(c => c.key));
   if (allKeys.includes(key)) { showToast('⚠️ Category already exists'); return; }
-  customCategories.push({ key, emoji, label: name });
+  customCategories.push({ key, emoji: imgSrc ? '' : (emoji || '🌿'), img: imgSrc, label: name });
   saveCats();
   document.getElementById('addCategoryModal').classList.remove('open');
-  renderCustomTabs();
+  renderPlantsGrid();
   showToast('✅ Category "' + name + '" added!');
 }
 
 let catUploadedImg = ''; // holds uploaded image URL for category
 
 function openEditCategoryModal(key) {
-  if (currentRole !== 'admin') return;
+  if (currentRole !== 'admin' && currentRole !== 'technician') return;
   const builtin = BUILTIN_CATS[key];
   const custom  = customCategories.find(c => c.key === key);
   const cat = builtin || custom;
@@ -4061,7 +4680,7 @@ async function handleCatImgUpload(input) {
 }
 
 async function saveEditCategoryAdmin() {
-  if (currentRole !== 'admin') return;
+  if (currentRole !== 'admin' && currentRole !== 'technician') return;
   const key   = document.getElementById('editCatKey').value;
   const emoji = document.getElementById('editCatEmoji').value.trim();
   const label = document.getElementById('editCatName').value.trim();
@@ -4098,7 +4717,7 @@ async function saveEditCategoryAdmin() {
 }
 
 function deleteCategoryAdmin(key) {
-  if (currentRole !== 'admin') return;
+  if (currentRole !== 'admin' && currentRole !== 'technician') return;
   if (BUILTIN_CATS[key]) { showToast('⚠️ Built-in categories cannot be deleted'); return; }
   const cat = customCategories.find(c => c.key === key);
   if (!cat) return;
@@ -4312,9 +4931,9 @@ function saveContact() {
 // Bucket: images (must be Public in Supabase dashboard)
 // ================================================================
 async function uploadToStorage(file, folder, progressId) {
-  // Hard guard — only admin can upload
-  if (currentRole !== 'admin') {
-    console.warn('[Upload] Blocked — admin only');
+  // Allow admin and technician to upload plant/material images
+  if (currentRole !== 'admin' && currentRole !== 'technician') {
+    console.warn('[Upload] Blocked — admin/technician only');
     return null;
   }
 
@@ -4509,6 +5128,33 @@ window.addEventListener('resize', () => {
   </div>
 </div>
 
+
+<!-- MESSAGE THREAD MODAL -->
+<div class="modal-overlay" id="msgThreadModal" style="z-index:9999!important;">
+  <div style="background:white;border-radius:20px;width:min(480px,95vw);max-height:80vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.2);position:relative;">
+    <!-- Header -->
+    <div style="padding:16px 20px;border-bottom:1.5px solid var(--green-pale);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,var(--green-mist),white);">
+      <div>
+        <div style="font-weight:700;font-size:15px;color:var(--green-deep);" id="msgThreadTitle">Messages</div>
+        <div style="font-size:12px;color:var(--text-light);" id="msgThreadSub"></div>
+      </div>
+      <button onclick="event.stopPropagation();closeMsgThread();" style="background:var(--green-pale);border:none;border-radius:50%;width:32px;height:32px;font-size:16px;cursor:pointer;color:var(--green-deep);display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
+    </div>
+    <!-- Message history -->
+    <div id="msgThreadList" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;min-height:180px;max-height:380px;background:#f9fdf9;">
+      <div style="text-align:center;color:var(--text-light);font-size:13px;padding:20px;">No messages yet.</div>
+    </div>
+    <!-- Input -->
+    <div style="padding:12px 16px;border-top:1.5px solid var(--green-pale);display:flex;gap:8px;background:white;">
+      <input type="text" id="msgThreadInput" placeholder="Type a message…"
+        style="flex:1;padding:10px 14px;border-radius:50px;border:1.5px solid var(--green-pale);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;background:var(--green-mist);"
+        onkeydown="if(event.key==='Enter')sendThreadMsg()">
+      <button onclick="sendThreadMsg()"
+        style="padding:10px 20px;border-radius:50px;border:none;background:var(--green-mid);color:white;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">Send</button>
+    </div>
+  </div>
+</div>
+
 <!-- PACKAGE BOOKING MODAL -->
 <div class="modal-overlay" id="pkgBookingModal">
   <div class="modal" style="max-width:460px;text-align:center;">
@@ -4564,7 +5210,7 @@ window.addEventListener('resize', () => {
 
 <!-- TECHNICIAN DASHBOARD MODAL -->
 <div class="modal-overlay" id="techDashModal">
-  <div class="modal" style="max-width:720px;max-height:min(88vh,720px);display:flex;flex-direction:column;overflow:hidden;">
+  <div class="modal" style="max-width:900px;max-height:min(88vh,720px);display:flex;flex-direction:column;overflow:hidden;">
     <button class="modal-close" onclick="closeTechDashboard()">✕</button>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
       <span style="font-size:28px;">🔧</span>
@@ -4573,8 +5219,8 @@ window.addEventListener('resize', () => {
         <div style="font-size:12px;color:var(--text-light);">Technician View</div>
       </div>
     </div>
-    <!-- L2 sub-tabs -->
-    <div style="display:flex;gap:4px;margin-bottom:12px;flex-shrink:0;flex-wrap:wrap;" id="techL2Tabs"></div>
+    <!-- L2 sub-tabs — scrollable single row -->
+    <div style="display:flex;gap:4px;margin-bottom:12px;flex-shrink:0;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;padding-bottom:2px;" id="techL2Tabs" style="display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap;justify-content:flex-start;"></div>
     <div id="techDashContainer" style="overflow-y:auto;flex:1;padding-right:4px;"></div>
   </div>
 </div>
@@ -4589,8 +5235,8 @@ window.addEventListener('resize', () => {
       <button id="l1-bookings" onclick="switchAdminL1('bookings')" class="admin-l1-tab">📅 Bookings <span id="l1-bookings-count"></span></button>
       <button id="l1-technicians" onclick="switchAdminL1('technicians')" class="admin-l1-tab">👷 Technicians</button>
     </div>
-    <!-- Level 2: sub-tabs (Orders: Active|Delivered|Cancelled  /  Bookings: Upcoming|Visited|Cancelled) -->
-    <div style="display:flex;gap:4px;margin-bottom:12px;flex-shrink:0;flex-wrap:wrap;" id="adminL2Tabs"></div>
+    <!-- Level 2: sub-tabs — scrollable single row -->
+    <div style="display:flex;gap:4px;margin-bottom:12px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-start;" id="adminL2Tabs"></div>
     <div id="adminOrdersContainer" style="overflow-y:auto;flex:1;padding-right:4px;"></div>
   </div>
 </div>
@@ -4604,7 +5250,22 @@ window.addEventListener('resize', () => {
     <button class="modal-close" onclick="document.getElementById('addCategoryModal').classList.remove('open')">✕</button>
     <h2>➕ Add Category</h2>
     <p style="font-size:13px;color:var(--text-light);margin-bottom:18px;">Add a new plant category tab.</p>
-    <div class="input-wrap"><label>Emoji Icon</label><input type="text" id="newCatEmoji" placeholder="e.g. 🌵" maxlength="4" style="width:80px;"></div>
+    <div class="input-wrap">
+      <label>Category Icon</label>
+      <!-- Photo upload -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <div id="newCatImgPreview" style="width:56px;height:56px;border-radius:10px;background:var(--green-mist);display:flex;align-items:center;justify-content:center;font-size:32px;border:1.5px solid var(--green-pale);overflow:hidden;flex-shrink:0;">🌿</div>
+        <div style="flex:1;">
+          <label for="newCatImgFile" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:10px;border:2px dashed var(--green-light);background:var(--green-mist);cursor:pointer;font-size:12px;color:var(--green-mid);font-weight:600;margin-bottom:6px;">
+            📁 Upload Photo
+            <input type="file" id="newCatImgFile" accept="image/*" style="display:none" onchange="previewNewCatImg(this)">
+          </label>
+          <div id="newCatImgProgress" style="font-size:11px;color:var(--text-light);"></div>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:12px;color:var(--text-light);margin-bottom:8px;">— or type an emoji —</div>
+      <input type="text" id="newCatEmoji" placeholder="e.g. 🌵" maxlength="4" style="width:80px;padding:8px;border-radius:8px;border:1.5px solid var(--green-pale);font-size:24px;text-align:center;background:var(--green-mist);outline:none;">
+    </div>
     <div class="input-wrap"><label>Category Name</label><input type="text" id="newCatName" placeholder="e.g. Succulents" oninput="previewNewCatKey()"></div>
     <div id="newCatKeyPreview" style="font-size:11px;color:var(--text-light);margin-top:-10px;margin-bottom:12px;"></div>
     <button class="btn-submit" onclick="saveNewCategoryAdmin()">➕ Add Category</button>
@@ -4648,7 +5309,7 @@ window.addEventListener('resize', () => {
     <div id="itemDetailSci" style="font-size:13px;color:var(--text-light);font-style:italic;margin-bottom:12px;"></div>
     <div id="itemDetailBadge" style="margin-bottom:14px;"></div>
     <p id="itemDetailDesc" style="font-size:14px;color:var(--text-mid);line-height:1.7;margin-bottom:16px;"></p>
-    <button class="btn-primary" style="width:100%;padding:12px;" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'});document.getElementById('itemDetailModal').classList.remove('open');showToast('📞 Contact us to order this plant!')">📞 Enquire Now</button>
+
   </div>
 </div>
 
