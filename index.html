@@ -322,6 +322,7 @@
   .mobile-nav-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1.5px solid var(--green-pale); }
   .fade-in { opacity: 0; transform: translateY(24px); transition: all 0.6s ease; }
   .fade-in.visible { opacity: 1; transform: translateY(0); }
+  .hero-content { opacity: 1 !important; transform: none !important; }
 
   @media (max-width: 768px) {
     .topbar { padding: 0 16px; }
@@ -382,7 +383,7 @@
 <!-- HERO -->
 <section class="hero" id="home">
   <span class="hero-float">🌿</span><span class="hero-float">🌱</span><span class="hero-float">🍃</span><span class="hero-float">🌾</span>
-  <div class="hero-content fade-in">
+  <div class="hero-content">
     <div class="hero-tag" id="heroTag">🌿 Coimbatore's #1 Terrace Garden Experts</div>
     <h1 id="heroH1">Transform Your Terrace into a <em>Green Paradise</em></h1>
     <p id="heroP">Professional terrace &amp; balcony garden setup, installation and maintenance services in Coimbatore. From lush plant collections to complete garden systems.</p>
@@ -1739,8 +1740,19 @@ document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('cli
 document.getElementById('orderConfirmModal').addEventListener('click', e => { if(e.target.id==='orderConfirmModal') closeConfirmModal(); });
 
 // Scroll animation
-const observer = new IntersectionObserver(entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }), { threshold: 0.12 });
-document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+const observer = new IntersectionObserver(entries => entries.forEach(e => {
+  if (e.isIntersecting) e.target.classList.add('visible');
+}), { threshold: 0.05, rootMargin: '0px 0px -20px 0px' });
+
+document.querySelectorAll('.fade-in').forEach(el => {
+  // If element is already visible on page load, show it immediately
+  const rect = el.getBoundingClientRect();
+  if (rect.top < window.innerHeight && rect.bottom > 0) {
+    el.classList.add('visible');
+  } else {
+    observer.observe(el);
+  }
+});
 
 // ================================================================
 // CAROUSEL ENGINE
