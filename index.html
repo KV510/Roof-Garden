@@ -612,10 +612,15 @@
     }
     .nav::-webkit-scrollbar { display: none; }
     .nav a { font-size: 12px; padding: 5px 10px; white-space: nowrap; flex-shrink: 0; }
-    .nav-actions .btn-primary { padding: 6px 10px !important; font-size: 11px !important; }
-    .nav-actions .btn-login   { padding: 6px 10px; font-size: 11px; }
-    .nav-actions .btn-logout  { padding: 6px 10px; font-size: 11px; }
+    .nav-actions .btn-primary { padding: 5px 8px !important; font-size: 10px !important; }
+    .nav-actions .btn-login   { padding: 5px 8px; font-size: 10px; }
+    .nav-actions .btn-logout  { padding: 5px 8px; font-size: 10px; }
     .nav-actions .role-badge  { display: none; }
+    /* Hide text, show short labels on mobile */
+    .nav-orders-text::before  { content: 'Orders'; }
+    .nav-orders-text           { font-size: 0; }
+    .nav-bookings-text::before { content: 'Bookings'; }
+    .nav-bookings-text         { font-size: 0; }
     .hamburger { display: none; }
     .mobile-nav-drawer { display: none !important; }
     .catalog-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
@@ -629,11 +634,12 @@
      ================================================================ */
   @media (max-width: 768px) {
 
-    /* Body padding for 2-row navbar */
-    body { overflow-x: hidden; }
+    /* Account for 2-row fixed navbar height */
+    body { overflow-x: hidden; padding-top: 95px !important; }
+    nav.navbar { position: fixed !important; top: 0; left: 0; right: 0; z-index: 1000; }
 
-    /* Hero */
-    .hero { padding: 40px 16px; min-height: auto; }
+    /* Hero — no extra top padding needed since body handles it */
+    .hero { padding: 32px 16px; min-height: auto; }
     .hero h1 { font-size: clamp(28px, 8vw, 42px); }
     .hero-sub { font-size: 14px !important; }
     .hero-btns { flex-direction: column; gap: 10px; }
@@ -704,6 +710,9 @@
     .catalog-grid { grid-template-columns: 1fr 1fr !important; gap: 8px; }
     .packages-static-grid { grid-template-columns: 1fr !important; }
     .plant-card-slide { flex: 0 0 140px; }
+    /* Shorten nav button labels on small screens */
+    .btn-label { display: none; }
+    .nav-actions .btn-login::after { }
   }
 </style>
 </head>
@@ -2246,12 +2255,12 @@ function updateNavActions() {
       : 'Guest';
     setGreeting(name, 'user');
     el.innerHTML = `
-      <button class="btn-login" style="padding:9px 16px;font-size:13px;position:relative;" onclick="openMyOrdersModal()">
-        📦 My Orders
+      <button class="btn-login" style="position:relative;" onclick="openMyOrdersModal()">
+        📦 <span class="btn-label">My Orders</span>
         <span id="ordersBadge" style="display:none;position:absolute;top:-3px;right:-3px;width:10px;height:10px;background:#ef4444;border-radius:50%;border:2px solid white;"></span>
       </button>
-      <button class="btn-login" style="padding:9px 16px;font-size:13px;position:relative;" onclick="openMyBookingsModal()">
-        📅 My Bookings
+      <button class="btn-login" style="position:relative;" onclick="openMyBookingsModal()">
+        📅 <span class="btn-label">My Bookings</span>
         <span id="bookingsBadge" style="display:none;position:absolute;top:-3px;right:-3px;width:10px;height:10px;background:#ef4444;border-radius:50%;border:2px solid white;"></span>
       </button>
       <button class="btn-logout" onclick="doLogout()">Sign Out</button>`;
@@ -2296,12 +2305,18 @@ function openOrderModal() {
     modal.style.display = 'flex';
     modal.classList.add('open');
   }
+  // Hide cart FAB while order window is open
+  const fab = document.getElementById('cartFab');
+  if (fab) fab.classList.add('hidden');
 }
 function closeOrderModal() {
   ['orderModal','orderSummaryModal'].forEach(id => {
     const el = document.getElementById(id);
     if (el) { el.classList.remove('open'); el.style.removeProperty('display'); }
   });
+  // Show cart FAB again after closing
+  const fab = document.getElementById('cartFab');
+  if (fab && currentRole === 'user') fab.classList.remove('hidden');
 }
 function openOrderSummaryModal() {
   const totals = Object.values(cart.plants).reduce((a,b)=>a+b,0) + Object.values(cart.materials).reduce((a,b)=>a+b,0);
