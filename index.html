@@ -669,8 +669,8 @@
     #adminModal .modal,
     #techDashModal .modal { max-width: 100% !important; width: 100% !important; }
 
-    /* Hide greeting on very small screens */
-    #navGreeting { display: none !important; }
+    /* Compact greeting on mobile */
+    #navGreeting { font-size:11px; padding:4px 8px; max-width:130px; }
   }
 
   @media (max-width: 480px) {
@@ -2230,18 +2230,6 @@ function openOrderModal() {
 function closeOrderModal() { document.getElementById('orderModal').classList.remove('open'); }
 
 function renderOrderModal() {
-  // Populate category filter with custom categories too
-  const sel = document.getElementById('orderCatFilter');
-  if (sel) {
-    const existing = Array.from(sel.options).map(o => o.value);
-    customCategories.forEach(cat => {
-      if (!existing.includes(cat.key)) {
-        const opt = document.createElement('option');
-        opt.value = cat.key; opt.textContent = (cat.emoji||'🌿') + ' ' + cat.label;
-        sel.appendChild(opt);
-      }
-    });
-  }
   filterOrderItems();
   renderOrderSummary();
 }
@@ -2249,42 +2237,62 @@ function renderOrderModal() {
 function filterOrderItems() {
   const q   = (document.getElementById('orderSearch')?.value || '').toLowerCase().trim();
   const cat = document.getElementById('orderCatFilter')?.value || '';
-
-  // Filter plants
-  let filteredPlants = [...plants].sort((a,b) => a.name.localeCompare(b.name));
-  let filteredMats   = [...materials].sort((a,b) => a.name.localeCompare(b.name));
-
-  if (cat === 'material') { filteredPlants = []; }
-  else if (cat === 'plant') { filteredMats = []; }
-  else if (cat && cat !== 'plant' && cat !== 'material') {
-    filteredPlants = filteredPlants.filter(p => p.type === cat || p.category === cat);
-    filteredMats   = [];
-  }
-
-  if (q) {
-    filteredPlants = filteredPlants.filter(p => p.name.toLowerCase().includes(q) || (p.sci||'').toLowerCase().includes(q));
-    filteredMats   = filteredMats.filter(m => m.name.toLowerCase().includes(q));
-  }
-
-  const pg = document.getElementById('orderPlantGrid');
-  const mg = document.getElementById('orderMaterialGrid');
-  const pt = document.querySelector('.order-section-title');
-  const mt = document.getElementById('orderMaterialTitle');
+  const pg  = document.getElementById('orderPlantGrid');
+  const mg  = document.getElementById('orderMaterialGrid');
   const noRes = document.getElementById('orderNoResults');
 
-  if (pg) pg.innerHTML = filteredPlants.map(p => {
-    const qty = cart.plants[p.id] || 0;
-    return `<div class="product-select-item ${qty>0?'selected':''}" id="psi-plant-${p.id}">
-      <span class="ps-emoji">${p.emoji}</span>
-      <span class="ps-name">${p.name}</span>
-      <div class="qty-control">
-        <button onclick="changeQty('plant',${p.id},-1)">−</button>
-        <span class="qty-val" id="qty-plant-${p.id}">${qty}</span>
-        <button onclick="changeQty('plant',${p.id},1)">+</button>
-      </div>
-    </div>`;
-  }).join('');
+  // ── Plants grouped by category ──────────────────────────────────────────
+  const builtIn = [
+    { key:'food',       label:'Food Plants',      emoji:'🍅' },
+    { key:'ornamental', label:'Ornamental Plants', emoji:'🌸' },
+    { key:'indoor',     label:'Indoor Plants',     emoji:'🪴' },
+  ];
+  const allCats = [...builtIn, ...customCategories.map(c => ({ key:c.key, label:c.label, emoji:c.emoji||'🌿' }))];
 
+  let allPlants = [...plants].sort((a,b) => a.name.localeCompare(b.name));
+  if (q) allPlants = allPlants.filter(p => p.name.toLowerCase().includes(q) || (p.sci||'').toLowerCase().includes(q));
+
+  if (pg) {
+    if (cat === 'material') {
+      pg.innerHTML = '';
+    } else {
+      const catsToShow = (cat && cat !== 'plant')
+        ? allCats.filter(c => c.key === cat)
+        : allCats;
+
+      pg.innerHTML = catsToShow.map(c => {
+        const catPlants = allPlants.filter(p => (p.type||p.category) === c.key);
+        if (!catPlants.length) return '';
+        return `<div style="margin-bottom:14px;">
+          <div style="font-size:12px;font-weight:700;color:var(--green-mid);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;padding-bottom:5px;border-bottom:1.5px solid var(--green-pale);">
+            ${c.emoji} ${c.label}
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            ${catPlants.map(p => {
+              const qty = cart.plants[p.id] || 0;
+              return `<div class="product-select-item ${qty>0?'selected':''}" id="psi-plant-${p.id}">
+                <span class="ps-emoji">${p.emoji}</span>
+                <span class="ps-name">${p.name}</span>
+                <div class="qty-control">
+                  <button onclick="changeQty('plant',${p.id},-1)">−</button>
+                  <span class="qty-val" id="qty-plant-${p.id}">${qty}</span>
+                  <button onclick="changeQty('plant',${p.id},1)">+</button>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // ── Materials ─────────────────────────────────────────────────────────
+  let filteredMats = [...materials].sort((a,b) => a.name.localeCompare(b.name));
+  if (q) filteredMats = filteredMats.filter(m => m.name.toLowerCase().includes(q));
+  if (cat && cat !== 'material' && cat !== 'plant') filteredMats = [];
+  if (cat === 'plant') filteredMats = [];
+
+  const mt = document.getElementById('orderMaterialTitle');
   if (mg) mg.innerHTML = filteredMats.map(m => {
     const qty = cart.materials[m.id] || 0;
     return `<div class="product-select-item ${qty>0?'selected':''}" id="psi-material-${m.id}">
@@ -2298,11 +2306,8 @@ function filterOrderItems() {
     </div>`;
   }).join('');
 
-  // Show/hide section titles based on results
-  if (pt) pt.style.display = filteredPlants.length ? '' : 'none';
   if (mt) mt.style.display = filteredMats.length ? '' : 'none';
-
-  const noResults = filteredPlants.length === 0 && filteredMats.length === 0;
+  const noResults = !pg?.innerHTML.trim() && !filteredMats.length;
   if (noRes) noRes.style.display = noResults ? 'block' : 'none';
 }
 
@@ -3216,6 +3221,26 @@ function sanitiseHTML(str) {
     .replace(/>/g,'&gt;')
     .replace(/"/g,'&quot;')
     .replace(/'/g,'&#39;');
+}
+
+
+// ── Dashboard search filter ───────────────────────────────────────────────
+function filterDashResults() {
+  const q = (document.getElementById('dashSearch')?.value || '').toLowerCase().trim();
+  const cards = document.querySelectorAll('#adminOrdersContainer > div');
+  cards.forEach(card => {
+    const text = card.textContent.toLowerCase();
+    card.style.display = (!q || text.includes(q)) ? '' : 'none';
+  });
+}
+
+function filterTechResults() {
+  const q = (document.getElementById('techDashSearch')?.value || '').toLowerCase().trim();
+  const cards = document.querySelectorAll('#techDashContainer > div');
+  cards.forEach(card => {
+    const text = card.textContent.toLowerCase();
+    card.style.display = (!q || text.includes(q)) ? '' : 'none';
+  });
 }
 
 // ── Per-item customer notes (saved to Firestore order/booking doc) ────────
@@ -5317,6 +5342,14 @@ window.addEventListener('resize', () => {
     </div>
     <!-- L2 sub-tabs — scrollable single row -->
     <div style="display:flex;gap:4px;margin-bottom:12px;flex-shrink:0;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;padding-bottom:2px;" id="techL2Tabs" style="display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap;justify-content:flex-start;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;"></div>
+    <div style="display:flex;gap:8px;margin-bottom:10px;flex-shrink:0;">
+      <div style="position:relative;flex:1;">
+        <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;">🔍</span>
+        <input type="text" id="techDashSearch" placeholder="Search by name, ID or location…"
+          oninput="filterTechResults()"
+          style="width:100%;padding:8px 12px 8px 30px;border-radius:50px;border:1.5px solid var(--green-pale);background:var(--green-mist);font-family:'DM Sans',sans-serif;font-size:12px;outline:none;">
+      </div>
+    </div>
     <div id="techDashContainer" style="overflow-y:auto;flex:1;padding-right:4px;"></div>
   </div>
 </div>
@@ -5333,6 +5366,15 @@ window.addEventListener('resize', () => {
     </div>
     <!-- Level 2: sub-tabs — scrollable single row -->
     <div style="display:flex;gap:4px;margin-bottom:12px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-start;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;" id="adminL2Tabs"></div>
+    <!-- Search bar for orders/bookings -->
+    <div style="display:flex;gap:8px;margin-bottom:10px;flex-shrink:0;">
+      <div style="position:relative;flex:1;">
+        <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;">🔍</span>
+        <input type="text" id="dashSearch" placeholder="Search by name, ID or location…"
+          oninput="filterDashResults()"
+          style="width:100%;padding:8px 12px 8px 30px;border-radius:50px;border:1.5px solid var(--green-pale);background:var(--green-mist);font-family:'DM Sans',sans-serif;font-size:12px;outline:none;">
+      </div>
+    </div>
     <div id="adminOrdersContainer" style="overflow-y:auto;flex:1;padding-right:4px;"></div>
   </div>
 </div>
