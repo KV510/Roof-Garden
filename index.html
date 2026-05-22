@@ -1539,36 +1539,40 @@ function initPlantCarousel(catKey, total) {
   outer.addEventListener('mouseenter', () => { paused = true; outer.style.cursor = 'grab'; });
   outer.addEventListener('mouseleave', () => { paused = false; outer.style.cursor = ''; });
 
-  // ── Mouse drag: left/right ───────────────────────────────────────────────
+  // ── Drag: mouse + touch left/right ──────────────────────────────────────
   let dragStart   = null;
   let dragOffset  = 0;
   let isDragging  = false;
 
-  outer.addEventListener('mousedown', e => {
-    dragStart  = e.clientX;
+  function getX(e) { return e.touches ? e.touches[0].clientX : e.clientX; }
+
+  function onDragStart(e) {
+    dragStart  = getX(e);
     dragOffset = offset;
     isDragging = false;
     outer.style.cursor = 'grabbing';
     trackEl.style.transition = 'none';
-  });
+    paused = true;
+  }
 
-  window.addEventListener('mousemove', e => {
+  function onDragMove(e) {
     if (dragStart === null) return;
-    const diff = dragStart - e.clientX;
+    const diff = dragStart - getX(e);
     if (Math.abs(diff) > 5) isDragging = true;
     if (!isDragging) return;
+    if (e.cancelable) e.preventDefault(); // prevent page scroll while dragging
     let newOffset = dragOffset + diff;
-    // Keep in valid range (allow wrap)
     if (newOffset < 0) newOffset = resetAt + newOffset;
     if (newOffset >= resetAt * 2) newOffset = newOffset % resetAt;
     offset = newOffset;
     trackEl.style.transform = `translateX(-${offset}px)`;
-  });
+  }
 
-  window.addEventListener('mouseup', e => {
+  function onDragEnd(e) {
     if (dragStart === null) return;
     dragStart = null;
     outer.style.cursor = 'grab';
+    paused = false;
     // Snap to nearest card
     const snapped = Math.round(offset / CARD_W) * CARD_W;
     trackEl.style.transition = 'transform 0.3s ease';
@@ -1578,12 +1582,18 @@ function initPlantCarousel(catKey, total) {
       const dotIdx = Math.round(offset / CARD_W) % total;
       dotsEl.querySelectorAll('span').forEach((d,i) => d.classList.toggle('active', i===dotIdx));
     }}, 320);
-    // Block card click if dragged
-    if (isDragging) {
-      isDragging = false;
-      e.stopPropagation();
-    }
-  });
+    if (isDragging) { isDragging = false; if (e.stopPropagation) e.stopPropagation(); }
+  }
+
+  // Mouse events
+  outer.addEventListener('mousedown', onDragStart);
+  window.addEventListener('mousemove', onDragMove);
+  window.addEventListener('mouseup', onDragEnd);
+
+  // Touch events
+  outer.addEventListener('touchstart', onDragStart, { passive: true });
+  outer.addEventListener('touchmove',  onDragMove,  { passive: false });
+  outer.addEventListener('touchend',   onDragEnd);
 
   // Build dots
   if (dotsEl && total > 1) {
@@ -3974,7 +3984,7 @@ function makeCarousel({ trackId, dotsId, cardGap, autoDelay }) {
     if (!w) return;
     w.style.cursor = 'grab';
     w.addEventListener('touchstart',  onStart, { passive: true });
-    w.addEventListener('touchmove',   onMove,  { passive: true });
+    w.addEventListener('touchmove',   onMove,  { passive: false });
     w.addEventListener('touchend',    onEnd);
     w.addEventListener('touchcancel', onEnd);
     w.addEventListener('mousedown',   onStart);
