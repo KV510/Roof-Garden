@@ -140,7 +140,7 @@
     background: var(--green-pale); padding: 2px 10px; border-radius: 50px;
     font-family: 'DM Sans', sans-serif;
   }
-  .plant-carousel-outer { position: relative; overflow: hidden; touch-action: pan-y; }
+  .plant-carousel-outer { position: relative; overflow: hidden; touch-action: pan-y; padding: 8px 4px; margin: 0 -4px; }
   .plant-carousel-track {
     display: flex; gap: 20px; transition: transform 0.5s cubic-bezier(0.4,0,0.2,1);
     will-change: transform;
@@ -1585,139 +1585,73 @@ function renderPlantCarousels() {
 }
 
 function initPlantCarousel(catKey, total) {
-  const outerEl = document.getElementById('pouter-' + catKey);
   const trackEl = document.getElementById('ptrack-' + catKey);
-  const dotsEl  = document.getElementById('pdots-'  + catKey);
-  if (!outerEl || !trackEl) return;
+  const outerEl = document.getElementById('pouter-' + catKey);
+  if (!trackEl || !outerEl || trackEl._initialized) return;
+  trackEl._initialized = true;
 
-  // Clear any existing listeners by replacing the element
-  const newOuter = outerEl.cloneNode(false);
-  while (outerEl.firstChild) newOuter.appendChild(outerEl.firstChild);
-  outerEl.parentNode.replaceChild(newOuter, outerEl);
-  const outer = newOuter;
+  const CARD_W   = 192;
+  const PADDING  = 88; // 44px each side for arrow buttons
+  const maxPos   = Math.max(0, (total * CARD_W) + PADDING - outerEl.offsetWidth);
+  let pos        = 0;
 
-  const CARD_W  = 192;  // card width 180 + gap 12
-  const outerW  = outer.offsetWidth || 900;
-  const visible = Math.max(1, Math.floor(outerW / CARD_W));
+  const slide = (targetPos) => {
+    pos = Math.max(0, Math.min(targetPos, maxPos));
+    trackEl.style.transition = 'transform 0.4s cubic-bezier(0.4,0,0.2,1)';
+    trackEl.style.transform  = `translateX(-${pos}px)`;
+  };
 
-  // Clone cards enough to fill (3 full sets minimum, no empty space)
-  const origCards = Array.from(trackEl.children);
-  if (!origCards.length) return;
-  const sets = Math.max(3, Math.ceil((visible * 3) / total));
-  for (let s = 1; s < sets; s++) {
-    origCards.forEach(c => trackEl.appendChild(c.cloneNode(true)));
-  }
-
-  let offset   = 0;
-  let paused   = false;
-  const resetAt = total * CARD_W;
-
-  trackEl.style.transform  = 'translateX(0px)';
   trackEl.style.transition = 'none';
+  trackEl.style.transform  = 'translateX(0px)';
 
-  function slide() {
-    if (paused) return;
-    offset += CARD_W;
-    trackEl.style.transition = 'transform 0.65s cubic-bezier(0.4,0,0.2,1)';
-    trackEl.style.transform  = `translateX(-${offset}px)`;
-    setTimeout(() => {
-      if (offset >= resetAt) {
-        offset -= resetAt;
-        trackEl.style.transition = 'none';
-        trackEl.style.transform  = `translateX(-${offset}px)`;
-      }
-      const dotIdx = Math.round(offset / CARD_W) % total;
-      if (dotsEl) dotsEl.querySelectorAll('span').forEach((d,i) => d.classList.toggle('active', i===dotIdx));
-    }, 680);
-  }
+  // Arrow buttons
+  trackEl._slide = (dir) => slide(pos + dir * CARD_W);
 
-  _plantCarouselTimers[catKey] = setInterval(slide, 5000);
+  // Drag
+  let startX = null, basePos = 0, dragging = false;
 
-  // ── Hover: pause / resume ────────────────────────────────────────────────
-  outer.addEventListener('mouseenter', () => { paused = true; outer.style.cursor = 'grab'; });
-  outer.addEventListener('mouseleave', () => { paused = false; outer.style.cursor = ''; });
+  outerEl.addEventListener('mouseenter', () => { if (!dragging) outerEl.style.cursor = 'grab'; });
+  outerEl.addEventListener('mouseleave', () => { outerEl.style.cursor = ''; });
 
-  // ── Drag: mouse + touch left/right ──────────────────────────────────────
-  let dragStart   = null;
-  let dragOffset  = 0;
-  let isDragging  = false;
-
-  function getX(e) { return e.touches ? e.touches[0].clientX : e.clientX; }
-
-  function onDragStart(e) {
-    dragStart  = getX(e);
-    dragOffset = offset;
-    isDragging = false;
-    outer.style.cursor = 'grabbing';
+  const onStart = (e) => {
+    startX   = e.touches ? e.touches[0].clientX : e.clientX;
+    basePos  = pos;
+    dragging = false;
     trackEl.style.transition = 'none';
-    paused = true;
-  }
+    outerEl.style.cursor = 'grabbing';
+  };
+  const onMove = (e) => {
+    if (startX === null) return;
+    const dx = startX - (e.touches ? e.touches[0].clientX : e.clientX);
+    if (Math.abs(dx) > 5) dragging = true;
+    if (!dragging) return;
+    if (e.cancelable) e.preventDefault();
+    pos = Math.max(0, Math.min(basePos + dx, maxPos));
+    trackEl.style.transform = `translateX(-${pos}px)`;
+  };
+  const onEnd = (e) => {
+    if (startX === null) return;
+    startX = null;
+    outerEl.style.cursor = 'grab';
+    slide(Math.round(pos / CARD_W) * CARD_W);
+    if (dragging) { dragging = false; if (e.stopPropagation) e.stopPropagation(); }
+  };
 
-  function onDragMove(e) {
-    if (dragStart === null) return;
-    const diff = dragStart - getX(e);
-    if (Math.abs(diff) > 5) isDragging = true;
-    if (!isDragging) return;
-    if (e.cancelable) e.preventDefault(); // prevent page scroll while dragging
-    let newOffset = dragOffset + diff;
-    if (newOffset < 0) newOffset = resetAt + newOffset;
-    if (newOffset >= resetAt * 2) newOffset = newOffset % resetAt;
-    offset = newOffset;
-    trackEl.style.transform = `translateX(-${offset}px)`;
-  }
-
-  function onDragEnd(e) {
-    if (dragStart === null) return;
-    dragStart = null;
-    outer.style.cursor = 'grab';
-    paused = false;
-    // Snap to nearest card
-    const snapped = Math.round(offset / CARD_W) * CARD_W;
-    trackEl.style.transition = 'transform 0.3s ease';
-    offset = ((snapped % resetAt) + resetAt) % resetAt;
-    trackEl.style.transform = `translateX(-${offset}px)`;
-    setTimeout(() => { if (dotsEl) {
-      const dotIdx = Math.round(offset / CARD_W) % total;
-      dotsEl.querySelectorAll('span').forEach((d,i) => d.classList.toggle('active', i===dotIdx));
-    }}, 320);
-    if (isDragging) { isDragging = false; if (e.stopPropagation) e.stopPropagation(); }
-  }
-
-  // Mouse events
-  outer.addEventListener('mousedown', onDragStart);
-  window.addEventListener('mousemove', onDragMove);
-  window.addEventListener('mouseup', onDragEnd);
-
-  // Touch events
-  outer.addEventListener('touchstart', onDragStart, { passive: true });
-  outer.addEventListener('touchmove',  onDragMove,  { passive: false });
-  outer.addEventListener('touchend',   onDragEnd);
-
-  // Build dots
-  if (dotsEl && total > 1) {
-    dotsEl.innerHTML = Array.from({length:total}, (_,i) =>
-      `<span class="${i===0?'active':''}"></span>`).join('');
-  }
+  outerEl.addEventListener('mousedown',  onStart);
+  outerEl.addEventListener('touchstart', onStart, {passive:true});
+  outerEl.addEventListener('touchmove',  onMove,  {passive:false});
+  outerEl.addEventListener('touchend',   onEnd);
+  window.addEventListener('mousemove',   onMove);
+  window.addEventListener('mouseup',     onEnd);
 }
+
 
 function plantCarouselManualNav(catKey, dir) {
-  const outerEl = document.getElementById('pouter-' + catKey);
-  const trackEl = document.getElementById('ptrack-' + catKey);
-  if (!trackEl) return;
-  clearInterval(_plantCarouselTimers[catKey]);
-  const CARD_W  = 240;
-  const total   = plants.filter(p=>(p.type||p.category)===catKey).length;
-  const resetAt = total * CARD_W;
-  let offset = parseFloat((trackEl.style.transform||'translateX(0)').replace(/[^0-9.-]/g,''))||0;
-  offset = Math.abs(offset);
-  offset = dir === -1 ? offset - CARD_W : offset + CARD_W;
-  offset = ((offset % (resetAt * 3)) + resetAt * 3) % (resetAt * 3);
-  trackEl.style.transition = 'transform 0.5s cubic-bezier(0.4,0,0.2,1)';
-  trackEl.style.transform  = `translateX(-${offset}px)`;
-  _plantCarouselTimers[catKey] = setTimeout(() => initPlantCarousel(catKey, total), 4000);
+  const t = document.getElementById('ptrack-' + catKey);
+  if (t && t._slide) t._slide(dir);
 }
 function plantCarouselNav(catKey, dir) { plantCarouselManualNav(catKey, dir); }
-function goPlantDot(catKey, idx) { }
+function goPlantDot(catKey, idx) {}
 
 function renderMaterialsGrid() {
   const grid = document.getElementById('materialsGrid');
