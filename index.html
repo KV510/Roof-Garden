@@ -146,25 +146,26 @@
     will-change: transform;
   }
   .plant-card-slide {
-    flex: 0 0 220px; background: white; border-radius: 18px;
+    flex: 0 0 180px; background: white; border-radius: 12px;
     border: 1.5px solid var(--green-pale);
-    box-shadow: 0 4px 20px rgba(45,106,79,0.10);
+    box-shadow: 0 3px 12px rgba(45,106,79,0.10);
     overflow: hidden; cursor: pointer; position: relative;
     transition: transform 0.3s, box-shadow 0.3s;
     display: flex; flex-direction: column;
+    width: 180px;
   }
-  .plant-card-slide:hover { transform: translateY(-8px); box-shadow: 0 16px 40px rgba(45,106,79,0.20); }
+  .plant-card-slide:hover { transform: scale(1.05); box-shadow: 0 8px 24px rgba(45,106,79,0.20); }
   .plant-card-img {
-    width: 100%; height: 170px; background: var(--green-mist);
+    width: 180px; height: 180px; background: var(--green-mist);
     display: flex; align-items: center; justify-content: center;
     overflow: hidden; flex-shrink: 0;
   }
-  .plant-card-img img { width: 100%; height: 100%; object-fit: cover; }
+  .plant-card-img img { width: 100%; height: 100%; object-fit: contain; background: #f0fdf4; }
   .plant-card-img .emoji-lg { font-size: 72px; line-height: 1; }
-  .plant-card-body { padding: 14px 16px 16px; flex: 1; }
-  .plant-card-name { font-weight: 700; font-size: 15px; color: var(--text-dark); margin-bottom: 3px; }
-  .plant-card-sci  { font-size: 12px; color: var(--text-light); font-style: italic; margin-bottom: 8px; }
-  .plant-card-link { font-size: 13px; color: var(--green-mid); font-weight: 600; }
+  .plant-card-body { padding: 10px 12px 12px; flex: 1; }
+  .plant-card-name { font-weight: 700; font-size: 13px; color: var(--text-dark); margin-bottom: 2px; }
+  .plant-card-sci  { font-size: 11px; color: var(--text-light); font-style: italic; margin-bottom: 6px; }
+  .plant-card-link { font-size: 12px; color: var(--green-mid); font-weight: 600; }
   .plant-card-admin-btns {
     position: absolute; top: 8px; right: 8px;
     display: none; gap: 4px;
@@ -400,8 +401,8 @@
   .gallery-track { display: flex; gap: 20px; transition: transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94); will-change: transform; }
   .gallery-card { border-radius: var(--radius); overflow: hidden; position: relative; box-shadow: var(--shadow-card); border: 1.5px solid var(--green-pale); transition: all 0.3s; cursor: pointer; background: var(--green-mist); flex: 0 0 100%; box-sizing: border-box; }
   .gallery-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(45,106,79,0.18); }
-  .gallery-img-wrap { width: 100%; height: 480px; overflow: hidden; position: relative; background: var(--green-mist); display: flex; align-items: center; justify-content: center; }
-  .gallery-img-wrap img { width: 100%; height: 100%; object-fit: contain; background: #f0f7f1; }
+  .gallery-img-wrap { width: 100%; height: 520px; overflow: hidden; position: relative; background: #f0f7f1; display: flex; align-items: center; justify-content: center; }
+  .gallery-img-wrap img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; image-rendering: high-quality; }
   .gallery-img-wrap video { width: 100%; height: 100%; object-fit: contain; background: #000; }
   .gallery-featured-badge { position: absolute; top: 10px; right: 10px; background: var(--gold); color: white; border-radius: 6px; padding: 3px 10px; font-size: 11px; font-weight: 700; }
   .gallery-card-body { padding: 14px 16px; }
@@ -455,6 +456,9 @@
   @media (max-width: 768px) {
     .modal-overlay { padding: 0; align-items: flex-end; }
     .modal { border-radius: 18px 18px 0 0 !important; max-height: 92vh !important; width: 100% !important; max-width: 100% !important; }
+    /* Keep message thread modal centered not bottom-anchored */
+    #msgThreadModal { align-items: center; padding: 16px; }
+    #msgThreadModal > div { border-radius: 20px !important; width: min(480px,95vw) !important; max-height: 85vh !important; }
   }
   .modal-overlay.open { display: flex; }
   .modal { background: white; border-radius: var(--radius); padding: 28px 24px 24px; width: min(100%, 440px); max-height: min(88vh, 680px); overflow-y: auto; position: relative; box-shadow: 0 24px 80px rgba(0,0,0,0.25); animation: modalIn 0.3s ease; flex-shrink: 0; }
@@ -541,7 +545,7 @@
 
   /* GALLERY VIEWER */
   .gallery-viewer { max-width: 700px; text-align: center; }
-  .gallery-viewer img, .gallery-viewer video { max-width: 100%; border-radius: 12px; max-height: 420px; object-fit: contain; }
+  .gallery-viewer img, .gallery-viewer video { max-width: 100%; border-radius: 12px; max-height: min(85vh, 800px); object-fit: contain; image-rendering: high-quality; }
 
   /* TOAST */
   .toast { position: fixed; bottom: 28px; right: 28px; z-index: 9999; background: var(--green-deep); color: white; padding: 14px 24px; border-radius: 50px; font-size: 14px; font-weight: 500; box-shadow: 0 8px 32px rgba(45,106,79,0.4); opacity: 0; transform: translateY(20px); transition: all 0.35s; pointer-events: none; }
@@ -661,8 +665,8 @@
     /* Plant carousels */
     .plant-cat-section { margin-bottom: 36px; }
     .plant-cat-title { font-size: 18px; }
-    .plant-card-slide { flex: 0 0 160px; }
-    .plant-card-img { height: 130px; }
+    .plant-card-slide { flex: 0 0 140px; width: 140px; }
+    .plant-card-img { width: 140px; height: 140px; }
     .plant-card-name { font-size: 13px; }
     .plant-nav-btn { width: 32px; height: 32px; font-size: 16px; }
     .plant-nav-btn.prev { left: -8px; }
@@ -679,7 +683,7 @@
     .pkg-price { font-size: 40px !important; }
 
     /* Gallery */
-    .gallery-img-wrap { height: 300px !important; }
+    #galleryCarouselOuter { margin: 0 -16px; padding: 0 16px; }
 
     /* Visit booking */
     .visit-grid { grid-template-columns: 1fr !important; }
@@ -703,13 +707,36 @@
 
     /* Compact greeting on mobile */
     #navGreeting { font-size:11px; padding:4px 8px; max-width:130px; }
+
+    /* Order modals — full screen, stacked */
+    #orderModal .modal, #orderSummaryModal .modal {
+      max-width: 100% !important; max-height: 94vh !important;
+      border-radius: 18px 18px 0 0 !important; width: 100% !important;
+    }
+    .order-modal-body { flex-direction: column !important; }
+    .order-left { border-right: none !important; border-bottom: 1.5px solid var(--green-pale) !important; padding: 0 0 14px 0 !important; overflow-y: visible !important; }
+    .order-right { width: 100% !important; padding: 14px 0 0 0 !important; }
+
+    /* Plant detail modal */
+    #itemDetailModal .modal { max-width: 96vw !important; padding: 16px !important; }
+    #itemDetailImg img { max-height: 260px !important; }
+
+    /* Cart FAB — slightly smaller + lower on mobile */
+    .cart-fab { width: 54px !important; height: 54px !important; font-size: 22px !important; bottom: 20px !important; right: 16px !important; }
+
+    /* Gallery carousel cards smaller on mobile */
+    #galleryGrid > div { width: 140px !important; height: 140px !important; flex-shrink: 0; }
+
+    /* Message thread modal full width */
+    #msgThreadModal .modal { border-radius: 18px 18px 0 0 !important; }
   }
 
   @media (max-width: 480px) {
     .hero h1 { font-size: 26px; }
     .catalog-grid { grid-template-columns: 1fr 1fr !important; gap: 8px; }
     .packages-static-grid { grid-template-columns: 1fr !important; }
-    .plant-card-slide { flex: 0 0 140px; }
+    .plant-card-slide { flex: 0 0 120px; width: 120px; }
+    .plant-card-img { width: 120px; height: 120px; }
     /* Shorten nav button labels on small screens */
     .btn-label { display: none; }
     .nav-actions .btn-login::after { }
@@ -791,8 +818,11 @@
       <h2 id="sec-gallery-h2">Garden Gallery</h2>
       <p id="sec-gallery-p">Real terrace gardens we've created across Coimbatore</p>
     </div>
-    <div class="gallery-carousel-wrap" id="galleryCarouselWrap" style="position:relative;overflow:hidden;"><div class="gallery-track" id="galleryTrack" style="display:flex;gap:20px;transition:transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94);will-change:transform;"></div></div>
-    <div class="carousel-dots" id="galDots"></div>
+    <!-- Gallery infinite scroll carousel -->
+    <div style="position:relative;overflow:hidden;" id="galleryCarouselOuter">
+      <div id="galleryGrid" style="display:flex;gap:12px;will-change:transform;"></div>
+    </div>
+    <div style="display:none;"><div id="galleryTrack"></div><div id="galDots"></div></div>
   </div>
 </section>
 
@@ -1566,7 +1596,7 @@ function initPlantCarousel(catKey, total) {
   outerEl.parentNode.replaceChild(newOuter, outerEl);
   const outer = newOuter;
 
-  const CARD_W  = 240;  // card width 220 + gap 20
+  const CARD_W  = 192;  // card width 180 + gap 12
   const outerW  = outer.offsetWidth || 900;
   const visible = Math.max(1, Math.floor(outerW / CARD_W));
 
@@ -1778,34 +1808,102 @@ function saveContact() {
   showToast('✅ Contact info updated!');
 }
 
+let _galScrollTimer = null;
+
 function renderGallery() {
-  const track = document.getElementById('galleryTrack');
-  // Reset carousel before clearing track — prevents broken transform state
-  try { galCarousel.reset(); } catch(e) {}
-  track.innerHTML = '';
+  const grid  = document.getElementById('galleryGrid');
+  const outer = document.getElementById('galleryCarouselOuter');
+  if (!grid) return;
+  if (_galScrollTimer) { clearInterval(_galScrollTimer); _galScrollTimer = null; }
+
   const sorted = [...gallery].sort((a,b) => (b.featured?1:0)-(a.featured?1:0));
-  sorted.forEach(item => {
-    const isPaid = item.price > 0;
-    const isUnlocked = unlockedGallery.includes(item.id);
-    const card = document.createElement('div');
-    card.className = 'gallery-card';
-    const mediaHtml = item.mediaType === 'video'
-      ? `<video src="${item.src}" muted loop playsinline style="width:100%;height:100%;object-fit:cover;"></video><span class="gallery-video-badge">🎥 VIDEO</span>`
-      : `<img src="${item.src}" alt="${item.title}" style="width:100%;height:100%;object-fit:cover;">`;
-    card.innerHTML = `
-      <div class="gallery-img-wrap" onclick="openGalleryViewer(${item.id})">
-        ${mediaHtml}
-        ${item.featured ? '<span class="gallery-featured-badge">⭐ Admin Pick</span>' : ''}
-        ${isPaid && !isUnlocked ? `<div class="gallery-lock-overlay"><span class="lock-icon">🔒</span><span>Premium</span><span style="font-size:13px;">₹${item.price}</span></div>` : ''}
-        ${isPaid && isUnlocked ? `<span class="gallery-paid-badge">🔓 Unlocked</span>` : ''}
-      </div>
-      <div class="gallery-card-body">
-        <div class="gallery-card-title">${item.title}</div>
-        <div class="gallery-card-meta">${item.desc}${isPaid ? ` · <span style="color:var(--gold);font-weight:700;">₹${item.price}</span>` : ''}</div>
-      </div>`;
-    track.appendChild(card);
-  });
-  galCarousel.reinit();
+  if (!sorted.length) {
+    grid.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:40px;width:100%;">No gallery photos yet.</p>';
+    return;
+  }
+
+  const CARD   = 192; // 180px card + 12px gap
+  const total  = sorted.length;
+
+  function makeCard(item, idx) {
+    const isVideo = item.mediaType === 'video';
+    const media   = isVideo
+      ? `<video src="${item.src}" muted loop playsinline style="width:100%;height:100%;object-fit:cover;"></video>
+         <span style="position:absolute;top:6px;left:6px;background:rgba(0,0,0,0.65);color:white;font-size:10px;padding:2px 7px;border-radius:50px;">🎥</span>`
+      : `<img src="${item.src}" alt="${item.title||''}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">`;
+    return `<div onclick="openGalleryViewer(${item.id})"
+      style="position:relative;cursor:pointer;border-radius:12px;overflow:hidden;
+             width:180px;height:180px;flex-shrink:0;background:#e8f5e9;
+             box-shadow:0 3px 12px rgba(0,0,0,0.12);transition:transform 0.3s,box-shadow 0.3s;"
+      onmouseenter="this.style.transform='scale(1.05)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.2)'"
+      onmouseleave="this.style.transform='';this.style.boxShadow='0 3px 12px rgba(0,0,0,0.12)'">
+      ${media}
+      ${item.title ? `<div style="position:absolute;bottom:0;left:0;right:0;padding:8px 10px;background:linear-gradient(transparent,rgba(0,0,0,0.55));color:white;font-size:11px;font-weight:600;">${sanitiseHTML(item.title)}</div>` : ''}
+      ${item.featured ? '<span style="position:absolute;top:6px;left:6px;background:rgba(255,193,7,0.9);color:#333;font-size:10px;padding:2px 7px;border-radius:50px;font-weight:700;">⭐</span>' : ''}
+    </div>`;
+  }
+
+  // Triple the cards for seamless infinite loop
+  const sets = Math.max(3, Math.ceil(20 / total));
+  grid.innerHTML = Array.from({length: sets}, () =>
+    sorted.map((item, idx) => makeCard(item, idx)).join('')
+  ).join('');
+
+  grid.style.transform = 'translateX(0px)';
+  grid.style.transition = 'none';
+
+  let offset     = 0;
+  let paused     = false;
+  const resetAt  = total * CARD;
+
+  function slide() {
+    if (paused) return;
+    offset += CARD;
+    grid.style.transition = 'transform 0.7s cubic-bezier(0.4,0,0.2,1)';
+    grid.style.transform  = `translateX(-${offset}px)`;
+    setTimeout(() => {
+      if (offset >= resetAt) {
+        offset -= resetAt;
+        grid.style.transition = 'none';
+        grid.style.transform  = `translateX(-${offset}px)`;
+      }
+    }, 720);
+  }
+
+  _galScrollTimer = setInterval(slide, 5000);
+
+  // Hover: pause
+  if (outer) {
+    outer.addEventListener('mouseenter', () => { paused = true; outer.style.cursor = 'grab'; });
+    outer.addEventListener('mouseleave', () => { paused = false; outer.style.cursor = ''; });
+
+    // Touch / mouse drag
+    let dragStart = null, dragBase = 0, dragging = false;
+    function dragBegin(e) { dragStart = e.touches ? e.touches[0].clientX : e.clientX; dragBase = offset; dragging = false; paused = true; grid.style.transition = 'none'; }
+    function dragMove(e) {
+      if (dragStart === null) return;
+      const diff = dragStart - (e.touches ? e.touches[0].clientX : e.clientX);
+      if (Math.abs(diff) > 5) dragging = true;
+      if (!dragging) return;
+      if (e.cancelable) e.preventDefault();
+      offset = ((dragBase + diff) % (resetAt * sets) + resetAt * sets) % (resetAt * sets);
+      grid.style.transform = `translateX(-${offset}px)`;
+    }
+    function dragEnd() {
+      dragStart = null;
+      const snapped = Math.round(offset / CARD) * CARD;
+      grid.style.transition = 'transform 0.3s ease';
+      offset = snapped % resetAt;
+      grid.style.transform = `translateX(-${offset}px)`;
+      paused = false;
+    }
+    outer.addEventListener('mousedown',  dragBegin);
+    window.addEventListener('mousemove', dragMove);
+    window.addEventListener('mouseup',   dragEnd);
+    outer.addEventListener('touchstart', dragBegin, {passive:true});
+    outer.addEventListener('touchmove',  dragMove,  {passive:false});
+    outer.addEventListener('touchend',   dragEnd);
+  }
 }
 
 function openGalleryViewer(id) {
@@ -5339,7 +5437,7 @@ if (document.readyState === 'loading') {
 
 // Boot carousels — they retry automatically until cards have width
 try { svcCarousel.init(); } catch(e) { console.warn('svcCarousel init failed:', e.message); }
-try { galCarousel.init(); } catch(e) { console.warn('galCarousel init failed:', e.message); }
+// galCarousel disabled — using grid gallery instead
 window.addEventListener('resize', () => {
   try { svcCarousel.reinit(); galCarousel.reinit(); } catch(e) {}
 });
@@ -5576,9 +5674,9 @@ window.addEventListener('resize', () => {
 
 <!-- ITEM DETAIL POPUP — shows when user clicks plant/material card -->
 <div class="modal-overlay" id="itemDetailModal">
-  <div class="modal" style="max-width:400px;text-align:center;">
+  <div class="modal" style="max-width:460px;text-align:center;">
     <button class="modal-close" onclick="document.getElementById('itemDetailModal').classList.remove('open')">✕</button>
-    <div id="itemDetailImg" style="width:100%;height:200px;border-radius:12px;overflow:hidden;background:var(--green-mist);display:flex;align-items:center;justify-content:center;font-size:80px;margin-bottom:16px;"></div>
+    <div id="itemDetailImg" style="width:100%;max-height:360px;border-radius:14px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;font-size:80px;margin-bottom:16px;overflow:hidden;"></div>
     <h2 id="itemDetailName" style="font-family:'Playfair Display',serif;font-size:22px;color:var(--green-deep);margin-bottom:4px;"></h2>
     <div id="itemDetailSci" style="font-size:13px;color:var(--text-light);font-style:italic;margin-bottom:12px;"></div>
     <div id="itemDetailBadge" style="margin-bottom:14px;"></div>
