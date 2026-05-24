@@ -41,7 +41,7 @@
     background: rgba(255,255,255,0.96); backdrop-filter: blur(12px);
     border-bottom: 1.5px solid var(--green-pale);
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0 24px; min-height: 64px; gap: 8px;
+    padding: 0 24px; min-height: 64px; height: 64px; gap: 8px;
     box-shadow: 0 2px 20px rgba(45,106,79,0.08);
   }
   #navGreeting { font-size:13px;font-weight:600;color:var(--green-deep);padding:5px 12px;background:var(--green-mist);border-radius:50px;white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis;flex-shrink:0; }
@@ -601,7 +601,7 @@
   @media (max-width: 768px) {
     /* Mobile: 2-row topbar */
     .topbar {
-      flex-wrap: wrap; padding: 6px 12px; min-height: auto; gap: 0; align-items: center;
+      flex-wrap: wrap; padding: 6px 12px; min-height: auto; height: auto; gap: 0; align-items: center;
     }
     /* Row 1: logo (left) + nav-actions (right) — both order:1 so they sit on same row */
     .logo       { order: 1; flex: 0 0 auto; }
@@ -619,7 +619,7 @@
     .nav a { font-size: 12px; padding: 5px 10px; white-space: nowrap; flex-shrink: 0; }
     .nav-actions .btn-primary { padding: 5px 8px !important; font-size: 10px !important; }
     .nav-actions .btn-login   { padding: 5px 8px; font-size: 10px; }
-    .nav-actions .btn-logout  { padding: 5px 8px; font-size: 10px; }
+    .nav-actions .btn-logout  { padding: 4px 6px; font-size: 9px; }
     .nav-actions .role-badge  { display: none; }
     /* Hide text, show short labels on mobile */
     .nav-orders-text::before  { content: 'Orders'; }
@@ -707,8 +707,8 @@
     #adminModal .modal,
     #techDashModal .modal { max-width: 100% !important; width: 100% !important; }
 
-    /* Compact greeting on mobile */
-    #navGreeting { font-size:11px; padding:4px 8px; max-width:130px; }
+    /* Hide greeting on mobile — save navbar space */
+    #navGreeting { display: none !important; }
 
     /* Contact + Visit grids — single column */
     .contact-grid { grid-template-columns: 1fr !important; }
