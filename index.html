@@ -32,7 +32,7 @@
       linear-gradient(160deg, #d8f3dc 0%, #b7e4c7 40%, #c7f0d8 70%, #d8f3dc 100%);
     background-attachment: fixed;
     color: var(--text-dark); min-height: 100vh; overflow-x: hidden;
-    padding-top: 64px; /* account for fixed navbar height */
+    padding-top: 66px; /* account for fixed navbar height */
   }
 
   /* TOPBAR */
@@ -640,8 +640,8 @@
   @media (max-width: 768px) {
 
     /* Account for 2-row fixed navbar height */
-    body { overflow-x: hidden; padding-top: 0 !important; }
-    .topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
+    body { overflow-x: hidden; padding-top: 88px !important; }
+    .topbar { position: fixed !important; top: 0; left: 0; right: 0; z-index: 1000; }
 
     /* Hero — no extra top padding needed since body handles it */
     .hero { padding: 40px 16px; }
@@ -5428,11 +5428,15 @@ async function initApp() {
 
 // Set body padding-top based on actual navbar height
 function fixNavOffset() {
-  const topbar = document.querySelector('.topbar');
-  if (topbar) {
-    const h = topbar.offsetHeight;
-    document.body.style.paddingTop = h + 'px';
-  }
+  // Run multiple times to catch after fonts/content load
+  [0, 100, 500].forEach(delay => {
+    setTimeout(() => {
+      const topbar = document.querySelector('.topbar');
+      if (topbar && topbar.offsetHeight > 0) {
+        document.body.style.paddingTop = topbar.offsetHeight + 'px';
+      }
+    }, delay);
+  });
 }
 
 // Run renderAll immediately when DOM is ready
