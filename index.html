@@ -683,7 +683,8 @@
     .pkg-price { font-size: 40px !important; }
 
     /* Gallery */
-    #galleryCarouselOuter { margin: 0 -16px; padding: 0 16px; }
+    #galleryGrid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px; }
+    #galleryGrid > div { width: auto !important; height: auto !important; aspect-ratio: 1/1 !important; }
 
     /* Visit booking */
     .visit-grid { grid-template-columns: 1fr !important; }
@@ -725,7 +726,7 @@
     .cart-fab { width: 54px !important; height: 54px !important; font-size: 22px !important; bottom: 20px !important; right: 16px !important; }
 
     /* Gallery carousel cards smaller on mobile */
-    #galleryGrid > div { width: 140px !important; height: 140px !important; flex-shrink: 0; }
+    #galleryGrid > div { width: 100vw !important; max-width: 100% !important; height: 300px !important; flex-shrink: 0; }
 
     /* Message thread modal full width */
     #msgThreadModal .modal { border-radius: 18px 18px 0 0 !important; }
@@ -818,9 +819,9 @@
       <h2 id="sec-gallery-h2">Garden Gallery</h2>
       <p id="sec-gallery-p">Real terrace gardens we've created across Coimbatore</p>
     </div>
-    <!-- Gallery infinite scroll carousel -->
-    <div style="position:relative;overflow:hidden;" id="galleryCarouselOuter">
-      <div id="galleryGrid" style="display:flex;gap:12px;will-change:transform;"></div>
+    <!-- Gallery — one image at a time, full section width -->
+    <div style="position:relative;overflow:hidden;width:100%;border-radius:16px;" id="galleryCarouselOuter">
+      <div id="galleryGrid" style="display:flex;gap:0;will-change:transform;"></div>
     </div>
     <div style="display:none;"><div id="galleryTrack"></div><div id="galDots"></div></div>
   </div>
@@ -1525,17 +1526,33 @@ function renderPlantCarousels() {
   ];
   const allCats = [...builtIn, ...customCategories.map(c => ({ key: c.key, label: c.label, emoji: c.emoji || '🌿' }))];
 
-  // Only show categories that have plants
-  const activeCats = allCats.filter(cat => plants.some(p => (p.type||p.category) === cat.key));
-  if (!activeCats.length) {
-    wrap.innerHTML = '<p style="text-align:center;padding:40px;color:var(--text-light);">No plants added yet.</p>';
+  // Show categories with plants + empty ones for admin/tech
+  const catsWithPlants = allCats.filter(cat =>
+    plants.some(p => (p.type||p.category) === cat.key)
+  );
+  const emptyCats = canEdit()
+    ? allCats.filter(cat => !plants.some(p => (p.type||p.category) === cat.key))
+    : [];
+  const activeCats = [...catsWithPlants, ...emptyCats];
+
+  if (!plants.length) {
+    wrap.innerHTML = canEdit()
+      ? '<p style="text-align:center;padding:40px;color:var(--text-light);">No plants added yet. Click ➕ Add Plant to get started.</p>'
+      : '<p style="text-align:center;padding:40px;color:var(--text-light);">Coming soon!</p>';
     return;
   }
 
+  // Fallback — if no categories match, show all plants together
+  if (!catsWithPlants.length) {
+    activeCats.length = 0;
+    activeCats.push({ key: '__all', label: 'All Plants', emoji: '🌿' });
+  }
+
   wrap.innerHTML = activeCats.map(cat => {
-    const catPlants = [...plants]
-      .filter(p => (p.type||p.category) === cat.key)
-      .sort((a,b) => a.name.localeCompare(b.name));
+    const catPlants = (cat.key === '__all'
+      ? [...plants]
+      : [...plants].filter(p => (p.type||p.category) === cat.key)
+    ).sort((a,b) => a.name.localeCompare(b.name));
     return `
       <div class="plant-cat-section" data-cat="${cat.key}">
         <div class="plant-cat-header">
@@ -1730,6 +1747,10 @@ function saveContact() {
 }
 
 let _galScrollTimer = null;
+let _galSlide = null;  // exposed from renderGallery
+
+function galNext() { if (_galSlide) _galSlide(1); }
+function galPrev() { if (_galSlide) _galSlide(-1); }
 
 function renderGallery() {
   const grid  = document.getElementById('galleryGrid');
@@ -1743,7 +1764,8 @@ function renderGallery() {
     return;
   }
 
-  const CARD   = 192; // 180px card + 12px gap
+  const outerW  = outer.offsetWidth || 900;
+  const CARD    = outerW; // one full card = full container width
   const total  = sorted.length;
 
   function makeCard(item, idx) {
@@ -1792,6 +1814,7 @@ function renderGallery() {
   }
 
   _galScrollTimer = setInterval(slide, 5000);
+  _galSlide = (dir) => slide(pos + dir * CARD);
 
   // Hover: pause
   if (outer) {
@@ -4298,7 +4321,15 @@ function openItemEdit(type, id) {
   document.getElementById('itemTypeWrap').style.display = isPlant ? 'block' : 'none';
   if (isPlant) {
     document.getElementById('itemSci').value  = item.sci  || '';
-    document.getElementById('itemType').value = item.type || 'food';
+    // Rebuild category options including custom categories
+    const typeSelect = document.getElementById('itemType');
+    typeSelect.innerHTML = `
+      <option value="food">🍅 Food Plant</option>
+      <option value="ornamental">🌸 Ornamental Plant</option>
+      <option value="indoor">🪴 Indoor Plant</option>
+      ${customCategories.map(c => `<option value="${c.key}">${c.emoji||'🌿'} ${c.label}</option>`).join('')}
+    `;
+    typeSelect.value = item.type || 'food';
   }
 
   // Reset upload state
@@ -5626,6 +5657,7 @@ window.addEventListener('resize', () => {
         <option value="food">🍅 Food Plant</option>
         <option value="ornamental">🌸 Ornamental Plant</option>
         <option value="indoor">🪴 Indoor Plant</option>
+        <!-- Custom categories added dynamically via JS -->
       </select>
     </div>
     <div class="input-wrap">
