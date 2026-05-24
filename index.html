@@ -69,7 +69,7 @@
   .btn-logout:hover { background: #fecaca; }
 
   /* HERO */
-  .hero { margin-top: 64px; min-height: 92vh; background: transparent; display: flex; align-items: center; justify-content: center; text-align: center; padding: 60px 24px; position: relative; overflow: hidden; }
+  .hero { background: transparent; display: flex; align-items: center; justify-content: center; text-align: center; padding: 60px 24px; position: relative; overflow: hidden; }
   /* hero::before removed — checkerboard now in body background */
   .hero-float { position: absolute; font-size: 80px; opacity: 0.12; animation: floatLeaf 6s ease-in-out infinite; pointer-events: none; }
   .hero-float:nth-child(1) { top: 10%; left: 5%; animation-delay: 0s; }
@@ -89,7 +89,7 @@
   .stat-lbl { font-size: 13px; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; }
 
   /* SECTIONS */
-  section { padding: 80px 24px; background: transparent; }
+  section { padding: 60px 24px; background: transparent; }
   .section-inner { max-width: 1100px; margin: 0 auto; }
   /* Subtle divider between sections */
   section + section::before {
@@ -110,7 +110,7 @@
   .services-bg { background: transparent; }
   .services-carousel-wrap { position: relative; overflow: hidden; }
   .services-track { display: flex; gap: 24px; transition: transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94); will-change: transform; }
-  .service-card { background: rgba(255,255,255,0.85); border-radius: var(--radius); padding: 32px 26px; box-shadow: var(--shadow-card); border: 1.5px solid var(--green-pale); transition: box-shadow 0.3s; position: relative; overflow: hidden; flex: 0 0 100%; box-sizing: border-box; }
+  .service-card { background: rgba(255,255,255,0.85); border-radius: var(--radius); padding: 20px 22px; box-shadow: var(--shadow-card); border: 1.5px solid var(--green-pale); transition: box-shadow 0.3s; position: relative; overflow: hidden; flex: 0 0 100%; box-sizing: border-box; }
   .service-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--green-light), var(--green-mid)); }
   .service-card:hover { box-shadow: 0 12px 40px rgba(45,106,79,0.18); }
   .service-icon { font-size: 40px; margin-bottom: 16px; }
@@ -643,7 +643,7 @@
     nav.navbar { position: fixed !important; top: 0; left: 0; right: 0; z-index: 1000; }
 
     /* Hero — no extra top padding needed since body handles it */
-    .hero { padding: 32px 16px; min-height: auto; }
+    .hero { padding: 40px 16px; }
     .hero h1 { font-size: clamp(28px, 8vw, 42px); }
     .hero-sub { font-size: 14px !important; }
     .hero-btns { flex-direction: column; gap: 10px; }
@@ -653,7 +653,7 @@
     .stat-num { font-size: 28px !important; }
 
     /* Sections */
-    section { padding: 50px 16px; }
+    section { padding: 40px 16px; }
     .section-inner { padding: 0; }
     .section-head { margin-bottom: 28px; }
     .section-head h2 { font-size: clamp(24px, 6vw, 36px); }
