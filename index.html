@@ -640,8 +640,8 @@
   @media (max-width: 768px) {
 
     /* Account for 2-row fixed navbar height */
-    body { overflow-x: hidden; padding-top: 95px !important; }
-    nav.navbar { position: fixed !important; top: 0; left: 0; right: 0; z-index: 1000; }
+    body { overflow-x: hidden; padding-top: 0 !important; }
+    .topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
 
     /* Hero — no extra top padding needed since body handles it */
     .hero { padding: 40px 16px; }
@@ -5426,9 +5426,18 @@ async function initApp() {
   fbLoader.style.opacity='0'; setTimeout(()=>{ if(fbLoader.parentNode) fbLoader.parentNode.removeChild(fbLoader); },400);
 }
 
+// Set body padding-top based on actual navbar height
+function fixNavOffset() {
+  const topbar = document.querySelector('.topbar');
+  if (topbar) {
+    const h = topbar.offsetHeight;
+    document.body.style.paddingTop = h + 'px';
+  }
+}
+
 // Run renderAll immediately when DOM is ready
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => { renderAll(); initApp(); });
+  document.addEventListener('DOMContentLoaded', () => { renderAll(); initApp(); fixNavOffset(); });
 } else {
   initApp(); // DOM already ready
 }
