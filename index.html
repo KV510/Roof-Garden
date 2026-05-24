@@ -399,9 +399,9 @@
   /* GALLERY */
   .gallery-carousel-wrap { position: relative; overflow: hidden; }
   .gallery-track { display: flex; gap: 20px; transition: transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94); will-change: transform; }
-  .gallery-card { border-radius: var(--radius); overflow: hidden; position: relative; box-shadow: var(--shadow-card); border: 1.5px solid var(--green-pale); transition: all 0.3s; cursor: pointer; background: var(--green-mist); flex: 0 0 100%; box-sizing: border-box; }
+  .gallery-card { border-radius: var(--radius); overflow: hidden; position: relative; box-shadow: var(--shadow-card); border: 1.5px solid var(--green-pale); transition: all 0.3s; cursor: pointer; background: transparent; flex: 0 0 100%; box-sizing: border-box; }
   .gallery-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(45,106,79,0.18); }
-  .gallery-img-wrap { width: 100%; height: 520px; overflow: hidden; position: relative; background: #f0f7f1; display: flex; align-items: center; justify-content: center; }
+  .gallery-img-wrap { width: 100%; height: 520px; overflow: hidden; position: relative; background: transparent; display: flex; align-items: center; justify-content: center; }
   .gallery-img-wrap img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; image-rendering: high-quality; }
   .gallery-img-wrap video { width: 100%; height: 100%; object-fit: contain; background: #000; }
   .gallery-featured-badge { position: absolute; top: 10px; right: 10px; background: var(--gold); color: white; border-radius: 6px; padding: 3px 10px; font-size: 11px; font-weight: 700; }
@@ -416,7 +416,7 @@
 
   /* CONTACT */
   .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
-  @media (max-width: 700px) { .contact-grid { grid-template-columns: 1fr; } }
+  /* contact-grid → merged into 768px block */
   .contact-info h3 { font-family: 'Playfair Display', serif; font-size: 28px; color: var(--green-deep); margin-bottom: 20px; }
   .contact-item { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 20px; padding: 16px; background: var(--green-mist); border-radius: var(--radius-sm); border: 1.5px solid var(--green-pale); }
   .contact-item-icon { font-size: 22px; flex-shrink: 0; }
@@ -444,7 +444,7 @@
   .booking-date-btn.selected { background: var(--green-deep); border-color: var(--green-deep); color: white; }
   .booking-card { background: white; border-radius: var(--radius); padding: 36px; box-shadow: var(--shadow-card); border: 1.5px solid var(--green-pale); }
   .visit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
-  @media (max-width: 700px) { .visit-grid { grid-template-columns: 1fr; } }
+  /* visit-grid → merged into 768px block */
 
   /* FOOTER */
   footer { background: var(--text-dark); color: rgba(255,255,255,0.7); padding: 40px 24px; text-align: center; }
@@ -709,6 +709,16 @@
     /* Compact greeting on mobile */
     #navGreeting { font-size:11px; padding:4px 8px; max-width:130px; }
 
+    /* Contact + Visit grids — single column */
+    .contact-grid { grid-template-columns: 1fr !important; }
+    .visit-grid   { grid-template-columns: 1fr !important; }
+
+    /* Small phone adjustments */
+    .hero h1 { font-size: clamp(22px, 7vw, 36px); }
+    .plant-card-slide { flex: 0 0 120px; width: 120px; }
+    .plant-card-img   { width: 120px; height: 120px; }
+    .btn-label { font-size: 10px; }
+
     /* Order modals — full screen, stacked */
     #orderModal .modal, #orderSummaryModal .modal {
       max-width: 100% !important; max-height: 94vh !important;
@@ -732,16 +742,7 @@
     #msgThreadModal .modal { border-radius: 18px 18px 0 0 !important; }
   }
 
-  @media (max-width: 480px) {
-    .hero h1 { font-size: 26px; }
-    .catalog-grid { grid-template-columns: 1fr 1fr !important; gap: 8px; }
-    .packages-static-grid { grid-template-columns: 1fr !important; }
-    .plant-card-slide { flex: 0 0 120px; width: 120px; }
-    .plant-card-img { width: 120px; height: 120px; }
-    /* Shorten nav button labels on small screens */
-    .btn-label { display: none; }
-    .nav-actions .btn-login::after { }
-  }
+  /* 480px rules merged into 768px block */
 </style>
 </head>
 <body>
@@ -820,7 +821,7 @@
       <p id="sec-gallery-p">Real terrace gardens we've created across Coimbatore</p>
     </div>
     <!-- Gallery — one image at a time, full section width -->
-    <div style="position:relative;overflow:hidden;width:100%;border-radius:16px;" id="galleryCarouselOuter">
+    <div style="position:relative;overflow:hidden;width:100%;" id="galleryCarouselOuter">
       <div id="galleryGrid" style="display:flex;gap:0;will-change:transform;"></div>
     </div>
     <div style="display:none;"><div id="galleryTrack"></div><div id="galDots"></div></div>
@@ -1513,6 +1514,10 @@ function renderPlantCarousels() {
   // Show admin bar
   const adminBar = document.getElementById('plantAdminBar');
   if (adminBar) adminBar.style.display = canEdit() ? 'flex' : 'none';
+  // Reset show counts when explicitly re-rendering (e.g. new plant added)
+  if (window._plantShowCount && Object.keys(window._plantShowCount).length === 0) {
+    window._plantShowCount = {};
+  }
 
   // Clear old timers
   Object.values(_plantCarouselTimers).forEach(clearInterval);
@@ -1548,11 +1553,23 @@ function renderPlantCarousels() {
     activeCats.push({ key: '__all', label: 'All Plants', emoji: '🌿' });
   }
 
+  // Track how many cards shown per category
+  if (!window._plantShowCount) window._plantShowCount = {};
+
+  const PAGE_SIZE = window.innerWidth <= 768 ? 4 : 10;
+
   wrap.innerHTML = activeCats.map(cat => {
     const catPlants = (cat.key === '__all'
       ? [...plants]
       : [...plants].filter(p => (p.type||p.category) === cat.key)
     ).sort((a,b) => a.name.localeCompare(b.name));
+
+    // Init count for this category
+    if (!window._plantShowCount[cat.key]) window._plantShowCount[cat.key] = PAGE_SIZE;
+    const showCount = window._plantShowCount[cat.key];
+    const visible   = catPlants.slice(0, showCount);
+    const hasMore   = catPlants.length > showCount;
+
     return `
       <div class="plant-cat-section" data-cat="${cat.key}">
         <div class="plant-cat-header">
@@ -1564,28 +1581,50 @@ function renderPlantCarousels() {
             <button class="btn-edit-sm" onclick="openEditCategoryModal('${cat.key}')" title="Edit category">✏️</button>
           </div>` : ''}
         </div>
-        <div class="catalog-grid">
-          ${catPlants.map(item => `
-            <div class="catalog-card">
-              <div class="catalog-img" onclick="openItemDetail('plant',${item.id})" style="cursor:pointer;">
-                ${item.img
-                  ? `<img src="${item.img}" alt="${item.name}" loading="lazy" style="width:100%;height:100%;object-fit:contain;background:#f0fdf4;" onerror="this.style.display='none';this.nextSibling.style.display='flex'">
-                     <span style="display:none;font-size:64px;align-items:center;justify-content:center;">${item.emoji}</span>`
-                  : `<span style="font-size:64px;">${item.emoji}</span>`}
-              </div>
-              <div class="catalog-name" onclick="openItemDetail('plant',${item.id})" style="cursor:pointer;">
-                <span class="catalog-plant-name">${item.name}</span>
-                ${item.sci ? `<span style="display:block;font-size:11px;color:var(--text-light);font-style:italic;margin-top:2px;">${item.sci}</span>` : ''}
-                <span style="display:inline-block;margin-top:6px;font-size:11px;color:var(--green-mid);font-weight:600;">View Details →</span>
-              </div>
-              ${canEdit() ? `<div class="catalog-actions">
-                <button class="btn-edit-sm" onclick="event.stopPropagation();openItemEdit('plant',${item.id})">✏️</button>
-                <button class="btn-del-sm" onclick="event.stopPropagation();deleteItem('plant',${item.id})">🗑</button>
-              </div>` : ''}
-            </div>`).join('')}
+        <div class="catalog-grid" id="plant-grid-${cat.key}">
+          ${visible.map(item => renderPlantCard(item)).join('')}
         </div>
+        ${hasMore ? `
+        <div style="text-align:center;margin-top:16px;">
+          <button onclick="showMorePlants('${cat.key}')"
+            style="padding:10px 28px;border-radius:50px;border:2px solid var(--green-light);
+                   background:white;color:var(--green-mid);font-size:13px;font-weight:600;
+                   cursor:pointer;display:inline-flex;align-items:center;gap:8px;
+                   transition:all 0.2s;font-family:'DM Sans',sans-serif;"
+            onmouseover="this.style.background='var(--green-mid)';this.style.color='white'"
+            onmouseout="this.style.background='white';this.style.color='var(--green-mid)'">
+            ↓ Show More <span style="opacity:0.6;font-size:12px;">(${catPlants.length - showCount} more)</span>
+          </button>
+        </div>` : ''}
       </div>`;
   }).join('');
+}
+
+function renderPlantCard(item) {
+  return `<div class="catalog-card">
+    <div class="catalog-img" onclick="openItemDetail('plant',${item.id})" style="cursor:pointer;">
+      ${item.img
+        ? `<img src="${item.img}" alt="${item.name}" loading="lazy" style="width:100%;height:100%;object-fit:contain;background:#f0fdf4;" onerror="this.style.display='none';this.nextSibling.style.display='flex'">
+           <span style="display:none;font-size:64px;align-items:center;justify-content:center;">${item.emoji}</span>`
+        : `<span style="font-size:64px;">${item.emoji}</span>`}
+    </div>
+    <div class="catalog-name" onclick="openItemDetail('plant',${item.id})" style="cursor:pointer;">
+      <span class="catalog-plant-name">${item.name}</span>
+      ${item.sci ? `<span style="display:block;font-size:11px;color:var(--text-light);font-style:italic;margin-top:2px;">${item.sci}</span>` : ''}
+      <span style="display:inline-block;margin-top:6px;font-size:11px;color:var(--green-mid);font-weight:600;">View Details →</span>
+    </div>
+    ${canEdit() ? `<div class="catalog-actions">
+      <button class="btn-edit-sm" onclick="event.stopPropagation();openItemEdit('plant',${item.id})">✏️</button>
+      <button class="btn-del-sm" onclick="event.stopPropagation();deleteItem('plant',${item.id})">🗑</button>
+    </div>` : ''}
+  </div>`;
+}
+
+function showMorePlants(catKey) {
+  const PAGE_SIZE = window.innerWidth <= 768 ? 4 : 10;
+  if (!window._plantShowCount) window._plantShowCount = {};
+  window._plantShowCount[catKey] = (window._plantShowCount[catKey] || PAGE_SIZE) + PAGE_SIZE;
+  renderPlantCarousels(); // re-render with updated count
 }
 
 function initPlantCarousel(catKey, total) {
@@ -1768,21 +1807,21 @@ function renderGallery() {
   const CARD    = outerW; // one full card = full container width
   const total  = sorted.length;
 
+  const cardH = Math.round(CARD * 0.40); // widescreen ratio
+
   function makeCard(item, idx) {
     const isVideo = item.mediaType === 'video';
     const media   = isVideo
-      ? `<video src="${item.src}" muted loop playsinline style="width:100%;height:100%;object-fit:cover;"></video>
-         <span style="position:absolute;top:6px;left:6px;background:rgba(0,0,0,0.65);color:white;font-size:10px;padding:2px 7px;border-radius:50px;">🎥</span>`
-      : `<img src="${item.src}" alt="${item.title||''}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">`;
+      ? `<video src="${item.src}" muted loop playsinline style="width:100%;height:100%;object-fit:contain;background:transparent;"></video>
+         <span style="position:absolute;top:10px;left:10px;background:rgba(0,0,0,0.65);color:white;font-size:11px;padding:3px 10px;border-radius:50px;">🎥 VIDEO</span>`
+      : `<img src="${item.src}" alt="${item.title||''}" loading="lazy" style="width:100%;height:100%;object-fit:contain;background:transparent;">`;
     return `<div onclick="openGalleryViewer(${item.id})"
-      style="position:relative;cursor:pointer;border-radius:12px;overflow:hidden;
-             width:180px;height:180px;flex-shrink:0;background:#e8f5e9;
-             box-shadow:0 3px 12px rgba(0,0,0,0.12);transition:transform 0.3s,box-shadow 0.3s;"
-      onmouseenter="this.style.transform='scale(1.05)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.2)'"
-      onmouseleave="this.style.transform='';this.style.boxShadow='0 3px 12px rgba(0,0,0,0.12)'">
+      style="position:relative;cursor:pointer;overflow:hidden;
+             width:${CARD}px;height:${cardH}px;flex-shrink:0;background:#e8f5e9;">
       ${media}
-      ${item.title ? `<div style="position:absolute;bottom:0;left:0;right:0;padding:8px 10px;background:linear-gradient(transparent,rgba(0,0,0,0.55));color:white;font-size:11px;font-weight:600;">${sanitiseHTML(item.title)}</div>` : ''}
-      ${item.featured ? '<span style="position:absolute;top:6px;left:6px;background:rgba(255,193,7,0.9);color:#333;font-size:10px;padding:2px 7px;border-radius:50px;font-weight:700;">⭐</span>' : ''}
+      ${item.title ? `<div style="position:absolute;bottom:0;left:0;right:0;padding:14px 18px;background:linear-gradient(transparent,rgba(0,0,0,0.6));color:white;font-size:14px;font-weight:600;">${sanitiseHTML(item.title)}</div>` : ''}
+      ${item.featured ? '<span style="position:absolute;top:10px;right:10px;background:rgba(255,193,7,0.95);color:#333;font-size:11px;padding:3px 10px;border-radius:50px;font-weight:700;">⭐ Featured</span>' : ''}
+
     </div>`;
   }
 
@@ -1814,7 +1853,13 @@ function renderGallery() {
   }
 
   _galScrollTimer = setInterval(slide, 5000);
-  _galSlide = (dir) => slide(pos + dir * CARD);
+  _galSlide = (dir) => {
+    offset += dir * CARD;
+    if (offset < 0) offset = resetAt + offset;
+    if (offset >= resetAt) offset -= resetAt;
+    grid.style.transition = 'transform 0.5s cubic-bezier(0.4,0,0.2,1)';
+    grid.style.transform  = `translateX(-${offset}px)`;
+  };
 
   // Hover: pause
   if (outer) {
@@ -4264,7 +4309,7 @@ function openItemDetail(type, id) {
   // Image
   const imgEl = document.getElementById('itemDetailImg');
   if (item.img) {
-    imgEl.innerHTML = `<img src="${item.img}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='<span style=font-size:80px>${item.emoji}</span>'">`;
+    imgEl.innerHTML = `<img src="${item.img}" alt="${item.name}" style="width:100%;height:100%;object-fit:contain;background:transparent;" onerror="this.parentElement.innerHTML='<span style=font-size:80px>${item.emoji}</span>'">`;
   } else {
     imgEl.innerHTML = `<span style="font-size:80px;">${item.emoji}</span>`;
   }
@@ -4918,7 +4963,7 @@ function previewNewCatKey() {
 function previewNewCatImg(input) {
   const file = input.files[0]; if (!file) return;
   const prev = document.getElementById('newCatImgPreview');
-  if (prev) prev.innerHTML = `<img src="${URL.createObjectURL(file)}" style="width:100%;height:100%;object-fit:cover;">`;
+  if (prev) prev.innerHTML = `<img src="${URL.createObjectURL(file)}" style="width:100%;height:100%;object-fit:contain;background:transparent;">`;
   // Clear emoji when photo selected
   const emojiEl = document.getElementById('newCatEmoji');
   if (emojiEl) emojiEl.value = '';
@@ -4966,7 +5011,7 @@ function openEditCategoryModal(key) {
   // Show current icon preview
   const prev = document.getElementById('editCatImgPreview');
   if (cat.img) {
-    prev.innerHTML = `<img src="${cat.img}" style="width:100%;height:100%;object-fit:cover;">`;
+    prev.innerHTML = `<img src="${cat.img}" style="width:100%;height:100%;object-fit:contain;background:transparent;">`;
   } else {
     prev.innerHTML = `<span style="font-size:40px;">${cat.emoji||'🌿'}</span>`;
   }
@@ -4976,7 +5021,7 @@ function openEditCategoryModal(key) {
 async function handleCatImgUpload(input) {
   const file = input.files[0]; if (!file) return;
   const prev = document.getElementById('editCatImgPreview');
-  prev.innerHTML = `<img src="${URL.createObjectURL(file)}" style="width:100%;height:100%;object-fit:cover;">`;
+  prev.innerHTML = `<img src="${URL.createObjectURL(file)}" style="width:100%;height:100%;object-fit:contain;background:transparent;">`;
   const url = await uploadToStorage(file, 'categories', 'editCatImgProgress');
   if (url) {
     catUploadedImg = url;
