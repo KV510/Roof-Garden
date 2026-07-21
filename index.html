@@ -981,39 +981,75 @@
 </button>
 
 <!-- AUTH MODAL -->
-<div class="modal-overlay" id="loginModal">
+<div class="modal-overlay" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="authModalHeading">
   <div class="modal" style="max-width:460px;">
-    <button class="modal-close" onclick="closeLogin()">✕</button>
-    <div class="tab-switch" style="margin-bottom:20px;">
-      <button class="tab-btn active" id="tabSignin" onclick="switchAuthTab('signin')">Sign In</button>
-      <button class="tab-btn" id="tabRegister" onclick="switchAuthTab('register')">Register</button>
+    <button class="modal-close" onclick="closeLogin()" aria-label="Close">✕</button>
+    <div class="tab-switch" role="tablist" style="margin-bottom:20px;">
+      <button type="button" class="tab-btn active" id="tabSignin" role="tab" aria-selected="true" aria-controls="signinForm" onclick="switchAuthTab('signin')">Sign In</button>
+      <button type="button" class="tab-btn" id="tabRegister" role="tab" aria-selected="false" aria-controls="registerForm" onclick="switchAuthTab('register')">Register</button>
     </div>
-    <div id="signinForm">
-      <h2 style="margin-bottom:4px;">🌿 Welcome Back</h2>
+
+    <div id="signinForm" role="tabpanel" aria-labelledby="tabSignin">
+      <h2 id="authModalHeading" style="margin-bottom:4px;">🌿 Welcome Back</h2>
       <p style="margin-bottom:24px;">Sign in to your GreenTop account</p>
-      <div class="input-wrap"><label>Email</label><input type="email" id="siUser" placeholder="you@example.com" autocomplete="email"></div>
-      <div class="input-wrap"><label>Password</label><input type="password" id="siPass" placeholder="Enter your password" onkeydown="if(event.key==='Enter')doSignIn()"></div>
-      <div class="error-msg" id="siErr">❌ Invalid username or password</div>
-      <button class="btn-submit" onclick="doSignIn()">Sign In</button>
-      <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-light);">Don't have an account? <a href="#" onclick="switchAuthTab('register');return false;" style="color:var(--green-mid);font-weight:600;">Register here</a></p>
+
+      <div class="input-wrap">
+        <label for="siUser">Email</label>
+        <input type="email" id="siUser" name="email" placeholder="you@example.com" autocomplete="email" inputmode="email">
+      </div>
+      <div class="input-wrap">
+        <label for="siPass">Password</label>
+        <input type="password" id="siPass" name="password" placeholder="Enter your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doSignIn()">
+      </div>
+      <div class="error-msg" id="siErr" role="alert">❌ Invalid username or password</div>
+      <button type="button" class="btn-submit" onclick="doSignIn()">Sign In</button>
+      <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-light);">
+        Don't have an account?
+        <a href="#" onclick="switchAuthTab('register');return false;" style="color:var(--green-mid);font-weight:600;">Register here</a>
+      </p>
     </div>
-    <div id="registerForm" style="display:none;">
+
+    <div id="registerForm" role="tabpanel" aria-labelledby="tabRegister" style="display:none;">
       <h2 style="margin-bottom:4px;">🌱 Create Account</h2>
       <p style="margin-bottom:24px;">Join GreenTop Gardens today</p>
-      <div class="input-wrap"><label>Your Name *</label><input type="text" id="regUser" placeholder="e.g. Kavi"></div>
-      <div class="input-wrap"><label>Email *</label><input type="email" id="regEmail" placeholder="you@example.com" autocomplete="email"></div>
-      <div class="input-wrap"><label>WhatsApp Number *</label><input type="tel" id="regWA" placeholder="+91 XXXXX XXXXX"></div>
-      <div class="input-wrap"><label>Location *</label><input type="text" id="regLoc" placeholder="e.g. Peelamedu, Coimbatore"></div>
-      <div class="input-wrap"><label>Password *</label>
-        <div style="position:relative;"><input type="password" id="regPass" placeholder="Create a password" style="width:100%;padding-right:40px;"><span onclick="togglePwd('regPass',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;color:var(--text-light);">👁</span></div>
+
+      <div class="input-wrap">
+        <label for="regUser">Your Name *</label>
+        <input type="text" id="regUser" name="name" placeholder="e.g. Kavi" autocomplete="name" minlength="2">
       </div>
-      <div class="input-wrap"><label>Re-enter Password *</label>
-        <div style="position:relative;"><input type="password" id="regPass2" placeholder="Confirm your password" style="width:100%;padding-right:40px;" onkeydown="if(event.key==='Enter')doRegister()"><span onclick="togglePwd('regPass2',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;color:var(--text-light);">👁</span></div>
+      <div class="input-wrap">
+        <label for="regEmail">Email *</label>
+        <input type="email" id="regEmail" name="email" placeholder="you@example.com" autocomplete="email" inputmode="email">
       </div>
-      <div class="error-msg" id="regErr">❌ Error message</div>
-      <div id="regSuccess" style="display:none;background:#d1fae5;color:#065f46;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:12px;">✅ Account created! You can now sign in.</div>
-      <button class="btn-submit" onclick="doRegister()">Create Account</button>
-      <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-light);">Already have an account? <a href="#" onclick="switchAuthTab('signin');return false;" style="color:var(--green-mid);font-weight:600;">Sign in here</a></p>
+      <div class="input-wrap">
+        <label for="regWA">WhatsApp Number *</label>
+        <input type="tel" id="regWA" name="whatsapp" placeholder="+91 XXXXX XXXXX" autocomplete="tel" inputmode="tel">
+      </div>
+      <div class="input-wrap">
+        <label for="regLoc">Location *</label>
+        <input type="text" id="regLoc" name="location" placeholder="e.g. Peelamedu, Coimbatore" autocomplete="address-level2">
+      </div>
+      <div class="input-wrap">
+        <label for="regPass">Password *</label>
+        <div style="position:relative;">
+          <input type="password" id="regPass" name="new-password" placeholder="Create a password" autocomplete="new-password" minlength="6" style="width:100%;padding-right:40px;">
+          <span onclick="togglePwd('regPass',this)" role="button" tabindex="0" aria-label="Show password" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;color:var(--text-light);">👁</span>
+        </div>
+      </div>
+      <div class="input-wrap">
+        <label for="regPass2">Re-enter Password *</label>
+        <div style="position:relative;">
+          <input type="password" id="regPass2" name="confirm-password" placeholder="Confirm your password" autocomplete="new-password" style="width:100%;padding-right:40px;" onkeydown="if(event.key==='Enter')doRegister()">
+          <span onclick="togglePwd('regPass2',this)" role="button" tabindex="0" aria-label="Show password" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;color:var(--text-light);">👁</span>
+        </div>
+      </div>
+      <div class="error-msg" id="regErr" role="alert">❌ Error message</div>
+      <div id="regSuccess" role="status" style="display:none;background:#d1fae5;color:#065f46;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:12px;">✅ Account created! You can now sign in.</div>
+      <button type="button" class="btn-submit" onclick="doRegister()">Create Account</button>
+      <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-light);">
+        Already have an account?
+        <a href="#" onclick="switchAuthTab('signin');return false;" style="color:var(--green-mid);font-weight:600;">Sign in here</a>
+      </p>
     </div>
   </div>
 </div>
@@ -1149,7 +1185,7 @@
 // SUPABASE — image storage only (free, no card needed)
 // ================================================================
 const SUPABASE_URL    = 'https://yxakwaqvapbxmrtbczdo.supabase.co';
-const SUPABASE_ANON   = 'sb_publishable_DNyD8JgpCgDkOL9BKqZDEA_YEOseL9b';
+const SUPABASE_ANON   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4YWt3YXF2YXBieG1ydGJjemRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMjExMTAsImV4cCI6MjA5NDg5NzExMH0.2TwPU1-IgmYhXNnhyqofsXq0zXcJmH_DEYwTl5oDC0c';
 const SUPABASE_BUCKET = 'images';
 // Supabase uses REST API directly — no SDK needed
 
@@ -1167,8 +1203,14 @@ window.addEventListener('unhandledrejection', e => {
 // SUPABASE — single backend for auth, data, and images.
 // Firebase/Firestore has been fully removed.
 // ================================================================
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-let fbAdminReady = false; // kept as a name so canEdit()/existing checks don't need edits yet
+// Guarded init: if this script ever executes more than once in the same
+// page (stale cache, duplicate <script> injection, etc.), re-declaring
+// with `const` would throw "Identifier has already been declared" and
+// silently kill every function below it — including doSignIn/doRegister.
+// `var` + a window-level cache makes re-execution harmless instead of fatal.
+var supabase = window.__gtSupabaseClient
+  || (window.__gtSupabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON));
+var fbAdminReady = window.__gtAdminReady || false; // kept as a name so canEdit()/existing checks don't need edits yet
 
 // ================================================================
 // FIRESTORE-COMPATIBLE DB SHIM — backed by Supabase Postgres tables.
@@ -2156,6 +2198,11 @@ function openAuthModal(tab) {
     modal.style.display = 'flex';  // force display as backup
     modal.classList.add('open');
     switchAuthTab(tab || 'signin');
+    // Autofocus the first field of the visible tab for faster typing
+    setTimeout(() => {
+      const first = document.getElementById(tab === 'register' ? 'regUser' : 'siUser');
+      if (first) first.focus();
+    }, 50);
   } catch(e) { console.error('openAuthModal error:', e); }
 }
 function closeLogin() {
@@ -2167,9 +2214,12 @@ function closeLogin() {
 }
 function clearAuthForms() {
   ['siUser','siPass','regUser','regWA','regLoc','regPass','regPass2'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-  document.getElementById('siErr').style.display = 'none';
-  document.getElementById('regErr').style.display = 'none';
-  document.getElementById('regSuccess').style.display = 'none';
+  const siErrEl = document.getElementById('siErr');
+  const regErrEl = document.getElementById('regErr');
+  const regSuccessEl = document.getElementById('regSuccess');
+  if (siErrEl) siErrEl.style.display = 'none';
+  if (regErrEl) regErrEl.style.display = 'none';
+  if (regSuccessEl) regSuccessEl.style.display = 'none';
 }
 function switchAuthTab(tab) {
   try {
@@ -2185,6 +2235,8 @@ function switchAuthTab(tab) {
     registerEl.style.display = tab==='register' ? 'block' : 'none';
     tabSigninEl.classList.toggle('active', tab==='signin');
     tabRegisterEl.classList.toggle('active', tab==='register');
+    tabSigninEl.setAttribute('aria-selected', tab==='signin');
+    tabRegisterEl.setAttribute('aria-selected', tab==='register');
     const siErrEl = document.getElementById('siErr');
     const regErrEl = document.getElementById('regErr');
     const regSuccessEl = document.getElementById('regSuccess');
@@ -2197,7 +2249,7 @@ function togglePwd(id, icon) { const i=document.getElementById(id); i.type = i.t
 
 async function doSignIn() {
   const u     = (document.getElementById('siUser').value||'').trim();
-  const p     = (document.getElementById('siPass').value||'').trim();
+  const p     = document.getElementById('siPass').value||'';
   const errEl = document.getElementById('siErr');
   const btn   = document.querySelector('#signinForm .btn-submit');
   errEl.style.display = 'none';
@@ -2206,29 +2258,42 @@ async function doSignIn() {
     errEl.textContent = '⚠️ Please enter your email and password';
     errEl.style.display = 'block'; return;
   }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(u)) {
+    errEl.textContent = '⚠️ Enter a valid email address';
+    errEl.style.display = 'block'; return;
+  }
+  if (btn && btn.disabled) return; // guard against double-submit
 
   if (btn) { btn.textContent = '⏳ Signing in…'; btn.disabled = true; }
 
-  const { data, error } = await supabase.auth.signInWithPassword({ email: u, password: p });
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({ email: u, password: p });
 
-  if (error) {
-    const msg =
-      error.message.includes('Invalid login credentials') ? '❌ Incorrect email or password.' :
-      error.message.includes('Email not confirmed')        ? '❌ Please confirm your email first.' :
-      error.message.toLowerCase().includes('rate limit')   ? '⚠️ Too many attempts. Try again later.' :
-      '❌ Error: ' + error.message;
-    errEl.textContent = msg; errEl.style.display = 'block';
+    if (error) {
+      const msg =
+        error.message.includes('Invalid login credentials') ? '❌ Incorrect email or password.' :
+        error.message.includes('Email not confirmed')        ? '❌ Please confirm your email first.' :
+        error.message.toLowerCase().includes('rate limit')   ? '⚠️ Too many attempts. Try again later.' :
+        '❌ Error: ' + error.message;
+      errEl.textContent = msg; errEl.style.display = 'block';
+      return;
+    }
+
+    // The onAuthStateChange listener (Step 2 block above) picks up the new
+    // session, loads the role from `profiles`, and updates the UI — so this
+    // function just needs to close the modal and confirm success.
+    addActivityLog('auth', '🔑', 'Signed in: ' + data.user.email);
+    closeLogin();
+    showToast('✅ ' + getGreeting() + '!');
+  } catch (e) {
+    console.error('doSignIn error:', e);
+    errEl.textContent = '❌ Network error — please check your connection and try again.';
+    errEl.style.display = 'block';
+  } finally {
+    // Always restore the button, even if signInWithPassword throws instead
+    // of resolving with { error } (e.g. offline/network failure).
     if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
-    return;
   }
-
-  // The onAuthStateChange listener (Step 2 block above) picks up the new
-  // session, loads the role from `profiles`, and updates the UI — so this
-  // function just needs to close the modal and confirm success.
-  addActivityLog('auth', '🔑', 'Signed in: ' + data.user.email);
-  closeLogin();
-  showToast('✅ ' + getGreeting() + '!');
-  if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
 }
 
 async function doRegister() {
@@ -2262,43 +2327,51 @@ async function doRegister() {
   if (pass !== pass2) {
     errEl.textContent = '❌ Passwords do not match'; errEl.style.display = 'block'; return;
   }
+  if (btn && btn.disabled) return; // guard against double-submit
 
   btn.textContent = '⏳ Creating account…'; btn.disabled = true;
 
-  // Create the Supabase Auth account. The `handle_new_user()` trigger from
-  // the Step 1 schema creates the matching `profiles` row automatically —
-  // no separate Firestore/table write needed here for the base record.
-  const { data, error } = await supabase.auth.signUp({
-    email, password: pass,
-    options: { data: { name } }
-  });
+  try {
+    // Create the Supabase Auth account. The `handle_new_user()` trigger from
+    // the Step 1 schema creates the matching `profiles` row automatically —
+    // no separate Firestore/table write needed here for the base record.
+    const { data, error } = await supabase.auth.signUp({
+      email, password: pass,
+      options: { data: { name } }
+    });
 
-  if (error) {
-    const msg =
-      error.message.includes('already registered') ? '❌ This email is already registered.' :
-      error.message.includes('invalid')             ? '❌ Invalid email address.' :
-      error.message.toLowerCase().includes('password') ? '❌ Password too weak. Use at least 6 characters.' :
-      '❌ Registration failed: ' + error.message;
-    errEl.textContent = msg; errEl.style.display = 'block';
+    if (error) {
+      const msg =
+        error.message.includes('already registered') ? '❌ This email is already registered.' :
+        error.message.includes('invalid')             ? '❌ Invalid email address.' :
+        error.message.toLowerCase().includes('password') ? '❌ Password too weak. Use at least 6 characters.' :
+        '❌ Registration failed: ' + error.message;
+      errEl.textContent = msg; errEl.style.display = 'block';
+      return;
+    }
+
+    // Save whatsapp/location onto the profile the trigger just created
+    if (data.user) {
+      const { error: profErr } = await supabase.from('profiles').update({ whatsapp, location }).eq('id', data.user.id);
+      if (profErr) console.warn('[profiles] whatsapp/location save failed:', profErr.message);
+    }
+
+    addActivityLog('auth', '✅', `New customer registered: ${name} (${email})`);
+    document.getElementById('regSuccess').style.display = 'block';
+
+    setTimeout(() => {
+      switchAuthTab('signin');
+      document.getElementById('siUser').value = email;
+      showToast('🎉 Account created! Please sign in.');
+    }, 1500);
+  } catch (e) {
+    console.error('doRegister error:', e);
+    errEl.textContent = '❌ Network error — please check your connection and try again.';
+    errEl.style.display = 'block';
+  } finally {
+    // Always restore the button, even on an unexpected/thrown error.
     btn.textContent = 'Create Account'; btn.disabled = false;
-    return;
   }
-
-  // Save whatsapp/location onto the profile the trigger just created
-  if (data.user) {
-    await supabase.from('profiles').update({ whatsapp, location }).eq('id', data.user.id);
-  }
-
-  addActivityLog('auth', '✅', `New customer registered: ${name} (${email})`);
-  document.getElementById('regSuccess').style.display = 'block';
-
-  setTimeout(() => {
-    switchAuthTab('signin');
-    document.getElementById('siUser').value = email;
-    showToast('🎉 Account created! Please sign in.');
-  }, 1500);
-
-  btn.textContent = 'Create Account'; btn.disabled = false;
 }
 
 async function doLogout() {
